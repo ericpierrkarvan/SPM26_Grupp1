@@ -72,3 +72,28 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# =========================
+# JetBrains Rider 
+# =========================
+
+.idea/
+*.iml
+
+# User-specific files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/shelf/
+
+# Rider-specific
+*.sln.iml
+
+# Logs
+idea.log
+
+# Plugin-specific
+.idea/**/aws.xml
+
+##end rider
