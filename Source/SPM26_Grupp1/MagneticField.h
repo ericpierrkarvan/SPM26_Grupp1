@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "WindForce.generated.h"
+#include "MagneticField.generated.h"
 
 UCLASS()
-class SPM26_GRUPP1_API AWindForce : public AActor
+class SPM26_GRUPP1_API AMagneticField : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AWindForce();
+	AMagneticField();
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,12 +30,15 @@ public:
 	class UStaticMeshComponent* Mesh;
 	
 	// Magnet settings
-	UPROPERTY(EditAnywhere, Category="AAA_WindForce")
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrength = 1500.f;
-	UPROPERTY(EditAnywhere, Category="AAA_WindForce")
-	float StopDistance = 100.f;
-	UPROPERTY(EditAnywhere, Category="AAA_WindForce")
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float StopDistance = 50.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float MaxSpeed = 2000.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float SnapOffSet = 100.f; // avoid played inside the wall
+	
 	
 	// Active player
 	UPROPERTY()
