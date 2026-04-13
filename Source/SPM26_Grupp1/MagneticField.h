@@ -31,7 +31,7 @@ public:
 	
 	// Magnet settings
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float PullStrength = 1500.f;
+	float PullStrength;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float StopDistance = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
@@ -39,6 +39,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
 	
+	bool bIsLocked = false;
 	
 	// Active player
 	UPROPERTY()

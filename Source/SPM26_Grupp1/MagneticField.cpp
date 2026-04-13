@@ -38,23 +38,35 @@ void AMagneticField::Tick(float DeltaTime)
 	
 	if (!TargetCharacter) return;
 	
+	if (TargetCharacter->GetCharacterMovement()->MovementMode != MOVE_Flying && !bIsLocked)
+	{
+		TargetCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	}
+	
 	// Calculate target position
 	FVector MagnetLocation = GetActorLocation();
 	FVector WallNormal = GetActorForwardVector();
+	
 	// position slightly in front of wall
 	FVector TargetPoint = MagnetLocation - WallNormal * SnapOffSet;
+	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
+	
+	PullStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, 500),
+		FVector2D(4,12),
+		FVector::Dist(CurrentPlayerLocation, TargetPoint));
 	
 	// pull toward target
-	FVector PlayerLocation = TargetCharacter->GetActorLocation();
-	FVector Direction = TargetPoint - PlayerLocation;
-	float Distance = Direction.Size();
+	FVector NewLocation = FMath::VInterpTo(CurrentPlayerLocation, TargetPoint, DeltaTime, PullStrength);
+	TargetCharacter->SetActorLocation(NewLocation);
 	
-	Direction.Normalize();
-	// Smooth pull
-	TargetCharacter->AddMovementInput(Direction, 2.f);
+	float Distance = FVector::Dist(NewLocation, TargetPoint);
 	
-	if (Distance <= StopDistance)
+	// Pull in
+	if (Distance <= StopDistance && !bIsLocked)
 	{
+		bIsLocked = true;
+		
+		// Snap to place
 		TargetCharacter->SetActorLocation(TargetPoint);
 		
 		// Face the wall ev.
@@ -66,22 +78,7 @@ void AMagneticField::Tick(float DeltaTime)
 		
 		// Attach to actor ev.
 		// TargetCharacter->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-		
-		TargetCharacter = nullptr;
-		return;
 	}
-	
-	Direction.Normalize();
-	
-	float Strength = PullStrength;
-	
-	// FVector Velocity = Direction * Strength; <-- snaps
-	// Accelerate instead of snap
-	FVector NewVelocity = TargetCharacter->GetCharacterMovement()->Velocity;
-	NewVelocity += Direction * Strength * DeltaTime;
-	NewVelocity = NewVelocity.GetClampedToMaxSize(MaxSpeed);
-	
-	TargetCharacter->GetCharacterMovement()->Velocity = NewVelocity;
 
 }
 
