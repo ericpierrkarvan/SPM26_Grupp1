@@ -2,10 +2,14 @@
 
 
 #include "ProjectileBase.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
 // Sets default values
-AProjectileBase::AProjectileBase()
+AProjectileBase::AProjectileBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	InitialSpeed = 1000.f;
+	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
+	
+	ProjectileMovementComp->InitialSpeed = 800.f;
+	ProjectileMovementComp->MaxSpeed = 2500.f;
 }
 

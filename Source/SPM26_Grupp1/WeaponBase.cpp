@@ -48,7 +48,11 @@ void AWeaponBase::SpawnProjectile()
 
 void AWeaponBase::Fire_Implementation()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Fire_Implementation called. ProjectileClass: %s, Instigator: %s"),
+		ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
+		GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
 	
+	SpawnProjectile();
 }
 
 void AWeaponBase::Reload_Implementation()

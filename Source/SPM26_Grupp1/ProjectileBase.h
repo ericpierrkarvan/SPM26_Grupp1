@@ -13,16 +13,13 @@ class SPM26_GRUPP1_API AProjectileBase : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	AProjectileBase();
+	AProjectileBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
-	class UProjectileMovementComponent* ProjectileMovement;
+	class UProjectileMovementComponent* ProjectileMovementComp;
 	
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
 	class USphereComponent* CollisionComp;
-	
-	UPROPERTY(VisibleAnywhere, Category="Projectile")
-	float InitialSpeed;
 
 };

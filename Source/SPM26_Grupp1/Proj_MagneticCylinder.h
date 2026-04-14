@@ -13,12 +13,12 @@ class SPM26_GRUPP1_API AProj_MagneticCylinder : public AProjectileBase
 	
 public:	
 	// Sets default values for this actor's properties
-	AProj_MagneticCylinder();
+	AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer);
 
 protected:
 
 public:	
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Projectile")
 	UStaticMeshComponent* ProjectileMesh;
 };
