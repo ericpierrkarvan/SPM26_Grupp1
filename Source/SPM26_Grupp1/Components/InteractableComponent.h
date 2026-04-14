@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "InteractableComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, Interactor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteract, AActor*, Interactor, bool, IsOn);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent
@@ -39,5 +39,8 @@ public:
 	// Bind to this function on interact key press
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	void Interact(AActor* Interactor);
-		
+
+	UPROPERTY(EditDefaultsOnly, Category="State")
+	bool bIsOn = false;
+	
 };

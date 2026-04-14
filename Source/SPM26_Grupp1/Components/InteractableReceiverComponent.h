@@ -3,11 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InteractableComponent.h"
 #include "Components/ActorComponent.h"
 #include "InteractableReceiverComponent.generated.h"
-
-
-class UInteractableComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API UInteractableReceiverComponent : public UActorComponent
@@ -18,10 +16,10 @@ public:
 	// Sets default values for this component's properties
 	UInteractableReceiverComponent();
 
-public:	
-	UFUNCTION(BlueprintNativeEvent, Category="Interaction")
-	void OnInteracted(AActor* Interactor);
-	virtual void OnInteracted_Implementation(AActor* Interactor);
+	UPROPERTY(BlueprintAssignable, Category="Interaction")
+	FOnInteract OnActivationChanged;
+
+	AActor* GetTargetActivator() const;
 
 protected:
 	// Called when the game starts
@@ -30,4 +28,7 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, Category="Interaction")
 	AActor* TargetActivator;
+
+	UFUNCTION()
+	void OnInteracted(AActor* Interactor, bool bIsOn);
 };

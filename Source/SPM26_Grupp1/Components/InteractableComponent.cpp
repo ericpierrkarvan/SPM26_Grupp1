@@ -38,7 +38,8 @@ void UInteractableComponent::Interact(AActor* Interactor)
 {
 	if (bIsEnabled)
 	{
-		OnInteract.Broadcast(Interactor);
+		bIsOn = !bIsOn;
+		OnInteract.Broadcast(Interactor, bIsOn);
 		UE_LOG(LogTemp, Warning, TEXT("%s: ACTIVATE"), *GetClass()->GetName())
 	}
 }

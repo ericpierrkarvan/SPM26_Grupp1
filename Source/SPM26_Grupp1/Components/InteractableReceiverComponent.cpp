@@ -16,6 +16,11 @@ UInteractableReceiverComponent::UInteractableReceiverComponent()
 }
 
 
+AActor* UInteractableReceiverComponent::GetTargetActivator() const
+{
+	return TargetActivator;
+}
+
 // Called when the game starts
 void UInteractableReceiverComponent::BeginPlay()
 {
@@ -23,15 +28,18 @@ void UInteractableReceiverComponent::BeginPlay()
 
 	if (TargetActivator)
 	{
-		if (UInteractableComponent* Comp = TargetActivator->FindComponentByClass<UInteractableComponent>())
+		if (UInteractableComponent* Comp =
+			TargetActivator->FindComponentByClass<UInteractableComponent>())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s: bind OK"), *GetClass()->GetName())
-			Comp->OnInteract.AddDynamic(this, &UInteractableReceiverComponent::OnInteracted);
+			Comp->OnInteract.AddDynamic(this,
+				&UInteractableReceiverComponent::OnInteracted);
 		}
 	}
 }
 
-void UInteractableReceiverComponent::OnInteracted_Implementation(AActor* Interactor)
+void UInteractableReceiverComponent::OnInteracted(AActor* Interactor, bool bIsOn)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Interacted! By: %s"), *Interactor->GetName());
+	OnActivationChanged.Broadcast(Interactor, bIsOn);
+	UE_LOG(LogTemp, Warning, TEXT("%s: my state is = %i "), *GetClass()->GetName(), bIsOn)
 }
