@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "InteractableComponent.generated.h"
 
+class UWidgetComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteract, AActor*, Interactor, bool, IsOn);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -42,5 +43,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="State")
 	bool bIsOn = false;
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	void ShowPrompt() const;
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	void HidePrompt() const;
+
+private:
+	UPROPERTY()
+	UWidgetComponent* PromptWidget;
+
+	UPROPERTY(EditDefaultsOnly, Category="Interaction")
+	TSubclassOf<UUserWidget> PromptWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	FVector PromptOffset = FVector(0.f, 0.f, 50.f);
 	
 };
