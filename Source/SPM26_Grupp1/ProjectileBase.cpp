@@ -11,5 +11,8 @@ AProjectileBase::AProjectileBase(const FObjectInitializer& ObjectInitializer) : 
 	
 	ProjectileMovementComp->InitialSpeed = 800.f;
 	ProjectileMovementComp->MaxSpeed = 2500.f;
+	ProjectileMovementComp->bShouldBounce = false;
+	ProjectileMovementComp->bSimulationEnabled = true;
+	ProjectileMovementComp->ProjectileGravityScale = 0.f;
 }
 

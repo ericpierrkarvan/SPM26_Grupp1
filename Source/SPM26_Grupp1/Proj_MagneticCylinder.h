@@ -17,8 +17,17 @@ public:
 
 protected:
 
-public:	
+	UPROPERTY(EditDefaultsOnly, Category="Projectile")
+	TSubclassOf<AActor> ImpactActorClass;
 	
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	UStaticMeshComponent* ProjectileMesh;
+	
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
+		const FHitResult& Hit);
+	
+	UFUNCTION()
+	void OnProjectileStopped(const FHitResult& ImpactResult);
 };
