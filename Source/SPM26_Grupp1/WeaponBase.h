@@ -26,10 +26,13 @@ protected:
 	TSubclassOf<class AProjectileBase> ProjectileClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	float FireRate = 0.1f;
+	float FireRate;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	USkeletalMeshComponent* WeaponMesh;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	FName MuzzleSocketName = "MuzzleSocket";
 	
 	/*
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")

@@ -2,26 +2,62 @@
 
 
 #include "WeaponBase.h"
+#include "ProjectileBase.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
+	FireRate = 0.1f;
 }
 
-// Called when the game starts or when spawned
-void AWeaponBase::BeginPlay()
+void AWeaponBase::SpawnProjectile()
 {
-	Super::BeginPlay();
+	if (!ProjectileClass) return;
+	
+	// Get player holding the weapon
+	APawn* InstigatingPawn = GetInstigator();
+	if (!InstigatingPawn) return;
+	
+	// Use controller aim-rotation to respect camera/crosshair direction
+	AController* Controller = InstigatingPawn->GetController();
+	if (!Controller) return;
+	
+	// Spawn-parameters when eventual Muzzle implemented
+	// FVector SpawnLocation = WeaponMesh->GetSocketLocation("MuzzleSocket");
+	// FRotator SpawnRotation = WeaponMesh->GetSocketRotation("MuzzleSocket");
+	FVector SpawnLocation;
+	FRotator SpawnRotation;
+	Controller->GetPlayerViewPoint(SpawnLocation, SpawnRotation);
+	
+	// offset forward so projectile spawn in front of player
+	const float SpawnForwardOffset = 100.f;
+	SpawnLocation += SpawnRotation.Vector() * SpawnForwardOffset;
+	
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+	Params.Instigator = InstigatingPawn;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+	GetWorld()->SpawnActor<AProjectileBase>(
+		ProjectileClass,
+		SpawnLocation,
+		SpawnRotation,
+		Params
+		);
+}
+
+void AWeaponBase::Fire_Implementation()
+{
 	
 }
 
-// Called every frame
-void AWeaponBase::Tick(float DeltaTime)
+void AWeaponBase::Reload_Implementation()
 {
-	Super::Tick(DeltaTime);
+	
+}
 
+bool AWeaponBase::CanFire_Implementation() const
+{
+	return true;
 }
 

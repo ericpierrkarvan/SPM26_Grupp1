@@ -23,6 +23,6 @@ protected:
 	class USphereComponent* CollisionComp;
 	
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
-	float InitialSpeed = 1000.f;
+	float InitialSpeed;
 
 };
