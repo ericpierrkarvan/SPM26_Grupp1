@@ -8,24 +8,23 @@
 // Sets default values
 AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
-	ProjectileMesh->SetupAttachment(CollisionComp);
+	RootComponent = ProjectileMesh;
 	
 	// Can override
 	// ProjectileMovementComp->InitialSpeed = 777;
 	// ProjectileMovementComp->MaxSpeed = ...;
 	
 	// generates hit events
-	CollisionComp->SetNotifyRigidBodyCollision(true); 
+	ProjectileMesh->SetNotifyRigidBodyCollision(true); 
 	// Enable collision events on mesh
-	CollisionComp->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CollisionComp->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ProjectileMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	
 	// Bind hit event
-	CollisionComp->OnComponentHit.AddDynamic(this, &AProj_MagneticCylinder::OnHit);
-	UE_LOG(LogTemp, Warning, TEXT("OnHit bound to ProjectileMesh"));
+	// ProjectileMesh->OnComponentHit.AddDynamic(this, &AProj_MagneticCylinder::OnHit);
+	// UE_LOG(LogTemp, Warning, TEXT("OnHit bound to ProjectileMesh"));
 	
 	// OnProjectileStop instead of OnHit because bugging
 	if (ProjectileMovementComp)
@@ -53,7 +52,6 @@ void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 		// Spawn actor at hit location, aligned to the surface normal
 		FRotator SpawnRotation = Hit.ImpactPoint.Rotation();
 		FVector SpawnLocation = Hit.ImpactPoint;
-		
 		
 		FActorSpawnParameters Params;
 		Params.Owner = GetOwner();
