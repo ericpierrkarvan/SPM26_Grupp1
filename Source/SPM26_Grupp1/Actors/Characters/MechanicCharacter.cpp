@@ -9,7 +9,7 @@
 AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
-	
+	GetMechanicMovementComponent()->JumpZVelocity = JumpPower;
 }
 
 void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -18,7 +18,8 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
+		
+		
 		//Todo: Kanske behöver binda till en egen jump?
 	}
 }
@@ -26,4 +27,9 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
 {
 	return Cast<UMechanicMovementComponent>(GetCharacterMovement());
+}
+
+void AMechanicCharacter::MechanicDoubleJump()
+{
+	//Ska implementeras
 }

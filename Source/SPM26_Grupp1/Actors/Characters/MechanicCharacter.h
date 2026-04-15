@@ -19,9 +19,7 @@ class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> IA_Jump;
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
+	void MechanicDoubleJump();
 };
