@@ -14,7 +14,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Sphere"));
+	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	RootComponent = Capsule;
 	Capsule->SetCapsuleSize(50, 250);
 	
@@ -38,25 +38,24 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (!TargetCharacter) return;
+	if (!IsValid(TargetCharacter)) return;
 	
-	//if (TargetCharacter->GetCharacterMovement()->MovementMode != MOVE_Flying && !bIsLocked)
-	//{
-	//	TargetCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	//}
-	
-	// Calculate target position
-	
-	FVector CapsuleLocation = Capsule->GetComponentLocation();
-	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-	CapsuleHeight = HalfHeight * 2;
+	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
+	if (!IsValid(MovComp)) return;
 	
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
-	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
-	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
+	FVector CapsuleLocation = Capsule->GetComponentLocation();
 	
+	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
+	CapsuleHeight = HalfHeight * 2;
+	
+	// Offset so character aligns correctly in capsule collider
 	// MagnetTarget = Top of capsule
-	FVector MagnetTarget = CapsuleLocation + FVector(0, 0, MagnetTargetZOffSet);
+	// CapsuleUp gets local up axis (regardless of orientation)
+	FVector CapsuleUp = Capsule->GetUpVector();
+	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
+	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
 	
 	/*
 	 * "Take distance between player and target, convert it into a value between MinPullForce and MaxPullForce."
@@ -69,10 +68,6 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		FVector2D(MinPullForce,MaxPullForce),
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
 	
-	// pull toward target
-	//FVector NewLocation = FMath::VInterpTo(CurrentPlayerLocation, MagnetTarget, DeltaTime, PullStrength);
-	//TargetCharacter->SetActorLocation(NewLocation);
-	
 	// Pull toward target
 	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
 	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
@@ -80,14 +75,22 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
 	// Hit magnet -> suspend movement
-	if (DistanceToTarget <= StopDistance && !bIsLocked)
+	if (DistanceToTarget <= StopDistance && !bIsLocked && IsValid(TargetCharacter))
 	{
 		bIsLocked = true;
 		
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
+		
+		if (!MovComp) return;
+		
+		// Zero out residual velocity before disabling movement
+		MovComp->StopMovementImmediately();
+		
+		// MovComp->GravityScale = 0.f;
+		
 		// Lock movement
-		TargetCharacter->GetCharacterMovement()->DisableMovement();
+		MovComp->DisableMovement();
 	}
 
 }
@@ -100,7 +103,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	const FHitResult& SweepResult)
 {
 	
-	UE_LOG(LogTemp, Warning, TEXT("Overlap triggered"));
+	// UE_LOG(LogTemp, Warning, TEXT("Overlap triggered"));
 	
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
 	if (Character)
