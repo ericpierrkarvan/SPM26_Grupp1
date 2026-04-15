@@ -86,10 +86,58 @@ void ASPMCharacter::Interact(const FInputActionValue& Value)
 	//todo: interact
 }
 
+void ASPMCharacter::LookForInteractables(float DeltaTime)
+{
+	FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
+	FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
+
+	FHitResult HitResult;
+	FCollisionShape BoxShape = FCollisionShape::MakeBox(InteractBoxSize);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	Params.bTraceComplex = false;
+
+	//todo: proper trace channel
+	bool bHit = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		GetActorQuat(),
+		ECC_Visibility,
+		BoxShape,
+		Params
+	);
+	
+	if (bDisplayInteractBoxTrace)
+	{
+		//draw at End when no hit, at impact location when hit
+		FVector DrawLocation = bHit ? HitResult.Location : End;
+		FColor  DrawColor    = bHit ? FColor::Green : FColor::Red;
+
+		DrawDebugBox(
+			GetWorld(),
+			DrawLocation,
+			InteractBoxSize,
+			GetActorQuat(),
+			DrawColor,
+			false, -1.f 
+		);
+	}
+	
+	if (bHit)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		
+	}
+}
+
 // Called every frame
 void ASPMCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	LookForInteractables(DeltaTime);
 
 }
 

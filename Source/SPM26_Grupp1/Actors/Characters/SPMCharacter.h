@@ -50,6 +50,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Interact;
 
+	//Interact
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
+	bool bDisplayInteractBoxTrace = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
+	FVector InteractBoxSize = FVector(25.f, 35.f, 40.f);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
+	float InteractBoxDistance = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
+	float InteractBoxStartOffset = 50.f;
+	
+
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -62,4 +73,5 @@ private:
 	virtual void Look(const FInputActionValue& Value);
 	virtual void Interact(const FInputActionValue& Value);
 
+	void LookForInteractables(float DeltaTime);
 };
