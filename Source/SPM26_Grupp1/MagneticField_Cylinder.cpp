@@ -14,7 +14,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Sphere"));
+	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	RootComponent = Capsule;
 	Capsule->SetCapsuleSize(50, 250);
 	
@@ -40,22 +40,16 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	
 	if (!TargetCharacter) return;
 	
-	//if (TargetCharacter->GetCharacterMovement()->MovementMode != MOVE_Flying && !bIsLocked)
-	//{
-	//	TargetCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	//}
-	
-	// Calculate target position
-	
+	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
 	FVector CapsuleLocation = Capsule->GetComponentLocation();
+	
 	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
 	CapsuleHeight = HalfHeight * 2;
 	
-	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
-	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
-	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
-	
+	// Offset so character aligns correctly in capsule collider
 	// MagnetTarget = Top of capsule
+	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
 	FVector MagnetTarget = CapsuleLocation + FVector(0, 0, MagnetTargetZOffSet);
 	
 	/*
@@ -69,10 +63,6 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		FVector2D(MinPullForce,MaxPullForce),
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
 	
-	// pull toward target
-	//FVector NewLocation = FMath::VInterpTo(CurrentPlayerLocation, MagnetTarget, DeltaTime, PullStrength);
-	//TargetCharacter->SetActorLocation(NewLocation);
-	
 	// Pull toward target
 	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
 	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
@@ -83,7 +73,6 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	if (DistanceToTarget <= StopDistance && !bIsLocked)
 	{
 		bIsLocked = true;
-		
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
 		// Lock movement
