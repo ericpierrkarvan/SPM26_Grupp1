@@ -6,7 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "InteractableComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, Interactor);
+class UWidgetComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteract, AActor*, Interactor, bool, IsOn);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent
@@ -39,5 +40,24 @@ public:
 	// Bind to this function on interact key press
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	void Interact(AActor* Interactor);
-		
+
+	UPROPERTY(EditDefaultsOnly, Category="State")
+	bool bIsOn = false;
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	void ShowPrompt() const;
+	
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	void HidePrompt() const;
+
+private:
+	UPROPERTY()
+	UWidgetComponent* PromptWidget;
+
+	UPROPERTY(EditDefaultsOnly, Category="Interaction")
+	TSubclassOf<UUserWidget> PromptWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	FVector PromptOffset = FVector(0.f, 0.f, 50.f);
+	
 };
