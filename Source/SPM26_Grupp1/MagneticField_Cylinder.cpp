@@ -39,6 +39,7 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	if (!IsValid(TargetCharacter)) return;
+	
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!IsValid(MovComp)) return;
 	
@@ -51,8 +52,10 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	
 	// Offset so character aligns correctly in capsule collider
 	// MagnetTarget = Top of capsule
+	// CapsuleUp gets local up axis (regardless of orientation)
+	FVector CapsuleUp = Capsule->GetUpVector();
 	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
-	FVector MagnetTarget = CapsuleLocation + FVector(0, 0, MagnetTargetZOffSet);
+	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
 	
 	/*
 	 * "Take distance between player and target, convert it into a value between MinPullForce and MaxPullForce."

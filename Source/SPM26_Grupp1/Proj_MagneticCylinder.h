@@ -31,5 +31,6 @@ protected:
 	UFUNCTION()
 	void OnProjectileStopped(const FHitResult& ImpactResult);
 	
-	void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
+	void AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
+
 };
