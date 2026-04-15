@@ -52,6 +52,7 @@ void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 		FRotator SpawnRotation = Hit.ImpactPoint.Rotation();
 		FVector SpawnLocation = Hit.ImpactPoint;
 		
+		
 		FActorSpawnParameters Params;
 		Params.Owner = GetOwner();
 		Params.Instigator = GetInstigator();
@@ -71,13 +72,28 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 	if (ImpactActorClass)
 	{
 		FRotator SpawnRotation = ImpactResult.ImpactNormal.Rotation();
-		FVector  SpawnLocation = ImpactResult.ImpactPoint;
+		// Offset to compensate for cylinder being built along Z axis
+		SpawnRotation += FRotator(90.f, 0.f, 0.f);
+		FVector SpawnLocation = ImpactResult.ImpactPoint;
 
 		FActorSpawnParameters Params;
-		Params.Owner      = GetOwner();
+		Params.Owner = GetOwner();
 		Params.Instigator = GetInstigator();
 
-		GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
+		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
+		
+		if (SpawnedActor)
+		{
+			// Box size of the spawned actor
+			FVector Origin;
+			FVector BoxExtent;
+			SpawnedActor->GetActorBounds(false, Origin, BoxExtent);
+
+			// Offset along the surface normal by half the actor's size
+			// so it sits flush on the surface rather than clipping into it
+			FVector Normal = ImpactResult.ImpactNormal;
+			SpawnedActor->SetActorLocation(SpawnLocation + Normal * BoxExtent.Z);
+		}
 	}
 
 	Destroy();
