@@ -30,4 +30,7 @@ protected:
 	
 	UFUNCTION()
 	void OnProjectileStopped(const FHitResult& ImpactResult);
+	
+	void AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
+
 };
