@@ -38,7 +38,9 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (!TargetCharacter) return;
+	if (!IsValid(TargetCharacter)) return;
+	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
+	if (!IsValid(MovComp)) return;
 	
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
 	FVector CapsuleLocation = Capsule->GetComponentLocation();
@@ -70,13 +72,22 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
 	// Hit magnet -> suspend movement
-	if (DistanceToTarget <= StopDistance && !bIsLocked)
+	if (DistanceToTarget <= StopDistance && !bIsLocked && IsValid(TargetCharacter))
 	{
 		bIsLocked = true;
+		
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
+		
+		if (!MovComp) return;
+		
+		// Zero out residual velocity before disabling movement
+		MovComp->StopMovementImmediately();
+		
+		// MovComp->GravityScale = 0.f;
+		
 		// Lock movement
-		TargetCharacter->GetCharacterMovement()->DisableMovement();
+		MovComp->DisableMovement();
 	}
 
 }
@@ -89,7 +100,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	const FHitResult& SweepResult)
 {
 	
-	UE_LOG(LogTemp, Warning, TEXT("Overlap triggered"));
+	// UE_LOG(LogTemp, Warning, TEXT("Overlap triggered"));
 	
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
 	if (Character)

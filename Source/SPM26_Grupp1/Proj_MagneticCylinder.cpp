@@ -39,6 +39,7 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	
 }
 
+// Didn't get to work. Use OnProjectileStopped for the moment.
 void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 		const FHitResult& Hit)
@@ -82,23 +83,37 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 
 		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
 		
-		if (SpawnedActor)
-		{
-			// Box size of the spawned actor
-			FVector Origin;
-			FVector BoxExtent;
-			SpawnedActor->GetActorBounds(false, Origin, BoxExtent);
-
-			// Offset along the surface normal by half the actor's size
-			// so it sits flush on the surface rather than clipping into it
-			FVector Normal = ImpactResult.ImpactNormal;
-			SpawnedActor->SetActorLocation(SpawnLocation + Normal * BoxExtent.Z);
-		}
+		AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
+		
 	}
 
 	Destroy();
 }
 
+void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation)
+{
+	if (SpawnedActor)
+	{
+		// Box size of the spawned actor
+		FVector Origin;
+		FVector BoxExtent;
+		SpawnedActor->GetActorBounds(false, Origin, BoxExtent);
+
+		// Offset along the surface normal by half the actor's size
+		// so it sits flush on the surface rather than clipping into it
+		FVector Normal = ImpactResult.ImpactNormal;
+			
+		// OffSet projects BoxExtent to surface normal
+		// Gives correct offset regardless of surface angle (floor, wall etc)
+		// DotProduct(...) measure how much of the bounding box extends in the direction of surface normal
+		// Ie floor normal(0,0,1) picks up BoxExtent.Z
+		// wall normal (1,0,0) picks up BoxExtent.X
+		// mixed angle blends the values
+		float OffSetDistance = FMath::Abs(FVector::DotProduct(BoxExtent, Normal));
+			
+		SpawnedActor->SetActorLocation(SpawnLocation + Normal * OffSetDistance);
+	}
+}
 
 
 

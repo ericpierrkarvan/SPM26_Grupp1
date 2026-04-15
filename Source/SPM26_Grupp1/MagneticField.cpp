@@ -51,6 +51,7 @@ void AMagneticField::Tick(float DeltaTime)
 	FVector TargetPoint = MagnetLocation - WallNormal * SnapOffSet;
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
 	
+	 
 	PullStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, 500),
 		FVector2D(4,12),
 		FVector::Dist(CurrentPlayerLocation, TargetPoint));
