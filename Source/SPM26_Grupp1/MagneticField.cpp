@@ -51,6 +51,13 @@ void AMagneticField::Tick(float DeltaTime)
 	FVector TargetPoint = MagnetLocation - WallNormal * SnapOffSet;
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
 	
+		/*
+	 * "Take distance between player and target, convert it into a value between MinPullForce and MaxPullForce."
+	 * if minpull = 4, maxpull = 12:
+	 * distance = 0 -> PullStrength = 4
+	 * distance = Maximum -> PullStrength = 12
+	 * distance = Halfway there -> PullStrength = 8
+	 */ 
 	PullStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, 500),
 		FVector2D(4,12),
 		FVector::Dist(CurrentPlayerLocation, TargetPoint));
