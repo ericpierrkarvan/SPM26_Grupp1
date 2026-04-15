@@ -11,6 +11,7 @@
 
 #include "SPMCharacter.generated.h"
 
+class UInteractableComponent;
 class USPMCharacterMovementComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -74,4 +75,7 @@ private:
 	virtual void Interact(const FInputActionValue& Value);
 
 	void LookForInteractables(float DeltaTime);
+
+	UPROPERTY()
+	TObjectPtr<UInteractableComponent> InteractableTargetComp;
 };

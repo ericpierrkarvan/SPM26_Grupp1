@@ -8,6 +8,7 @@
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "SPM26_Grupp1/Components/InteractableComponent.h"
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
@@ -83,7 +84,10 @@ void ASPMCharacter::Look(const FInputActionValue& Value)
 
 void ASPMCharacter::Interact(const FInputActionValue& Value)
 {
-	//todo: interact
+	if (InteractableTargetComp)
+	{
+		InteractableTargetComp->Interact(this);
+	}
 }
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
@@ -127,8 +131,57 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	
 	if (bHit)
 	{
-		AActor* HitActor = HitResult.GetActor();
-		
+		if (bHit)
+		{
+			AActor* HitActor = HitResult.GetActor();
+
+			if (HitActor)
+			{
+				if (UInteractableComponent* InteractableComp = Cast<UInteractableComponent>(HitActor->GetComponentByClass(UInteractableComponent::StaticClass())))
+				{
+					//we found something to interact with
+					InteractableTargetComp = InteractableComp;
+					InteractableTargetComp->ShowPrompt();
+				}
+				else
+				{
+					//if we have previously seen a interactable
+					if (InteractableTargetComp)
+					{
+						InteractableTargetComp->HidePrompt();
+						InteractableTargetComp = nullptr;
+					}
+				}
+			}
+			else
+			{
+				//no valid actor, but we have a previous prompt so hide it
+				if (InteractableTargetComp)
+				{
+					InteractableTargetComp->HidePrompt();
+					InteractableTargetComp = nullptr;
+				}
+			}
+		}
+		else
+		{
+			//no interactable object found
+
+			if (InteractableTargetComp)
+			{
+				InteractableTargetComp->HidePrompt();
+				InteractableTargetComp = nullptr;
+			}
+			
+		}
+	}else
+	{
+		//no hit, but we have a previous target
+		if (InteractableTargetComp)
+		{
+			InteractableTargetComp->HidePrompt();
+			InteractableTargetComp = nullptr;
+		}
 	}
 }
 
