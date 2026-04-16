@@ -38,6 +38,7 @@ void AWeaponBase::SpawnProjectile()
 	Params.Instigator = InstigatingPawn;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	
+	// Spawns the projectile
 	GetWorld()->SpawnActor<AProjectileBase>(
 		ProjectileClass,
 		SpawnLocation,

@@ -11,9 +11,7 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
 	RootComponent = ProjectileMesh;
 	
-	// Can override
-	// ProjectileMovementComp->InitialSpeed = 777;
-	// ProjectileMovementComp->MaxSpeed = ...;
+	SpawnedMagneticFieldDuration = 5.f;
 	
 	// generates hit events
 	ProjectileMesh->SetNotifyRigidBodyCollision(true); 
@@ -82,6 +80,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 		Params.Instigator = GetInstigator();
 
 		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
+		SpawnedActor->SetLifeSpan(SpawnedMagneticFieldDuration);
 		
 		AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
 	}

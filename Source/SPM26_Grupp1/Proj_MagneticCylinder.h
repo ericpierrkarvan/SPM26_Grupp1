@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	UStaticMeshComponent* ProjectileMesh;
 	
+	UPROPERTY(EditAnywhere, Category="Projectile")
+	float SpawnedMagneticFieldDuration;
+	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
