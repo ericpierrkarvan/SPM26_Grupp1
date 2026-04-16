@@ -9,7 +9,6 @@
 AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
-	GetMechanicMovementComponent()->JumpZVelocity = JumpPower;
 }
 
 void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

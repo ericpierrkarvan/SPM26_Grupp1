@@ -63,9 +63,6 @@ protected:
 	float InteractBoxDistance = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Controls")
-	float JumpPower = 100.0f;
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))

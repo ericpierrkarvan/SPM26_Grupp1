@@ -3,3 +3,8 @@
 
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 
+
+USPMCharacterMovementComponent::USPMCharacterMovementComponent()
+{
+	JumpZVelocity = JumpPower;
+}

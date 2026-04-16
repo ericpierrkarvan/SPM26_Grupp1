@@ -13,5 +13,12 @@ UCLASS()
 class SPM26_GRUPP1_API USPMCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+	USPMCharacterMovementComponent();
+
+protected:
+	UPROPERTY
+	(EditAnywhere, BlueprintReadWrite, Category = "Movement Controls")
+	float JumpPower = 100.0f;
 };
