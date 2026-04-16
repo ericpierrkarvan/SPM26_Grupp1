@@ -25,11 +25,12 @@ void AWeaponBase::SpawnProjectile()
 	// Spawn-parameters when eventual Muzzle implemented
 	// FVector SpawnLocation = WeaponMesh->GetSocketLocation("MuzzleSocket");
 	// FRotator SpawnRotation = WeaponMesh->GetSocketRotation("MuzzleSocket");
-	FRotator SpawnRotation = SetDirectionOfSpawnedProjectile(Controller);
-	FVector SpawnLocation = SetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
+	
+	FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(Controller);
+	FVector SpawnLocationOfSpawnedProjectile = SetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
 	
 	// Assigns spawn parameters and creates the projectile
-	SpawnProjectileInstance(InstigatingPawn, SpawnLocation, SpawnRotation);
+	SpawnProjectileInstance(InstigatingPawn, SpawnLocationOfSpawnedProjectile, DirectionOfSpawnedProjectile);
 	
 }
 
