@@ -1,16 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-
-#include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<URobotMovementComponent>(
 		ACharacter::CharacterMovementComponentName))
 {
-	GetRobotMovementComponent()->JumpZVelocity = JumpPower;
+	
 }
 
 void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -29,7 +28,7 @@ URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 
 void ARobotCharacter::Dash()
 {
-	FVector DashVector = GetActorForwardVector() * DashPower;
+	FVector DashVector = (GetActorForwardVector() + FVector(0, 0, 0.05f)) * DashPower;
 	LaunchCharacter(DashVector, false, false);
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }
