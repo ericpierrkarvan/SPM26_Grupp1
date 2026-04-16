@@ -10,6 +10,7 @@
  * 
  */
 class URobotMovementComponent;
+
 UCLASS()
 class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 {
@@ -19,11 +20,16 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
+
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 
 	void Dash();
+
+	UPROPERTY(EditAnywhere, Category = "Movement Controls")
+	float DashPower = 100.0f;
 };

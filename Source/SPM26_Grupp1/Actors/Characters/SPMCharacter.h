@@ -11,6 +11,7 @@
 
 #include "SPMCharacter.generated.h"
 
+class UInteractableComponent;
 class USPMCharacterMovementComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -50,6 +51,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Interact;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Jump;
+	
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
 	bool bDisplayInteractBoxTrace = false;
@@ -60,7 +64,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
 	
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Controls")
+	float JumpPower = 100.0f;
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -74,4 +79,9 @@ private:
 	virtual void Interact(const FInputActionValue& Value);
 
 	void LookForInteractables(float DeltaTime);
+
+	UPROPERTY()
+	TObjectPtr<UInteractableComponent> InteractableTargetComp;
+	
+
 };
