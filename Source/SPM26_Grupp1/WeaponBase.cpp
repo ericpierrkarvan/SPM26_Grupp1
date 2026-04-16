@@ -46,9 +46,9 @@ void AWeaponBase::SpawnProjectile()
 		);
 }
 
-void AWeaponBase::Fire_Implementation()
+void AWeaponBase::Shoot_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Fire_Implementation called. ProjectileClass: %s, Instigator: %s"),
+	UE_LOG(LogTemp, Warning, TEXT("Shoot_Implementation called. ProjectileClass: %s, Instigator: %s"),
 		ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
 		GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
 	
@@ -60,7 +60,7 @@ void AWeaponBase::Reload_Implementation()
 	
 }
 
-bool AWeaponBase::CanFire_Implementation() const
+bool AWeaponBase::CanShoot_Implementation() const
 {
 	return true;
 }
