@@ -131,31 +131,19 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	
 	if (bHit)
 	{
-		if (bHit)
-		{
-			AActor* HitActor = HitResult.GetActor();
+		AActor* HitActor = HitResult.GetActor();
 
-			if (HitActor)
+		if (HitActor)
+		{
+			if (UInteractableComponent* InteractableComp = Cast<UInteractableComponent>(HitActor->GetComponentByClass(UInteractableComponent::StaticClass())))
 			{
-				if (UInteractableComponent* InteractableComp = Cast<UInteractableComponent>(HitActor->GetComponentByClass(UInteractableComponent::StaticClass())))
-				{
-					//we found something to interact with
-					InteractableTargetComp = InteractableComp;
-					InteractableTargetComp->ShowPrompt();
-				}
-				else
-				{
-					//if we have previously seen a interactable
-					if (InteractableTargetComp)
-					{
-						InteractableTargetComp->HidePrompt();
-						InteractableTargetComp = nullptr;
-					}
-				}
+				//we found something to interact with
+				InteractableTargetComp = InteractableComp;
+				InteractableTargetComp->ShowPrompt();
 			}
 			else
 			{
-				//no valid actor, but we have a previous prompt so hide it
+				//if we have previously seen a interactable
 				if (InteractableTargetComp)
 				{
 					InteractableTargetComp->HidePrompt();
@@ -165,18 +153,18 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		}
 		else
 		{
-			//no interactable object found
-
+			//no valid actor, but we have a previous prompt so hide it
 			if (InteractableTargetComp)
 			{
 				InteractableTargetComp->HidePrompt();
 				InteractableTargetComp = nullptr;
 			}
-			
 		}
-	}else
+	}
+	else
 	{
-		//no hit, but we have a previous target
+		//no interactable object found
+
 		if (InteractableTargetComp)
 		{
 			InteractableTargetComp->HidePrompt();
