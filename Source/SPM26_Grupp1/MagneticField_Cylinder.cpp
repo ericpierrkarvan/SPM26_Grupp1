@@ -43,19 +43,9 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!IsValid(MovComp)) return;
 	
+	// Calculates the Top of Capsule where objects are drawn to.
+	FVector MagnetTarget = CalculateMagnetCenterPoint(); 
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
-	FVector CapsuleLocation = Capsule->GetComponentLocation();
-	
-	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
-	CapsuleHeight = HalfHeight * 2;
-	
-	// Offset so character aligns correctly in capsule collider
-	// MagnetTarget = Top of capsule
-	// CapsuleUp gets local up axis (regardless of orientation)
-	FVector CapsuleUp = Capsule->GetUpVector();
-	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
-	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
 	
 	/*
 	 * "Take distance between player and target, convert it into a value between MinPullForce and MaxPullForce."
@@ -68,7 +58,7 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		FVector2D(MinPullForce,MaxPullForce),
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
 	
-	// Pull toward target
+	// Direction of pull -> pull toward target
 	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
 	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
 	
@@ -82,17 +72,33 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
 		
-		if (!MovComp) return;
-		
 		// Zero out residual velocity before disabling movement
-		MovComp->StopMovementImmediately();
-		
-		// MovComp->GravityScale = 0.f;
-		
 		// Lock movement
+		if (!MovComp) return;
+		MovComp->StopMovementImmediately();
 		MovComp->DisableMovement();
 	}
 
+}
+
+// Calculates center point where objects are pulled toward.
+FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
+{
+	
+	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
+	CapsuleHeight = HalfHeight * 2;
+	
+	// Offset so character aligns correctly in capsule collider
+	// MagnetTarget = Top of capsule
+	// CapsuleUp gets local up axis (regardless of orientation)
+	FVector CapsuleUp = Capsule->GetUpVector();
+	FVector CapsuleLocation = Capsule->GetComponentLocation();
+	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
+	
+	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
+	
+	return MagnetTarget;
 }
 
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
