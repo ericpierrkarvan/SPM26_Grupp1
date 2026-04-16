@@ -25,20 +25,42 @@ void AWeaponBase::SpawnProjectile()
 	// Spawn-parameters when eventual Muzzle implemented
 	// FVector SpawnLocation = WeaponMesh->GetSocketLocation("MuzzleSocket");
 	// FRotator SpawnRotation = WeaponMesh->GetSocketRotation("MuzzleSocket");
-	FVector SpawnLocation;
-	FRotator SpawnRotation;
-	Controller->GetPlayerViewPoint(SpawnLocation, SpawnRotation);
+	FRotator SpawnRotation = SetDirectionOfSpawnedProjectile(Controller);
+	FVector SpawnLocation = SetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
 	
-	// offset forward so projectile spawn in front of player
-	const float SpawnForwardOffset = 100.f;
-	SpawnLocation += SpawnRotation.Vector() * SpawnForwardOffset;
+	// Assigns spawn parameters and creates the projectile
+	SpawnProjectileInstance(InstigatingPawn, SpawnLocation, SpawnRotation);
 	
+}
+
+// Direction comes from the camera, it aims where you look
+FRotator AWeaponBase::SetDirectionOfSpawnedProjectile(AController* Controller)
+{
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	Controller->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	return CameraRotation;
+}
+
+// Spawn location comes from character's position
+FVector AWeaponBase::SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn)
+{
+	FVector SpawnLocation = InstigatingPawn->GetActorLocation() 
+		+ InstigatingPawn->GetActorForwardVector() * 100.f // forward from player
+		+ FVector(0.f, 0.f, 0.f); // can adjust Z to finetune
+	return SpawnLocation;
+}
+
+// Assigns spawn-parameters and spawns the projectile instance
+void AWeaponBase::SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation)
+{
 	FActorSpawnParameters Params;
 	Params.Owner = this;
 	Params.Instigator = InstigatingPawn;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	
-	// Spawns the projectile
+	
 	GetWorld()->SpawnActor<AProjectileBase>(
 		ProjectileClass,
 		SpawnLocation,
@@ -49,9 +71,9 @@ void AWeaponBase::SpawnProjectile()
 
 void AWeaponBase::Shoot_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Shoot_Implementation called. ProjectileClass: %s, Instigator: %s"),
-		ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
-		GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
+	//UE_LOG(LogTemp, Warning, TEXT("Shoot_Implementation called. ProjectileClass: %s, Instigator: %s"),
+	//	ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
+	//	GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
 	
 	SpawnProjectile();
 }

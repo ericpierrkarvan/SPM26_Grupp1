@@ -22,7 +22,6 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		
 		//Todo: Kanske behöver binda till en egen jump?
 	}
-	UE_LOG(LogTemp, Warning, TEXT("IA_Shoot is: %s"), *IA_Shoot->GetName());
 }
 
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
@@ -56,5 +55,4 @@ void AMechanicCharacter::Shoot()
 	{
 		EquippedWeapon->Execute_Shoot(EquippedWeapon);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Mechanic Character Shoot called. Equipped Weapon: %p"), EquippedWeapon);
 }

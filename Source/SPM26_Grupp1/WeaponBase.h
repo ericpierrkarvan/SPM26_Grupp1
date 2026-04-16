@@ -43,5 +43,7 @@ protected:
 	*/
 	
 	void SpawnProjectile();
-
+	FRotator SetDirectionOfSpawnedProjectile(AController* Controller);
+	FVector SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
+	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
 };
