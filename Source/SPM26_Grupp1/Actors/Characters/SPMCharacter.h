@@ -74,6 +74,7 @@ private:
 	virtual void Move(const FInputActionValue& Value);
 	virtual void Look(const FInputActionValue& Value);
 	virtual void Interact(const FInputActionValue& Value);
+	void UpdateJumpCount(const FInputActionInstance& Instance);
 
 	void LookForInteractables(float DeltaTime);
 

@@ -19,6 +19,7 @@ class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaTime) override;
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void MechanicDoubleJump();

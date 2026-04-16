@@ -15,10 +15,10 @@ class SPM26_GRUPP1_API USPMCharacterMovementComponent : public UCharacterMovemen
 	GENERATED_BODY()
 
 public:
-	USPMCharacterMovementComponent();
+	bool IsGrounded();
+	void IncrementJumpCount();
+	int GetJumpCount() const { return JumpCount; }
 
-protected:
-	UPROPERTY
-	(EditAnywhere, BlueprintReadWrite, Category = "Movement Controls")
-	float JumpPower = 100.0f;
+private:
+	int JumpCount = 0;
 };
