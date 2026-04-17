@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SPM26_Grupp1/MagneticField_Cylinder.h"
 #include "SPM26_Grupp1/WeaponBase.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"

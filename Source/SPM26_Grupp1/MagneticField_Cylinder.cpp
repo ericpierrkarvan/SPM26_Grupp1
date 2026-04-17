@@ -26,6 +26,32 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 
 }
 
+void AMagneticField_Cylinder::Activate()
+{
+	if (bIsActive) return;
+	bIsActive = true;
+	
+	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
+	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
+}
+
+void AMagneticField_Cylinder::Disable()
+{
+	if (!bIsActive) return;
+	bIsActive = false;
+	
+	// Restore character movement if inside field when disabled
+	if (TargetCharacter)
+	{
+		RestoreMovement(TargetCharacter);
+		TargetCharacter = nullptr;
+		bHasCrippled = false;
+	}
+	
+	Capsule->OnComponentBeginOverlap.RemoveAll(this);
+	Capsule->OnComponentEndOverlap.RemoveAll(this);
+}
+
 // Called when the game starts or when spawned
 void AMagneticField_Cylinder::BeginPlay()
 {
@@ -83,19 +109,7 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
 	// Hit magnet -> suspend movement
-	if (DistanceToTarget <= StopDistance && !bIsLocked && IsValid(TargetCharacter))
-	{
-		bIsLocked = true;
-		
-		// Snap to place
-		TargetCharacter->SetActorLocation(MagnetTarget);
-		
-		// Zero out residual velocity before disabling movement
-		// Lock movement
-		if (!MovComp) return;
-		MovComp->StopMovementImmediately();
-		MovComp->DisableMovement();
-	}
+	CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
 
 }
 
@@ -117,12 +131,30 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 	return MagnetTarget;
 }
 
+// Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
+void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp)
+{
+	if (DistanceToTarget <= StopDistance && !bIsLocked && IsValid(TargetCharacter))
+	{
+		bIsLocked = true;
+		
+		// Snap to place
+		TargetCharacter->SetActorLocation(MagnetTarget);
+		
+		// Zero out residual velocity before disabling movement
+		// Lock movement
+		if (!MovComp) return;
+		MovComp->StopMovementImmediately();
+		MovComp->DisableMovement();
+	}
+}
+
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult& SweepResult)
+                                             AActor* OtherActor,
+                                             UPrimitiveComponent* OtherComp,
+                                             int32 OtherBodyIndex,
+                                             bool bFromSweep,
+                                             const FHitResult& SweepResult)
 {
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
 	if (!Character) return;

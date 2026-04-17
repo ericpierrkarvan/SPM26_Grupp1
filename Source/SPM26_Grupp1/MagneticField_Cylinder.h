@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MagneticField_Cylinder.generated.h"
 
 /**
@@ -17,6 +18,10 @@ class SPM26_GRUPP1_API AMagneticField_Cylinder : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AMagneticField_Cylinder();
+	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
+	void Activate();
+	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
+	void Disable();
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,6 +30,7 @@ protected:
 
 public:
 	FVector CalculateMagnetCenterPoint();
+	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp);
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -51,6 +57,8 @@ public:
 	float SnapOffSet = 100.f; // avoid played inside the wall
 	
 	bool bIsLocked = false;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	bool bIsActive = true;
 	
 	// Used for crippling/restoring character movement
 	float OriginalSpeed;
