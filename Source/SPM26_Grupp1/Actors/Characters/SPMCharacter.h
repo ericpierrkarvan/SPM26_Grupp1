@@ -81,7 +81,7 @@ private:
 	void LookForInteractables(float DeltaTime);
 
 	UPROPERTY()
-	TObjectPtr<UInteractableComponent> InteractableTargetComp;
+	TObjectPtr<UInteractableComponent> CurrentTargetInteractableComp;
 	
-
+	APlayerController* GetViewingPlayerController() const; //method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
 };

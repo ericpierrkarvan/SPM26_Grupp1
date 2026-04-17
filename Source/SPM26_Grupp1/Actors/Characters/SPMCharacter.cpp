@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
+#include "SPM26_Grupp1/UI/SPMHUD.h"
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
@@ -84,9 +85,9 @@ void ASPMCharacter::Look(const FInputActionValue& Value)
 
 void ASPMCharacter::Interact(const FInputActionValue& Value)
 {
-	if (InteractableTargetComp)
+	if (CurrentTargetInteractableComp)
 	{
-		InteractableTargetComp->Interact(this);
+		CurrentTargetInteractableComp->Interact(this);
 	}
 }
 
@@ -102,7 +103,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	Params.AddIgnoredActor(this);
 	Params.bTraceComplex = false;
 
-	//todo: proper trace channel
+	//todo: proper trace channel && trace visibility to the the interactable - so we cant interact with stuff through walls etc
 	bool bHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		Start,
@@ -128,49 +129,47 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			false, -1.f 
 		);
 	}
+
 	
-	if (bHit)
-	{
-		AActor* HitActor = HitResult.GetActor();
+	UInteractableComponent* NewInteractable = nullptr;
 
-		if (HitActor)
+	if (bHit && HitResult.GetActor())
+	{
+		//if we hit an actor, lets see if it have a interactable component
+		NewInteractable = Cast<UInteractableComponent>(HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
+	}
+
+	//if we found an interactable that is not our current one, then we need to update the hud.
+	//if we dont find an interactable, but we have a currentTargetInteractableComp, that means we need to hide the prompt in hud
+	if (NewInteractable != CurrentTargetInteractableComp)
+	{
+		CurrentTargetInteractableComp = NewInteractable;
+
+		//since we have the development "tab" to switch between players, we need to see which controller is currently viewing this character
+		//todo: maybe wrap in #if WITH_EDITOR and use normal getcontroller() - but i dont think the performance impact is big enough to bother
+		APlayerController* PC = GetViewingPlayerController();
+		if (PC)
 		{
-			if (UInteractableComponent* InteractableComp = Cast<UInteractableComponent>(HitActor->GetComponentByClass(UInteractableComponent::StaticClass())))
+			if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
 			{
-				//we found something to interact with
-				InteractableTargetComp = InteractableComp;
-				InteractableTargetComp->ShowPrompt();
-			}
-			else
-			{
-				//if we have previously seen a interactable
-				if (InteractableTargetComp)
-				{
-					InteractableTargetComp->HidePrompt();
-					InteractableTargetComp = nullptr;
-				}
-			}
-		}
-		else
-		{
-			//no valid actor, but we have a previous prompt so hide it
-			if (InteractableTargetComp)
-			{
-				InteractableTargetComp->HidePrompt();
-				InteractableTargetComp = nullptr;
+				HUD->SetFocusedInteractable(CurrentTargetInteractableComp);
 			}
 		}
 	}
-	else
-	{
-		//no interactable object found
+}
 
-		if (InteractableTargetComp)
+APlayerController* ASPMCharacter::GetViewingPlayerController() const
+{
+	
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetViewTarget() == this)
 		{
-			InteractableTargetComp->HidePrompt();
-			InteractableTargetComp = nullptr;
+			return PC;
 		}
 	}
+	return nullptr;
 }
 
 // Called every frame

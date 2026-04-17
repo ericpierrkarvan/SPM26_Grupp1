@@ -14,8 +14,6 @@ UInteractableComponent::UInteractableComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 	
-	PrimaryComponentTick.bCanEverTick = false;
-
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/UI/WBP_InteractionPrompt.WBP_InteractionPrompt_C"));
 	if (WidgetClassFinder.Succeeded() && WidgetClassFinder.Class)
 	{
@@ -28,27 +26,6 @@ UInteractableComponent::UInteractableComponent()
 void UInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (PromptWidgetClass)
-	{
-		PromptWidget = NewObject<UWidgetComponent>(GetOwner(), TEXT("PromptWidget"));
-		PromptWidget->SetWidgetSpace(EWidgetSpace::Screen);
-		PromptWidget->SetWidgetClass(PromptWidgetClass);
-		PromptWidget->SetupAttachment(GetOwner()->GetRootComponent());
-		PromptWidget->RegisterComponent();
-		PromptWidget->SetVisibility(false);
-		
-		FVector Origin;
-		FVector BoxExtent;
-		GetOwner()->GetActorBounds(false, Origin, BoxExtent);
-		
-		FVector WorldPos = FVector(Origin.X, Origin.Y, Origin.Z + BoxExtent.Z + PromptOffset.Z);
-		FVector LocalPos = GetOwner()->GetActorTransform().InverseTransformPosition(WorldPos);
-		LocalPos.X += PromptOffset.X;
-		LocalPos.Y += PromptOffset.Y;
-
-		PromptWidget->SetRelativeLocation(LocalPos);
-	}
 }
 
 
@@ -70,18 +47,32 @@ void UInteractableComponent::Interact(AActor* Interactor)
 	}
 }
 
-void UInteractableComponent::ShowPrompt() const
+UUserWidget* UInteractableComponent::GetPromptWidget(APlayerController* ForPlayer)
 {
-	if (PromptWidget)
+	if (!PromptWidgetClass || !ForPlayer) return nullptr;
+
+	//if we have already created this promp widget, use that
+	if (UUserWidget** Existing = PromptWidgets.Find(ForPlayer))
 	{
-		PromptWidget->SetVisibility(true);
+		return *Existing;
 	}
+
+	//create the promp widget
+	UUserWidget* NewWidget = CreateWidget<UUserWidget>(ForPlayer, PromptWidgetClass);
+	if (NewWidget)
+	{
+		//and add it to the tmap so we can track it
+		PromptWidgets.Add(ForPlayer, NewWidget);
+	}
+	return NewWidget;
 }
 
-void UInteractableComponent::HidePrompt() const
+FVector UInteractableComponent::GetPromptWorldLocation() const
 {
-	if (PromptWidget)
-	{
-		PromptWidget->SetVisibility(false);
-	}
+	//get a approximate box of the collision and then apply the offset to it
+	FVector Origin;
+	FVector BoxExtent;
+	GetOwner()->GetActorBounds(false, Origin, BoxExtent);
+
+	return FVector(Origin.X, Origin.Y, Origin.Z + BoxExtent.Z) + PromptOffset;
 }

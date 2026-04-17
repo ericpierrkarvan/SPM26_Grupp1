@@ -43,21 +43,19 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="State")
 	bool bIsOn = false;
-
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	void ShowPrompt() const;
 	
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	void HidePrompt() const;
+	UFUNCTION()
+	UUserWidget* GetPromptWidget(APlayerController* ForPlayer);
 
+	FVector GetPromptWorldLocation() const;
+	
 private:
-	UPROPERTY()
-	UWidgetComponent* PromptWidget;
-
 	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	TSubclassOf<UUserWidget> PromptWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category="Interaction")
-	FVector PromptOffset = FVector(0.f, 0.f, 50.f);
-	
+	FVector PromptOffset = FVector(0.f, 0.f, 10.f);
+
+	UPROPERTY()
+	TMap<APlayerController*, UUserWidget*> PromptWidgets;
 };

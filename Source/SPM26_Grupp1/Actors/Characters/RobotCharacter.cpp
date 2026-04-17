@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-
-#include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
