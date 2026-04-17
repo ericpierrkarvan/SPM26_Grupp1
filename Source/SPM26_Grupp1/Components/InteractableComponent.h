@@ -39,9 +39,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
 	FText InteractPrompt = FText::FromString("Press E to Interact");
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
-	bool bIsEnabled = true;
-	
 	// Fired when a player interacts
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
 	FOnInteract OnInteract;
@@ -59,7 +56,16 @@ public:
 	FVector GetPromptWorldLocation() const;
 
 	bool CanInteract(AActor* Interactor);
-	
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	void SetIsInteractable(bool NewInteractableState);
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	bool GetIsInteractable() const;
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
+	bool bIsInteractable = true;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	TSubclassOf<UUserWidget> PromptWidgetClass;
@@ -70,7 +76,7 @@ private:
 	UPROPERTY()
 	TMap<APlayerController*, UUserWidget*> PromptWidgets;
 
-	
+
 
 	UPROPERTY(EditAnywhere, Category="Interaction")
 	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;
