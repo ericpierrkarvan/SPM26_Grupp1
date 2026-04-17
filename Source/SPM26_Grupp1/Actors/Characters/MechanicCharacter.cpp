@@ -18,6 +18,9 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
+		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
+		
+		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
 	}
 }
@@ -32,6 +35,21 @@ UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() c
 	return Cast<UMechanicMovementComponent>(GetCharacterMovement());
 }
 
+void AMechanicCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (DefaultWeaponClass)
+	{
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+		Params.Instigator = this;
+		
+		EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_r"));
+	}
+}
+
 void AMechanicCharacter::MechanicDoubleJump()
 {
 	bool CanDoubleJump = !GetMechanicMovementComponent()->IsGrounded()
@@ -42,5 +60,13 @@ void AMechanicCharacter::MechanicDoubleJump()
 	if (CanDoubleJump)
 	{
 		LaunchCharacter(FVector(0, 0, GetMechanicMovementComponent()->JumpZVelocity), false, true);
+	}
+}
+
+void AMechanicCharacter::Shoot()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Execute_Shoot(EquippedWeapon);
 	}
 }

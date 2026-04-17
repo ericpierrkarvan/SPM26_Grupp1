@@ -3,7 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SPM26_Grupp1/MagneticField_Cylinder.h"
+#include "SPM26_Grupp1/WeaponBase.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Weapon/MagnetGun.h"
 #include "MechanicCharacter.generated.h"
 
 class UMechanicMovementComponent;
@@ -19,8 +22,18 @@ class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Shoot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	AWeaponBase* EquippedWeapon;
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	TSubclassOf<AWeaponBase> DefaultWeaponClass;
+
 	virtual void Tick(float DeltaTime) override;
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
+	void BeginPlay();
 	void MechanicDoubleJump();
+	void Shoot();
 };

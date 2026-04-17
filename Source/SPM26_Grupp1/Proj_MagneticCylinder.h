@@ -14,6 +14,7 @@ class SPM26_GRUPP1_API AProj_MagneticCylinder : public AProjectileBase
 public:	
 	// Sets default values for this actor's properties
 	AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer);
+	void BeginPlay();
 
 protected:
 
@@ -22,6 +23,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	UStaticMeshComponent* ProjectileMesh;
+	
+	UPROPERTY(EditAnywhere, Category="Projectile")
+	float SpawnedMagneticFieldDuration;
 	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,

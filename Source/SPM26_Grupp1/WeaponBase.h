@@ -17,9 +17,9 @@ public:
 	AWeaponBase();
 	
 	// IWeaponInterface
-	virtual void Fire_Implementation() override;
+	virtual void Shoot_Implementation() override;
 	virtual void Reload_Implementation() override;
-	virtual bool CanFire_Implementation() const override;
+	virtual bool CanShoot_Implementation() const override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
@@ -43,5 +43,7 @@ protected:
 	*/
 	
 	void SpawnProjectile();
-
+	FRotator SetDirectionOfSpawnedProjectile(AController* Controller);
+	FVector SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
+	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
 };
