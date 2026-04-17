@@ -13,5 +13,12 @@ UCLASS()
 class SPM26_GRUPP1_API USPMCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+	bool IsGrounded();
+	void IncrementJumpCount();
+	int GetJumpCount() const { return JumpCount; }
+
+private:
+	int JumpCount = 0;
 };

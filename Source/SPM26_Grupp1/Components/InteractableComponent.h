@@ -9,6 +9,15 @@
 class UWidgetComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteract, AActor*, Interactor, bool, IsOn);
 
+UENUM(BlueprintType)
+enum class EInteractionCharacters : uint8
+{
+	Any         UMETA(DisplayName = "Any"),
+	Mechanic	UMETA(DisplayName = "Mechanic"),
+	Robot		UMETA(DisplayName = "Robot"),
+	None		UMETA(DisplayName = "No interaction allowed"),
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent
 {
@@ -43,21 +52,28 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="State")
 	bool bIsOn = false;
-
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	void ShowPrompt() const;
 	
-	UFUNCTION(BlueprintCallable, Category="Interaction")
-	void HidePrompt() const;
+	UFUNCTION()
+	UUserWidget* GetPromptWidget(APlayerController* ForPlayer);
 
+	FVector GetPromptWorldLocation() const;
+
+	bool CanInteract(AActor* Interactor);
+	
 private:
-	UPROPERTY()
-	UWidgetComponent* PromptWidget;
-
 	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	TSubclassOf<UUserWidget> PromptWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category="Interaction")
-	FVector PromptOffset = FVector(0.f, 0.f, 50.f);
+	FVector PromptOffset = FVector(0.f, 0.f, 10.f);
+
+	UPROPERTY()
+	TMap<APlayerController*, UUserWidget*> PromptWidgets;
+
 	
+
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;
 };
+
+

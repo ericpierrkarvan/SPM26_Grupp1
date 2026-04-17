@@ -7,9 +7,9 @@
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 
 AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(ACharacter::CharacterMovementComponentName))
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(
+		ACharacter::CharacterMovementComponentName))
 {
-	GetMechanicMovementComponent()->JumpZVelocity = JumpPower;
 }
 
 void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -21,7 +21,13 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
 		
 		//Todo: Kanske behöver binda till en egen jump?
+		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
 	}
+}
+
+void AMechanicCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
@@ -46,7 +52,15 @@ void AMechanicCharacter::BeginPlay()
 
 void AMechanicCharacter::MechanicDoubleJump()
 {
-	//Ska implementeras
+	bool CanDoubleJump = !GetMechanicMovementComponent()->IsGrounded()
+		&& GetMechanicMovementComponent()->GetJumpCount() == 1;
+
+	UE_LOG(LogTemp, Warning, TEXT("Jump count: %d"), GetMechanicMovementComponent()->GetJumpCount());
+	
+	if (CanDoubleJump)
+	{
+		LaunchCharacter(FVector(0, 0, GetMechanicMovementComponent()->JumpZVelocity), false, true);
+	}
 }
 
 void AMechanicCharacter::Shoot()

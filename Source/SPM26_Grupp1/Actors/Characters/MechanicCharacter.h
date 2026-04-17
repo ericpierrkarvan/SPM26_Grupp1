@@ -30,6 +30,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<AWeaponBase> DefaultWeaponClass;
 
+	virtual void Tick(float DeltaTime) override;
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void BeginPlay();
