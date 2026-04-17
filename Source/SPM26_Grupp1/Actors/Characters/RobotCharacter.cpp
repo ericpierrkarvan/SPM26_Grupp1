@@ -9,7 +9,7 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<URobotMovementComponent>(
 		ACharacter::CharacterMovementComponentName))
 {
-	GetRobotMovementComponent()->JumpZVelocity = JumpPower;
+	
 }
 
 void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -28,7 +28,7 @@ URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 
 void ARobotCharacter::Dash()
 {
-	FVector DashVector = GetActorForwardVector() * DashPower;
+	FVector DashVector = (GetActorForwardVector() + FVector(0, 0, 0.05f)) * DashPower;
 	LaunchCharacter(DashVector, false, false);
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }

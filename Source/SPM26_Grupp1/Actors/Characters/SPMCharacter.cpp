@@ -13,7 +13,8 @@
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<USPMCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<USPMCharacterMovementComponent>(
+		ACharacter::CharacterMovementComponentName))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -54,7 +55,6 @@ void ASPMCharacter::BeginPlay()
 			Subsystem->AddMappingContext(IMC_Default, 0);
 		}
 	}
-	
 }
 
 void ASPMCharacter::Move(const FInputActionValue& Value)
@@ -68,7 +68,7 @@ void ASPMCharacter::Move(const FInputActionValue& Value)
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		const FVector ForwardDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightDir   = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		const FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		AddMovementInput(ForwardDir, Axis.Y);
 		AddMovementInput(RightDir, Axis.X);
@@ -178,7 +178,6 @@ void ASPMCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	LookForInteractables(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -192,8 +191,8 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ASPMCharacter::Look);
 		EIC->BindAction(IA_Interact, ETriggerEvent::Triggered, this, &ASPMCharacter::Interact);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
+		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);
 	}
-	
 }
 
 USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
@@ -201,3 +200,7 @@ USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
 	return Cast<USPMCharacterMovementComponent>(GetCharacterMovement());
 }
 
+void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
+{
+	GetSPMMovementComponent()->IncrementJumpCount();
+}
