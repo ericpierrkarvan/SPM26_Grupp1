@@ -137,6 +137,12 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	{
 		//if we hit an actor, lets see if it have a interactable component
 		NewInteractable = Cast<UInteractableComponent>(HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
+
+		if (NewInteractable && !NewInteractable->CanInteract(this))
+		{
+			//we see the interactable, but we are not allowed to interact with it
+			NewInteractable = nullptr;
+		}
 	}
 
 	//if we found an interactable that is not our current one, then we need to update the hud.

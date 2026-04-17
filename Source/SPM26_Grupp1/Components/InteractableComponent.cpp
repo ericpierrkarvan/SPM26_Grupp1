@@ -4,6 +4,8 @@
 #include "InteractableComponent.h"
 
 #include "Components/WidgetComponent.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 
@@ -39,11 +41,13 @@ void UInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UInteractableComponent::Interact(AActor* Interactor)
 {
-	if (bIsEnabled)
+	if (!bIsEnabled) return;
+	
+	
+	if (CanInteract(Interactor))
 	{
 		bIsOn = !bIsOn;
 		OnInteract.Broadcast(Interactor, bIsOn);
-		UE_LOG(LogTemp, Warning, TEXT("%s: ACTIVATE"), *GetClass()->GetName())
 	}
 }
 
@@ -75,4 +79,18 @@ FVector UInteractableComponent::GetPromptWorldLocation() const
 	GetOwner()->GetActorBounds(false, Origin, BoxExtent);
 
 	return FVector(Origin.X, Origin.Y, Origin.Z + BoxExtent.Z) + PromptOffset;
+}
+
+bool UInteractableComponent::CanInteract(AActor* Interactor)
+{
+	if (!bIsEnabled) return false;
+	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+
+	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
+	bool bIsRobot = Interactor->IsA(ARobotCharacter::StaticClass());
+
+	if (AllowedCharacterType == EInteractionCharacters::Mechanic) return bIsMechanic;
+	if (AllowedCharacterType == EInteractionCharacters::Robot) return bIsRobot;
+
+	return false;
 }
