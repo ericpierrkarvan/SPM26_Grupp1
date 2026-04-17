@@ -11,6 +11,7 @@
 
 #include "SPMCharacter.generated.h"
 
+class UInteractableComponent;
 class USPMCharacterMovementComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -50,6 +51,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Interact;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Jump;
+	
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
 	bool bDisplayInteractBoxTrace = false;
@@ -59,8 +63,6 @@ protected:
 	float InteractBoxDistance = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
-	
-
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -72,6 +74,12 @@ private:
 	virtual void Move(const FInputActionValue& Value);
 	virtual void Look(const FInputActionValue& Value);
 	virtual void Interact(const FInputActionValue& Value);
+	void UpdateJumpCount(const FInputActionInstance& Instance);
 
 	void LookForInteractables(float DeltaTime);
+
+	UPROPERTY()
+	TObjectPtr<UInteractableComponent> CurrentTargetInteractableComp;
+	
+	APlayerController* GetViewingPlayerController() const; //method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
 };

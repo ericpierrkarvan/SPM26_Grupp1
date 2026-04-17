@@ -22,6 +22,5 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
 	class USphereComponent* CollisionComp;
 	
-	virtual void BeginPlay() override;
 
 };

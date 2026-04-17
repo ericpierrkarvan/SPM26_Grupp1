@@ -26,11 +26,56 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 
 }
 
+void AMagneticField_Cylinder::Activate()
+{
+	if (bIsActive) return;
+	bIsActive = true;
+	
+	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
+	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
+}
+
+void AMagneticField_Cylinder::Disable()
+{
+	if (!bIsActive) return;
+	bIsActive = false;
+	
+	// Restore character movement if inside field when disabled
+	if (TargetCharacter)
+	{
+		RestoreMovement(TargetCharacter);
+		TargetCharacter = nullptr;
+		bHasCrippled = false;
+	}
+	
+	Capsule->OnComponentBeginOverlap.RemoveAll(this);
+	Capsule->OnComponentEndOverlap.RemoveAll(this);
+}
+
 // Called when the game starts or when spawned
 void AMagneticField_Cylinder::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+// Currently Magnetfield lifetime's end destroys magnet. This method makes sure no double instance of cripplemovement
+// is triggered upon this destruction
+void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (Capsule)
+	{
+		Capsule->OnComponentBeginOverlap.RemoveAll(this);
+		Capsule->OnComponentEndOverlap.RemoveAll(this);
+	}
+	
+	if (TargetCharacter)
+	{
+		RestoreMovement(TargetCharacter);
+		TargetCharacter = nullptr;
+	}
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 // Called every frame
@@ -39,23 +84,12 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	if (!IsValid(TargetCharacter)) return;
-	
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!IsValid(MovComp)) return;
 	
+	// Calculates the Top of Capsule where objects are drawn to.
+	FVector MagnetTarget = CalculateMagnetCenterPoint(); 
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
-	FVector CapsuleLocation = Capsule->GetComponentLocation();
-	
-	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
-	CapsuleHeight = HalfHeight * 2;
-	
-	// Offset so character aligns correctly in capsule collider
-	// MagnetTarget = Top of capsule
-	// CapsuleUp gets local up axis (regardless of orientation)
-	FVector CapsuleUp = Capsule->GetUpVector();
-	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
-	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
 	
 	/*
 	 * "Take distance between player and target, convert it into a value between MinPullForce and MaxPullForce."
@@ -68,13 +102,38 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		FVector2D(MinPullForce,MaxPullForce),
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
 	
-	// Pull toward target
+	// Direction of pull -> pull toward target
 	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
 	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
 	
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
 	// Hit magnet -> suspend movement
+	CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
+
+}
+
+// Calculates center point where objects are pulled toward (top of capsule).
+FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
+{
+	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
+	CapsuleHeight = HalfHeight * 2;
+	
+	// Offset so character aligns correctly in capsule collider
+	// MagnetTarget = Top of capsule
+	// CapsuleUp gets local up axis (regardless of orientation)
+	FVector CapsuleUp = Capsule->GetUpVector();
+	FVector CapsuleLocation = Capsule->GetComponentLocation();
+	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
+	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
+	
+	return MagnetTarget;
+}
+
+// Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
+void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp)
+{
 	if (DistanceToTarget <= StopDistance && !bIsLocked && IsValid(TargetCharacter))
 	{
 		bIsLocked = true;
@@ -82,35 +141,34 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
 		
-		if (!MovComp) return;
-		
 		// Zero out residual velocity before disabling movement
-		MovComp->StopMovementImmediately();
-		
-		// MovComp->GravityScale = 0.f;
-		
 		// Lock movement
+		if (!MovComp) return;
+		MovComp->StopMovementImmediately();
 		MovComp->DisableMovement();
 	}
-
 }
 
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult& SweepResult)
+                                             AActor* OtherActor,
+                                             UPrimitiveComponent* OtherComp,
+                                             int32 OtherBodyIndex,
+                                             bool bFromSweep,
+                                             const FHitResult& SweepResult)
 {
-	
-	// UE_LOG(LogTemp, Warning, TEXT("Overlap triggered"));
-	
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (Character)
+	if (!Character) return;
+	// Only respond to root capsule component
+	if (OtherComp != Character->GetCapsuleComponent()) return;
+	if (bHasCrippled)
 	{
-		TargetCharacter = Character;
-		CrippleMovement(Character);
+		// UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin: duplicate cripple blocked"));
+		return;
 	}
+	
+	bHasCrippled = true;
+	TargetCharacter = Character;
+	CrippleMovement(Character);
 }
 
 void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent,
@@ -119,15 +177,17 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	int32 OtherBodyIndex)
 {
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (Character && Character == Cast<ACharacter>(OtherActor))
+	if (!Character) return;
+	if (OtherComp != Character->GetCapsuleComponent()) return;
+	
+	bHasCrippled = false;
+
+	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
+	if (MovementComponent)
 	{
-		UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
-		if (MovementComponent)
-		{
-			RestoreMovement(Character);
-		}
-		TargetCharacter = nullptr;
+		RestoreMovement(Character);
 	}
+	TargetCharacter = nullptr;
 }
 
 // Cripples movement (when entering magnetic field)
@@ -145,6 +205,9 @@ void AMagneticField_Cylinder::CrippleMovement(ACharacter* Character)
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration * 0.1f;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking * 6.0f;
 	}
+	
+	//UE_LOG(LogTemp, Warning, TEXT("Crippled movement. Movement mode: %p, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
+	//	MovementComponent, MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
 }
 
 // Restores movement (when exiting magnetic field)
@@ -153,10 +216,13 @@ void AMagneticField_Cylinder::RestoreMovement(ACharacter* Character)
 	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
 	if (MovementComponent)
 	{
+		MovementComponent->SetMovementMode(MOVE_Walking);
 		MovementComponent->MaxWalkSpeed = OriginalSpeed;
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking;
 	}
+	// UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %p, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
+	// MovementComponent, MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
 }
 
 // Freeze movement to be able to Rotate (work in progress)
