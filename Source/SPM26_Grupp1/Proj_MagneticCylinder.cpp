@@ -11,7 +11,7 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
 	RootComponent = ProjectileMesh;
 	
-	SpawnedMagneticFieldDuration = 5.f;
+	SpawnedMagneticFieldDuration = 10.f;
 	
 	// generates hit events
 	ProjectileMesh->SetNotifyRigidBodyCollision(true); 
@@ -28,11 +28,11 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	if (ProjectileMovementComp)
 	{
 		ProjectileMovementComp->OnProjectileStop.AddDynamic(this, &AProj_MagneticCylinder::OnProjectileStopped);
-		UE_LOG(LogTemp, Warning, TEXT("ProjectileStop trigger"));
+		// UE_LOG(LogTemp, Warning, TEXT("ProjectileStop trigger"));
 	}
 	if (!ProjectileMovementComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No ProjectileMovementComp"));
+		// UE_LOG(LogTemp, Warning, TEXT("No ProjectileMovementComp"));
 	}
 	
 }
@@ -40,6 +40,8 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 void AProj_MagneticCylinder::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// UE_LOG(LogTemp, Warning, TEXT("MagneticField spawned: %p"), this);
 	
 	if (GetInstigator())
 	{
@@ -76,8 +78,8 @@ void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 // Checks projectile collision -> spawns magnetic field and destroy projectile
 void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Projectile stopped, hit: %s"), 
-		ImpactResult.GetActor() ? *ImpactResult.GetActor()->GetName() : TEXT("NULL"));
+	//UE_LOG(LogTemp, Warning, TEXT("Projectile stopped, hit: %s"), 
+	//	ImpactResult.GetActor() ? *ImpactResult.GetActor()->GetName() : TEXT("NULL"));
 
 	if (ImpactActorClass)
 	{

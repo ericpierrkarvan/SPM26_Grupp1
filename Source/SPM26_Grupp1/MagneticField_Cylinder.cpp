@@ -33,13 +33,31 @@ void AMagneticField_Cylinder::BeginPlay()
 	
 }
 
+// Currently Magnetfield lifetime's end destroys magnet. This method makes sure no double instance of cripplemovement
+// is triggered upon this destruction
+void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (Capsule)
+	{
+		Capsule->OnComponentBeginOverlap.RemoveAll(this);
+		Capsule->OnComponentEndOverlap.RemoveAll(this);
+	}
+	
+	if (TargetCharacter)
+	{
+		RestoreMovement(TargetCharacter);
+		TargetCharacter = nullptr;
+	}
+	
+	Super::EndPlay(EndPlayReason);
+}
+
 // Called every frame
 void AMagneticField_Cylinder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
 	if (!IsValid(TargetCharacter)) return;
-	
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!IsValid(MovComp)) return;
 	
@@ -81,10 +99,9 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 
 }
 
-// Calculates center point where objects are pulled toward.
+// Calculates center point where objects are pulled toward (top of capsule).
 FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 {
-	
 	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
 	CapsuleHeight = HalfHeight * 2;
@@ -95,7 +112,6 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 	FVector CapsuleUp = Capsule->GetUpVector();
 	FVector CapsuleLocation = Capsule->GetComponentLocation();
 	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
-	
 	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
 	
 	return MagnetTarget;
@@ -108,15 +124,19 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	
-	// UE_LOG(LogTemp, Warning, TEXT("Overlap triggered"));
-	
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (Character)
+	if (!Character) return;
+	// Only respond to root capsule component
+	if (OtherComp != Character->GetCapsuleComponent()) return;
+	if (bHasCrippled)
 	{
-		TargetCharacter = Character;
-		CrippleMovement(Character);
+		// UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin: duplicate cripple blocked"));
+		return;
 	}
+	
+	bHasCrippled = true;
+	TargetCharacter = Character;
+	CrippleMovement(Character);
 }
 
 void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent,
@@ -125,15 +145,17 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	int32 OtherBodyIndex)
 {
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (Character && Character == Cast<ACharacter>(OtherActor))
+	if (!Character) return;
+	if (OtherComp != Character->GetCapsuleComponent()) return;
+	
+	bHasCrippled = false;
+
+	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
+	if (MovementComponent)
 	{
-		UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
-		if (MovementComponent)
-		{
-			RestoreMovement(Character);
-		}
-		TargetCharacter = nullptr;
+		RestoreMovement(Character);
 	}
+	TargetCharacter = nullptr;
 }
 
 // Cripples movement (when entering magnetic field)
@@ -151,6 +173,9 @@ void AMagneticField_Cylinder::CrippleMovement(ACharacter* Character)
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration * 0.1f;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking * 6.0f;
 	}
+	
+	//UE_LOG(LogTemp, Warning, TEXT("Crippled movement. Movement mode: %p, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
+	//	MovementComponent, MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
 }
 
 // Restores movement (when exiting magnetic field)
@@ -159,10 +184,13 @@ void AMagneticField_Cylinder::RestoreMovement(ACharacter* Character)
 	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
 	if (MovementComponent)
 	{
+		MovementComponent->SetMovementMode(MOVE_Walking);
 		MovementComponent->MaxWalkSpeed = OriginalSpeed;
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking;
 	}
+	// UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %p, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
+	// MovementComponent, MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
 }
 
 // Freeze movement to be able to Rotate (work in progress)

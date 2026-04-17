@@ -21,6 +21,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	FVector CalculateMagnetCenterPoint();
@@ -60,7 +61,8 @@ public:
 	// Active player
 	UPROPERTY()
 	class ACharacter* TargetCharacter;
-	
+	bool bHasCrippled; // cripplemovement() has crippled a character
+
 	// Overlap events
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
