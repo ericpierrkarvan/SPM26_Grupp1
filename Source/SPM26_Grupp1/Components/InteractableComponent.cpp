@@ -41,7 +41,7 @@ void UInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UInteractableComponent::Interact(AActor* Interactor)
 {
-	if (!bIsEnabled) return;
+	if (!bIsInteractable) return;
 	
 	
 	if (CanInteract(Interactor))
@@ -83,7 +83,7 @@ FVector UInteractableComponent::GetPromptWorldLocation() const
 
 bool UInteractableComponent::CanInteract(AActor* Interactor)
 {
-	if (!bIsEnabled) return false;
+	if (!bIsInteractable) return false;
 	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
 
 	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
@@ -93,4 +93,14 @@ bool UInteractableComponent::CanInteract(AActor* Interactor)
 	if (AllowedCharacterType == EInteractionCharacters::Robot) return bIsRobot;
 
 	return false;
+}
+
+void UInteractableComponent::SetIsInteractable(bool NewInteractableState)
+{
+	bIsInteractable = NewInteractableState;
+}
+
+bool UInteractableComponent::GetIsInteractable() const
+{
+	return bIsInteractable;
 }
