@@ -31,8 +31,8 @@ void AMagneticField_Cylinder::Activate()
 	if (bIsActive) return;
 	bIsActive = true;
 	
-	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
-	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
+	//Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
+	//Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
 }
 
 void AMagneticField_Cylinder::Disable()
@@ -48,8 +48,8 @@ void AMagneticField_Cylinder::Disable()
 		bHasCrippled = false;
 	}
 	
-	Capsule->OnComponentBeginOverlap.RemoveAll(this);
-	Capsule->OnComponentEndOverlap.RemoveAll(this);
+	//Capsule->OnComponentBeginOverlap.RemoveAll(this);
+	//Capsule->OnComponentEndOverlap.RemoveAll(this);
 }
 
 // Called when the game starts or when spawned
@@ -83,6 +83,8 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	// Don't do anything if field is not Active
+	if (!bIsActive) return;
 	if (!IsValid(TargetCharacter)) return;
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!IsValid(MovComp)) return;
@@ -101,14 +103,9 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	PullStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, CapsuleHeight),
 		FVector2D(MinPullForce,MaxPullForce),
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
-	
-	// Direction of pull -> pull toward target
-	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
-	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
-	
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
-	// Hit magnet -> suspend movement
+	CalculateDirectionAndPullCharacter(MagnetTarget);
 	CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
 
 }
@@ -134,10 +131,8 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 // Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
 void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp)
 {
-	if (DistanceToTarget <= StopDistance && !bIsLocked && IsValid(TargetCharacter))
+	if (DistanceToTarget <= StopDistance && IsValid(TargetCharacter))
 	{
-		bIsLocked = true;
-		
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
 		
@@ -149,6 +144,13 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceT
 	}
 }
 
+// Calculates direction of pull (Normal from character to MagnetTarget)
+void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& MagnetTarget) const
+{
+	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
+	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
+}
+
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
                                              AActor* OtherActor,
                                              UPrimitiveComponent* OtherComp,
@@ -156,15 +158,15 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              bool bFromSweep,
                                              const FHitResult& SweepResult)
 {
+	// Don't do anything if field not Active
+	if (!bIsActive) return; 
+	
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
 	if (!Character) return;
+	
 	// Only respond to root capsule component
 	if (OtherComp != Character->GetCapsuleComponent()) return;
-	if (bHasCrippled)
-	{
-		// UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin: duplicate cripple blocked"));
-		return;
-	}
+	if (bHasCrippled) return;
 	
 	bHasCrippled = true;
 	TargetCharacter = Character;
