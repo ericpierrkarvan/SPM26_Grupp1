@@ -37,6 +37,17 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	
 }
 
+void AProj_MagneticCylinder::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (GetInstigator())
+	{
+		// Ignore MechanicCharacter collision with projectile
+		ProjectileMesh->IgnoreActorWhenMoving(GetInstigator(),true);
+	}
+}
+
 // Didn't get to work. Use OnProjectileStopped for collision for the moment.
 void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
