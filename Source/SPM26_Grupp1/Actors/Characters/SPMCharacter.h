@@ -53,6 +53,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Jump;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_ADS;
 	
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
@@ -63,6 +66,13 @@ protected:
 	float InteractBoxDistance = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
+
+	//ADS
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	TObjectPtr<UCurveFloat> ADSCurveIn;
+
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	TObjectPtr<UCurveFloat> ADSCurveOut;
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -71,6 +81,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
 
+	void UpdateCamera(float DeltaTime);
+	void UpdateAimDownSight(float DeltaTime);
 	virtual void Move(const FInputActionValue& Value);
 	virtual void Look(const FInputActionValue& Value);
 	virtual void Interact(const FInputActionValue& Value);
@@ -82,4 +94,30 @@ private:
 	TObjectPtr<UInteractableComponent> CurrentTargetInteractableComp;
 	
 	APlayerController* GetViewingPlayerController() const; //method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
+	
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	float ADSFOV = 80.f;
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	float ADSCameraArmLength = 150.f;
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	FVector ADSCameraOffset = FVector(0.f, -20.f, 65.f);
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	float ADSTransitionTimeIn = 0.12f;
+	UPROPERTY(EditAnywhere, Category="Camera|ADS")
+	float ADSTransitionTimeOut = 0.07f;
+	
+	float DefaultFOV = 90;
+	float DefaultCameraArmLength = 400.f;
+	float CurrentCameraArmLength = 400.f;
+	float ADSCurveAlpha    = 0.f;
+	float ADSCurveDirection = 0.f;
+	
+	FVector DefaultCameraOffset = FVector::ZeroVector;
+	FVector CurrentCameraOffset = FVector::ZeroVector;
+	bool bIsADS = false;
+
+	virtual void StartADS();
+	virtual void StopADS();
+
+	
 };
