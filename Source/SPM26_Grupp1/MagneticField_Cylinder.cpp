@@ -3,6 +3,7 @@
 
 #include "MagneticField_Cylinder.h"
 
+#include "Actors/Characters/MechanicCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
@@ -18,11 +19,15 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	RootComponent = Capsule;
 	Capsule->SetCapsuleSize(50, 250);
 	
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh")); // Possible visual of center pullpoint of magnet
 	Mesh->SetupAttachment(RootComponent);
 	
 	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
 	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
+	
+	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
+	MagnetVfxComponent->SetupAttachment(RootComponent);
+	//MagnetVfxComponent->SetAutoActivate(false); // dont play on spawn
 
 }
 
@@ -30,6 +35,9 @@ void AMagneticField_Cylinder::Activate()
 {
 	if (bIsActive) return;
 	bIsActive = true;
+	
+	MagnetVfxComponent->Activate();
+	UE_LOG(LogTemp, Warning, TEXT("Magnet VFX activated: %p"), MagnetVfxComponent);
 	
 	//Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
 	//Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
@@ -39,6 +47,8 @@ void AMagneticField_Cylinder::Disable()
 {
 	if (!bIsActive) return;
 	bIsActive = false;
+	
+	MagnetVfxComponent->Deactivate();
 	
 	// Restore character movement if inside field when disabled
 	if (TargetCharacter)
@@ -56,6 +66,12 @@ void AMagneticField_Cylinder::Disable()
 void AMagneticField_Cylinder::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// Collision collider
+	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	CapsuleHeight = CapsuleHalfHeight * 2;
+	
+	AlignMagneticField();
 	
 }
 
@@ -105,24 +121,28 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
-	CalculateDirectionAndPullCharacter(MagnetTarget);
-	CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
+	// If not mechanic, do the magnetic dance
+	if (!Cast<AMechanicCharacter>(TargetCharacter))
+	{
+		CalculateDirectionAndPullCharacter(MagnetTarget);
+		CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
+	}
 
 }
 
 // Calculates center point where objects are pulled toward (top of capsule).
 FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 {
-	float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	//float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	//CapsuleHeight = HalfHeight * 2;
 	float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
-	CapsuleHeight = HalfHeight * 2;
 	
 	// Offset so character aligns correctly in capsule collider
 	// MagnetTarget = Top of capsule
 	// CapsuleUp gets local up axis (regardless of orientation)
 	FVector CapsuleUp = Capsule->GetUpVector();
 	FVector CapsuleLocation = Capsule->GetComponentLocation();
-	float MagnetTargetZOffSet = HalfHeight - CharacterHalfHeight;
+	float MagnetTargetZOffSet = CapsuleHalfHeight - CharacterHalfHeight;
 	FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
 	
 	return MagnetTarget;
@@ -151,6 +171,11 @@ void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& 
 	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
 }
 
+void AMagneticField_Cylinder::AlignMagneticField()
+{
+	MagnetVfxComponent->SetRelativeLocation(FVector(0, 0, -CapsuleHalfHeight));
+}
+
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
                                              AActor* OtherActor,
                                              UPrimitiveComponent* OtherComp,
@@ -159,7 +184,9 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              const FHitResult& SweepResult)
 {
 	// Don't do anything if field not Active
+	// Don't do anything if character is the mechanic
 	if (!bIsActive) return; 
+	if (Cast<AMechanicCharacter>(OtherActor)) return;
 	
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
 	if (!Character) return;
@@ -179,6 +206,7 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	int32 OtherBodyIndex)
 {
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
+	if (Cast<AMechanicCharacter>(OtherActor)) return;
 	if (!Character) return;
 	if (OtherComp != Character->GetCapsuleComponent()) return;
 	

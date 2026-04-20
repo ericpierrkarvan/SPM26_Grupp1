@@ -32,4 +32,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Movement Controls")
 	float DashPower = 100.0f;
+	UPROPERTY(VisibleAnywhere, Category = "Magnet")
+	bool bIsMagnetizable; // false for X seconds after dashing out of magnetic field.
+	UPROPERTY(VisibleAnywhere, Category = "Magnet")
+	bool bIsWithinMagneticField;
 };
