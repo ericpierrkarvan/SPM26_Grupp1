@@ -25,7 +25,6 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.f;
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->SocketOffset = FVector(0.f, 0.f, 60.f);
 	
@@ -55,6 +54,19 @@ void ASPMCharacter::BeginPlay()
 			Subsystem->AddMappingContext(IMC_Default, 0);
 		}
 	}
+
+	if (CameraBoom)
+	{
+		DefaultCameraArmLength = CameraBoom->TargetArmLength;
+		DefaultCameraOffset = CameraBoom->SocketOffset; 
+	}
+	CurrentCameraArmLength = DefaultCameraArmLength;
+	if (FollowCamera)
+	{
+		DefaultFOV = FollowCamera->FieldOfView;
+	}
+	CurrentCameraOffset = DefaultCameraOffset;
+
 }
 
 void ASPMCharacter::Move(const FInputActionValue& Value)
@@ -178,12 +190,75 @@ APlayerController* ASPMCharacter::GetViewingPlayerController() const
 	return nullptr;
 }
 
+void ASPMCharacter::StartADS()
+{
+	bIsADS = true;
+	ADSCurveDirection = 1.f;
+	
+	if (GetCharacterMovement())
+	{
+		//when aiming we want the pawn to follow the direction of the camera
+		GetCharacterMovement()->bOrientRotationToMovement   = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	}
+}
+
+void ASPMCharacter::StopADS()
+{
+	bIsADS = false;
+	ADSCurveDirection = -1;
+	
+	if (GetCharacterMovement())
+	{
+		//reset camera/movement orientation
+		GetCharacterMovement()->bOrientRotationToMovement   = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	}
+}
+
+void ASPMCharacter::UpdateCamera(float DeltaTime)
+{
+	UpdateAimDownSight(DeltaTime);
+}
+
+void ASPMCharacter::UpdateAimDownSight(float DeltaTime)
+{
+	//if we are transitioning in ads:
+	if (ADSCurveDirection != 0.f)
+	{
+		//the time total time per in/out transition
+		const float ActiveTransitionTime = ADSCurveDirection > 0.f ? ADSTransitionTimeIn : ADSTransitionTimeOut;
+
+		//update the alpha where (DeltaTime / ActiveTransitionTime), give you frame independency, ie how much of the total transition time did this frame take
+		//since the alpha goes from 0 to 1 in one direction and 1 to 0 in the other direction we take the direction into account
+		ADSCurveAlpha = FMath::Clamp(ADSCurveAlpha + (ADSCurveDirection * DeltaTime / ActiveTransitionTime),0.f, 1.f);
+
+		//pick which curve to use
+		const UCurveFloat* ActiveCurve = ADSCurveDirection > 0.f ? ADSCurveIn : ADSCurveOut;
+
+		//get the alpha from our curves if we have them, otherwise just go with linear time
+		const float CurvedAlpha = ActiveCurve ? ActiveCurve->GetFloatValue(ADSCurveAlpha) : ADSCurveAlpha;
+		
+		const float NewArmLength = FMath::Lerp(DefaultCameraArmLength, ADSCameraArmLength, CurvedAlpha);
+		const FVector NewOffset = FMath::Lerp(DefaultCameraOffset, ADSCameraOffset, CurvedAlpha);
+		const float NewFOV = FMath::Lerp(DefaultFOV, ADSFOV, CurvedAlpha);
+
+		CameraBoom->TargetArmLength = NewArmLength;
+		CameraBoom->SocketOffset    = NewOffset;
+		FollowCamera->SetFieldOfView(NewFOV);
+
+		if (ADSCurveAlpha >= 1.f || ADSCurveAlpha <= 0.f)
+			ADSCurveDirection = 0.f;
+	}
+}
+
 // Called every frame
 void ASPMCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	LookForInteractables(DeltaTime);
+	UpdateCamera(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -198,6 +273,8 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_Interact, ETriggerEvent::Triggered, this, &ASPMCharacter::Interact);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);
+		EIC->BindAction(IA_ADS, ETriggerEvent::Started,   this, &ASPMCharacter::StartADS);
+		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ASPMCharacter::StopADS);
 	}
 }
 
