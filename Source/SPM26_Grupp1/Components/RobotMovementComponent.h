@@ -13,5 +13,4 @@ UCLASS()
 class SPM26_GRUPP1_API URobotMovementComponent : public USPMCharacterMovementComponent
 {
 	GENERATED_BODY()
-	
 };

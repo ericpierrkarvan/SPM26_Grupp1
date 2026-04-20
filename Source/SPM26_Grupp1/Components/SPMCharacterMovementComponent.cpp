@@ -8,7 +8,7 @@ bool USPMCharacterMovementComponent::IsGrounded()
 	//Kanske rätt onödig, men kan vara lättare att förstå vad som händer
 	if (IsFalling())
 		return false;
-
+	
 	JumpCount = 0;
 	return true;
 }

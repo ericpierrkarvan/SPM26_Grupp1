@@ -13,5 +13,40 @@ UCLASS()
 class SPM26_GRUPP1_API UMechanicMovementComponent : public USPMCharacterMovementComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	float MaxFrontMantleCheckDistance = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	float MantleUpOffsetDistance = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	float MantleReachHeight = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	float MantleMinWallSteepnessAngle = 75.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	float MantleMaxSurfaceAngle = 40.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	float MantleMaxAlignmentAngle = 55.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mantle")
+	UAnimMontage* MantleAnimation;
+
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
+
+private:
+	int RootMotionSourceID;
+	TSharedPtr<FRootMotionSource_MoveToForce> RootMotionSource;
+	void TryMantle();
+	void OnMantleAnimFinished();
+
+	float GetCapsuleHalfHeight() const;
+	float GetCapsuleRadius() const;
+
+	void InitAnimations();
 };
