@@ -1,5 +1,7 @@
 // MyGameMode.cpp
 #include "SPMGameModeBase.h"
+
+#include "SPMPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 #if WITH_EDITOR
@@ -27,12 +29,15 @@ void ASPMGameModeBase::SwitchKeyboardToPlayer()
 
 void ASPMGameModeBase::SwapPossession()
 {
-    APlayerController* PC0 = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    APlayerController* PC1 = UGameplayStatics::GetPlayerController(GetWorld(), 1);
+    ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+    ASPMPlayerController* PC1 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
 
     if (!PC0 || !PC1) return;
     if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid()) return;
 
+    PC0->bIsSwitchingPlayer = true; //flag for keeping the player widget in correct viewport
+    PC1->bIsSwitchingPlayer = true;
+    
     ActiveKeyboardPlayer = (ActiveKeyboardPlayer + 1) % 2;
 
     PC0->UnPossess();
@@ -53,6 +58,9 @@ void ASPMGameModeBase::SwapPossession()
     PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
     PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
 
+    PC0->bIsSwitchingPlayer = false; 
+    PC1->bIsSwitchingPlayer = false;
+    
     UE_LOG(LogTemp, Warning, TEXT("Dev: Keyboard goes to Player %d | PC0 possesses: %s | PC1 possesses: %s"),
         ActiveKeyboardPlayer,
         *PC0->GetPawn()->GetName(),

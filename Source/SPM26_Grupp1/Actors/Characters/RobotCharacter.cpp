@@ -71,6 +71,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		if (PayloadOverlapTime >= PayloadLandingConfirmTime)
 		{
 			EnterLaunchMode();
+			OnLaunchStateChanged.Broadcast(0.f, true); //notify hud
 		}
 	}
 	
@@ -83,6 +84,9 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			//Max held timer, so lets launch and exit
 			Launch();
 			ExitLaunchMode();
+		}else
+		{
+			OnLaunchStateChanged.Broadcast(GetLaunchTimePercentage(), true);
 		}
 	}
 
@@ -161,6 +165,7 @@ void ARobotCharacter::EnterLaunchMode()
 	if (bIsInLaunchMode) return;
 	bIsInLaunchMode = true;
 	StartADS();
+	OnLaunchStateChanged.Broadcast(0.f, bHavePayload); //notify hud
 }
 
 void ARobotCharacter::ExitLaunchMode()
@@ -171,6 +176,7 @@ void ARobotCharacter::ExitLaunchMode()
 	bIsInLaunchMode = false;
 	bLaunchIsCharging = false;
 	LaunchChargeTimer = 0.f;
+	OnLaunchStateChanged.Broadcast(0.f, false); //notify hud
 }
 
 void ARobotCharacter::Launch()
