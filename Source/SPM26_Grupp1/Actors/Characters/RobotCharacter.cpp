@@ -28,7 +28,8 @@ URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 
 void ARobotCharacter::Dash()
 {
-	FVector DashVector = (GetActorForwardVector() + FVector(0, 0, 0.05f)) * DashPower;
-	LaunchCharacter(DashVector, false, false);
+	//Launch the character in the direction that they are facing and a little bit upwards
+	FVector DashVector = (GetActorForwardVector() + FVector(0, 0, 0.1f)) * DashPower;
+	LaunchCharacter(DashVector, true, true);
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }

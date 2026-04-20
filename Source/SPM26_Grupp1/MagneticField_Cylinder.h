@@ -31,6 +31,7 @@ protected:
 public:
 	FVector CalculateMagnetCenterPoint();
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp);
+	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget) const;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -56,7 +57,6 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
 	
-	bool bIsLocked = false;
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
 	
