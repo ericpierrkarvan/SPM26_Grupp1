@@ -18,7 +18,11 @@ public:
 	bool IsGrounded();
 	void IncrementJumpCount();
 	int GetJumpCount() const { return JumpCount; }
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FallingGravityScale = 1.2f;
+	
+	virtual void PhysFalling(float DeltaTime, int32 Iterations) override;
 private:
 	int JumpCount = 0;
 };

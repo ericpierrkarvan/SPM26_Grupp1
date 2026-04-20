@@ -17,3 +17,9 @@ void USPMCharacterMovementComponent::IncrementJumpCount()
 {
 	JumpCount++;
 }
+
+void USPMCharacterMovementComponent::PhysFalling(float DeltaTime, int32 Iterations)
+{
+	GravityScale = FallingGravityScale;
+	Super::PhysFalling(DeltaTime, Iterations);
+}
