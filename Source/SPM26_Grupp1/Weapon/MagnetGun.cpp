@@ -6,7 +6,7 @@
 // Sets default values
 AMagnetGun::AMagnetGun()
 {
-
+	ProjectileMaxDistance = 10000.f;
 }
 
 

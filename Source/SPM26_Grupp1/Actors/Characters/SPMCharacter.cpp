@@ -278,6 +278,11 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	}
 }
 
+bool ASPMCharacter::IsADSActive() const
+{
+	return bIsADS; 
+}
+
 USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
 {
 	return Cast<USPMCharacterMovementComponent>(GetCharacterMovement());

@@ -15,8 +15,11 @@ class SPM26_GRUPP1_API AMagnetGun : public AWeaponBase
 public:	
 	// Sets default values for this actor's properties
 	AMagnetGun();
+	
+	float GetProjectileMaxDistance() const;
 
 protected:
+	
 
 public:	
 

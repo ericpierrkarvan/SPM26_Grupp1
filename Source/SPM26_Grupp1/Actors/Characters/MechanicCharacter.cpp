@@ -2,7 +2,8 @@
 
 
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
-
+#include "SPM26_Grupp1/ProjectileBase.h"
+#include "CollisionDebugDrawingPublic.h"
 #include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 
@@ -28,6 +29,7 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 void AMechanicCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	UpdateADSTrace();
 }
 
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
@@ -39,16 +41,9 @@ void AMechanicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (DefaultWeaponClass)
-	{
-		FActorSpawnParameters Params;
-		Params.Owner = this;
-		Params.Instigator = this;
+	// Equips magnetgun and attaches it to mechanic
+	EquipWeapon();
 
-		EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
-		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
-		                                  TEXT("hand_r"));
-	}
 }
 
 void AMechanicCharacter::MechanicDoubleJump()
@@ -68,8 +63,82 @@ void AMechanicCharacter::MechanicDoubleJump()
 	}
 }
 
+void AMechanicCharacter::EquipWeapon()
+{
+	if (DefaultWeaponClass)
+	{
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+		Params.Instigator = this;
+
+		EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
+										  TEXT("hand_r"));
+	}
+}
+
+FVector AMechanicCharacter::GetCurrentProjectileSpawnLocation() const
+{
+	FVector SpawnLocation = GetActorLocation() 
+		+ GetActorForwardVector() * 100.f // forward from player
+		+ FVector(0.f, 0.f, 0.f);
+	
+	return SpawnLocation;
+}
+
+// Shoot linetrace, draw line, return true/false if it hit anything
+bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController) return false;
+	
+	FVector TraceStart = GetCurrentProjectileSpawnLocation();
+	FVector TraceEnd = GetLineTraceEndPoint(TraceStart, PlayerController);
+	
+	// Ignores own character
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+	
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility);
+	
+	// Draws the linetrace
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Blue, false, -1, 0, 1);
+	
+	return bHit;
+}
+
+FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart, const APlayerController* PlayerController) const
+{
+	float ProjMaxDist = EquippedWeapon->GetMaxShootRange();
+	
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	FVector TraceEnd = TraceStart + CameraRotation.Vector().GetSafeNormal() * ProjMaxDist;
+	
+	return TraceEnd;
+}
+
+void AMechanicCharacter::UpdateADSTrace()
+{
+	if (!IsADSActive()) return;
+	
+	FHitResult HitResult;
+	if (PerformAimTrace(HitResult))
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
+		}
+	}
+
+}
+
 void AMechanicCharacter::Shoot()
 {
+	if (!IsADSActive()) return;
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Execute_Shoot(EquippedWeapon);

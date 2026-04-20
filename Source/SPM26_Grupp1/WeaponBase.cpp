@@ -53,6 +53,18 @@ FVector AWeaponBase::SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn
 	return SpawnLocation;
 }
 
+float AWeaponBase::GetMaxShootRange() const
+{
+	if (ProjectileClass)
+	{
+		return ProjectileClass
+			->GetDefaultObject<AProjectileBase>()
+			->GetProjectileMaxDistance();
+	}
+
+	return 0.f;
+}
+
 // Assigns spawn-parameters and spawns the projectile instance
 void AWeaponBase::SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation)
 {

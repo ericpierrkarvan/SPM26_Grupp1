@@ -30,6 +30,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	bool IsADSActive() const;
 
 	UFUNCTION(BlueprintCallable)
 	USPMCharacterMovementComponent* GetSPMMovementComponent() const;
