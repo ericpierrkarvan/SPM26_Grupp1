@@ -14,6 +14,7 @@ class SPM26_GRUPP1_API AProjectileBase : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AProjectileBase(const FObjectInitializer& ObjectInitializer);
+	virtual float GetProjectileMaxDistance() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
@@ -21,6 +22,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
 	class USphereComponent* CollisionComp;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Projectile")
+	float ProjectileMaxDistance;
 	
 
 };

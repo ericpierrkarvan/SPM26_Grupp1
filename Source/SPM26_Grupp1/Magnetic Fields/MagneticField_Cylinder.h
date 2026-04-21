@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "MagneticField_Cylinder.generated.h"
 
 /**
@@ -27,11 +29,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraSystem* MagnetVfxAsset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraComponent* MagnetVfxComponent;
 
 public:
 	FVector CalculateMagnetCenterPoint();
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp);
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget) const;
+	void AlignMagneticField();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -65,6 +73,7 @@ public:
 	float OriginalMaxAcceleration;
 	float OriginalBrakingDecelerationWalking;
 	float CapsuleHeight;
+	float CapsuleHalfHeight;
 	
 	// Active player
 	UPROPERTY()
