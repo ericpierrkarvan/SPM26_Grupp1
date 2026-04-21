@@ -2,7 +2,7 @@
 
 
 #include "WeaponBase.h"
-#include "ProjectileBase.h"
+#include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()

@@ -2,7 +2,7 @@
 
 
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
-#include "SPM26_Grupp1/ProjectileBase.h"
+#include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 #include "CollisionDebugDrawingPublic.h"
 #include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
