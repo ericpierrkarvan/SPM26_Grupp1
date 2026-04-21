@@ -15,12 +15,10 @@ class SPM26_GRUPP1_API USPMCharacterMovementComponent : public UCharacterMovemen
 	GENERATED_BODY()
 
 public:
+	USPMCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 	bool IsGrounded();
 	void IncrementJumpCount();
 	int GetJumpCount() const { return JumpCount; }
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float FallingGravityScale = 1.2f;
 	
 	virtual void PhysFalling(float DeltaTime, int32 Iterations) override;
 private:
