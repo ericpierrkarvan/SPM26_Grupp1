@@ -2,12 +2,11 @@
 
 
 #include "MagneticField_Cylinder.h"
-
-#include "Actors/Characters/MechanicCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 
 // Sets default values
 AMagneticField_Cylinder::AMagneticField_Cylinder()
