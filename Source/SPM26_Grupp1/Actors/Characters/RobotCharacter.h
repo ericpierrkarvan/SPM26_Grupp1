@@ -28,47 +28,48 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
 
 	FVector GetLaunchForce() const;
-	
+
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	USphereComponent* PlatformDetectionSphere;
 	UPROPERTY(VisibleAnywhere, Category="HeadLaunch")
 	ULaunchArcComponent* LaunchArcComponent;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	float PlatformSphereHeightOffset = 0.f;
 
 	UPROPERTY(EditAnywhere, Category="HeadLaunch", meta=(ClampMin=0.f, ClampMax=1.f))
 	float PayloadLandingConfirmTime = 0.1f; //time before the head accepts something as being on its head
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|DEV")
 	bool bDrawLauncherSphere = false;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
 	float LaunchMaxForce = 2200.f;
 
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
 	float LaunchMinForce = 1500.f;
 	virtual bool CanJumpInternal_Implementation() const override;
-	
+
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
 	float LaunchForwardBias = 0.4f;
 
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
 	float LaunchUpBias = 1.0f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=4.f))
 	float MaxLaunchChargeTime = 2.f;
+
 
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
@@ -77,18 +78,24 @@ private:
 	void Dash();
 	bool CanDash() const;
 
-	UPROPERTY(EditAnywhere, Category = "Movement Controls")
+	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=2000.f))
 	float DashPower = 100.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=10.f))
+	float DashDuration = 0.2f;
+	
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsMagnetizable; // false for X seconds after dashing out of magnetic field.
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField;
 
 	UFUNCTION()
-	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	                            int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	                          int32 OtherBodyIndex);
 
 
 	void EnterLaunchMode();

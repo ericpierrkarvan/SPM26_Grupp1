@@ -56,7 +56,7 @@ void AMechanicCharacter::MechanicDoubleJump()
 		&& GetMechanicMovementComponent()->GetJumpCount() == 1;
 
 	UE_LOG(LogTemp, Warning, TEXT("Jump count: %d"), GetMechanicMovementComponent()->GetJumpCount());
-	
+
 	if (CanDoubleJump)
 	{
 		//Launch the character upwards with the force of a normal jump multiplied a little bit to feel more consistent with the first jump

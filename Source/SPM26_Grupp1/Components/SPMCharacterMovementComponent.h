@@ -19,8 +19,24 @@ public:
 	bool IsGrounded();
 	void IncrementJumpCount();
 	int GetJumpCount() const { return JumpCount; }
-	
+
 	virtual void PhysFalling(float DeltaTime, int32 Iterations) override;
+
+	template <typename T>
+	static T* FindNotifyByClass(const UAnimSequenceBase* Animation)
+	{
+		if (!Animation) return nullptr;
+
+		for (const FAnimNotifyEvent& NotifyEvent : Animation->Notifies)
+		{
+			if (T* Notify = Cast<T>(NotifyEvent.Notify))
+			{
+				return Notify;
+			}
+		}
+		return nullptr;
+	}
+
 private:
 	int JumpCount = 0;
 };
