@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
+#include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<URobotMovementComponent>(
@@ -138,6 +139,7 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == this) return;
+	if (OtherActor == Cast<AMagneticField_Cylinder>(OtherActor)) return;
 
 	bHavePayload = true;
 }

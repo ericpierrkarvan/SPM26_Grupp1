@@ -18,8 +18,8 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	RootComponent = Capsule;
 	Capsule->SetCapsuleSize(50, 250);
 	
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh")); // Possible visual of center pullpoint of magnet
-	Mesh->SetupAttachment(RootComponent);
+	// Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh")); // Possible visual of center pullpoint of magnet
+	// Mesh->SetupAttachment(RootComponent);
 	
 	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
 	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
@@ -123,7 +123,7 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	// If not mechanic, do the magnetic dance
 	if (!Cast<AMechanicCharacter>(TargetCharacter))
 	{
-		CalculateDirectionAndPullCharacter(MagnetTarget);
+		CalculateDirectionAndPullCharacter(MagnetTarget, DeltaTime);
 		CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
 	}
 
@@ -159,16 +159,68 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceT
 		// Lock movement
 		if (!MovComp) return;
 		MovComp->StopMovementImmediately();
-		MovComp->DisableMovement();
+		//MovComp->DisableMovement();
 	}
 }
 
-// Calculates direction of pull (Normal from character to MagnetTarget)
-void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& MagnetTarget) const
+// Calculates direction of pull and pulls (Normal from character to MagnetTarget)
+void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime) const
 {
-	FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
-	TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
+	// TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
+	// FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
+	
+	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
+	if (!MovComp) return;
+	
+	const FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
+	
+	// Counteract gravity so pull strength is consistent, regardless of magnetic field orientation
+	const float GravityMagnitude = FMath::Abs(MovComp->GetGravityZ());
+	const FVector GravityVector = FVector(0,0,-GravityMagnitude);
+	
+	const float GravityAlongPull = FVector::DotProduct(GravityVector, Direction);
+	const FVector GravityCounterforce = -GravityAlongPull * Direction;
+	
+	const FVector LatCorrection = LateralCorrection(MagnetTarget);
+	const FVector PullVelocity = (Direction * PullStrength * PullStrengthMultiplier + GravityCounterforce + LatCorrection) * DeltaTime;
+	
+	//MovComp->SetMovementMode(MOVE_Flying);
+	//MovComp->Velocity += PullVelocity;
+	
+	// AddForce to the character
+	MovComp->AddImpulse(PullVelocity, true);
+	
+	//UE_LOG(LogTemp, Warning, TEXT("Pulling character: %s"), *TargetCharacter->GetName())
+	//UE_LOG(LogTemp, Warning, TEXT("GravityZ raw: %f"), MovComp->GetGravityZ());
+	//UE_LOG(LogTemp, Warning, TEXT("GravityAlongPull: %f"), GravityAlongPull);
+	//UE_LOG(LogTemp, Warning, TEXT("Direction: %s"), *Direction.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("GravityCounterforce: %s"), *GravityCounterforce.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("GravityScale on MoveComp: %f"), MovComp->GravityScale);
+	
 }
+
+// Correct player towards center when in magnetic field
+FVector AMagneticField_Cylinder::LateralCorrection(const FVector& MagnetTarget) const
+{
+	// Project character position onto the pull axis to find the closest point on it
+	FVector FieldOrigin = GetActorLocation();
+	FVector ToCharacter = TargetCharacter->GetActorLocation() - FieldOrigin;
+	FVector PullAxis = (MagnetTarget - FieldOrigin).GetSafeNormal();
+	FVector OnAxis = FieldOrigin + PullAxis * FVector::DotProduct(ToCharacter, PullAxis);
+
+	// Lateral offset is how far the character is from the central axis
+	FVector LateralOffset = TargetCharacter->GetActorLocation() - OnAxis;
+	FVector LateralCorrection = -LateralOffset * CenteringStrength;
+	
+	// Damping isolates only lateral component of the characters current velocity, counteracting lateral velocity
+	FVector CurrentVelocity = TargetCharacter->GetCharacterMovement()->Velocity;
+	FVector LateralVelocity = CurrentVelocity - PullAxis * FVector::DotProduct(CurrentVelocity, PullAxis);
+	FVector LateralDamping = -LateralVelocity * CenteringDampingStrength;
+	
+	return LateralCorrection + LateralDamping;
+}
+
+//FVector AMagneticField_Cylinder::LateralDamping(UCharacterMovementComponent* MovComp)
 
 void AMagneticField_Cylinder::AlignMagneticField()
 {
@@ -193,6 +245,9 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	// Only respond to root capsule component
 	if (OtherComp != Character->GetCapsuleComponent()) return;
 	if (bHasCrippled) return;
+
+	// Gravity = 0 in magnet field
+	Character->GetCharacterMovement()->GravityScale = 0;
 	
 	bHasCrippled = true;
 	TargetCharacter = Character;
@@ -230,9 +285,9 @@ void AMagneticField_Cylinder::CrippleMovement(ACharacter* Character)
 		OriginalMaxAcceleration = MovementComponent->MaxAcceleration;
 		OriginalBrakingDecelerationWalking = MovementComponent->BrakingDecelerationWalking;
 		// Reduce movement to 10% of original
-		MovementComponent->MaxWalkSpeed = OriginalSpeed * 0.1f;
-		MovementComponent->MaxAcceleration = OriginalMaxAcceleration * 0.1f;
-		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking * 6.0f;
+		MovementComponent->MaxWalkSpeed = OriginalSpeed * 0.13f;
+		MovementComponent->MaxAcceleration = OriginalMaxAcceleration * 0.13f;
+		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking * 5.0f;
 	}
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Crippled movement. Movement mode: %p, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
@@ -245,6 +300,7 @@ void AMagneticField_Cylinder::RestoreMovement(ACharacter* Character)
 	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
 	if (MovementComponent)
 	{
+		MovementComponent->GravityScale = 2.2f;
 		MovementComponent->SetMovementMode(MOVE_Walking);
 		MovementComponent->MaxWalkSpeed = OriginalSpeed;
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration;
