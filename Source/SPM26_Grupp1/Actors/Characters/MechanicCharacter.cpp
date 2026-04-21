@@ -23,6 +23,9 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
+
+		EIC->BindAction(IA_ADS, ETriggerEvent::Started,   this, &AMechanicCharacter::StartADS);
+		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &AMechanicCharacter::StopADS);
 	}
 }
 

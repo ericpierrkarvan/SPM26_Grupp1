@@ -74,6 +74,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveOut;
+
+	virtual void StartADS();
+	virtual void StopADS();
+	bool bIsADS = false;
+
+	virtual void Move(const FInputActionValue& Value);
+	virtual void Look(const FInputActionValue& Value);
+	
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -84,8 +92,6 @@ private:
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
-	virtual void Move(const FInputActionValue& Value);
-	virtual void Look(const FInputActionValue& Value);
 	virtual void Interact(const FInputActionValue& Value);
 	void UpdateJumpCount(const FInputActionInstance& Instance);
 
@@ -115,10 +121,5 @@ private:
 	
 	FVector DefaultCameraOffset = FVector::ZeroVector;
 	FVector CurrentCameraOffset = FVector::ZeroVector;
-	bool bIsADS = false;
-
-	virtual void StartADS();
-	virtual void StopADS();
-
 	
 };
