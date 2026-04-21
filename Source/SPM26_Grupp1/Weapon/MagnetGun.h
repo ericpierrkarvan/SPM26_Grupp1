@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponBase.h"
 #include "GameFramework/Actor.h"
-#include "SPM26_Grupp1/WeaponBase.h"
 #include "MagnetGun.generated.h"
 
 UCLASS()
@@ -17,6 +17,7 @@ public:
 	AMagnetGun();
 
 protected:
+	
 
 public:	
 

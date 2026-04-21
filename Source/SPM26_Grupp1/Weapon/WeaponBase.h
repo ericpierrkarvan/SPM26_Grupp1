@@ -20,7 +20,9 @@ public:
 	virtual void Shoot_Implementation() override;
 	virtual void Reload_Implementation() override;
 	virtual bool CanShoot_Implementation() const override;
-
+	
+	float GetMaxShootRange() const;	
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<class AProjectileBase> ProjectileClass;
@@ -34,6 +36,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	FName MuzzleSocketName = "MuzzleSocket";
 	
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	float ProjectileMaxDistance;
+	
 	/*
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	int32 MaxAmmo = 30;
@@ -43,7 +48,8 @@ protected:
 	*/
 	
 	void SpawnProjectile();
+	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
 	FRotator SetDirectionOfSpawnedProjectile(AController* Controller);
 	FVector SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
-	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
+	
 };

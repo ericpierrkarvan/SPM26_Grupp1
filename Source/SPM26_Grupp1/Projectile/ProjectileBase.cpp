@@ -15,5 +15,12 @@ AProjectileBase::AProjectileBase(const FObjectInitializer& ObjectInitializer) : 
 	ProjectileMovementComp->MaxSpeed = 2500.f;
 	ProjectileMovementComp->ProjectileGravityScale = 0.f;
 	
+	ProjectileMaxDistance = 10000.f;
+	
+}
+
+float AProjectileBase::GetProjectileMaxDistance() const
+{
+	return ProjectileMaxDistance;
 }
 
