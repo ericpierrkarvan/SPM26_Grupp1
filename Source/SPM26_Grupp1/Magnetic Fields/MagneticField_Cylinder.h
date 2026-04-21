@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "MagneticField_Cylinder.generated.h"
 
 /**
@@ -27,11 +29,20 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-
-public:
+	
+	FVector LateralCorrection(const FVector& MagnetTarget) const; 
 	FVector CalculateMagnetCenterPoint();
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp);
-	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget) const;
+	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime) const;
+	void AlignMagneticField();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraSystem* MagnetVfxAsset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraComponent* MagnetVfxComponent;
+
+public:
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -47,13 +58,13 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float StopDistance = 75.f;
+	float StopDistance = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float MaxSpeed = 2000.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float MinPullForce = 2.f;
+	float MinPullForce = 4.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float MaxPullForce = 6.f;
+	float MaxPullForce = 8.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
 	
@@ -65,6 +76,13 @@ public:
 	float OriginalMaxAcceleration;
 	float OriginalBrakingDecelerationWalking;
 	float CapsuleHeight;
+	float CapsuleHalfHeight;
+	
+	// Strength of pull towards middle of the field
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float CenteringStrength = 5.0f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float CenteringDampingStrength = 3.0f;
 	
 	// Active player
 	UPROPERTY()

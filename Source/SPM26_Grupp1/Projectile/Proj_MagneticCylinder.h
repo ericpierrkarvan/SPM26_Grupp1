@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraComponent.h"
 #include "ProjectileBase.h"
 #include "Proj_MagneticCylinder.generated.h"
 
@@ -27,6 +28,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	float SpawnedMagneticFieldDuration;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraSystem* MagnetVfxAsset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraComponent* MagnetVfxComponent;
+	
+
+	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
@@ -36,5 +44,6 @@ protected:
 	void OnProjectileStopped(const FHitResult& ImpactResult);
 	
 	void AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
+	void AlignMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation);
 
 };

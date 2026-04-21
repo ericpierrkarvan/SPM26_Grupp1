@@ -194,7 +194,7 @@ void ASPMCharacter::StartADS()
 {
 	bIsADS = true;
 	ADSCurveDirection = 1.f;
-	
+	UE_LOG(LogTemp, Warning, TEXT("%s:hehe "), *GetClass()->GetName())
 	if (GetCharacterMovement())
 	{
 		//when aiming we want the pawn to follow the direction of the camera
@@ -273,9 +273,12 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_Interact, ETriggerEvent::Triggered, this, &ASPMCharacter::Interact);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);
-		EIC->BindAction(IA_ADS, ETriggerEvent::Started,   this, &ASPMCharacter::StartADS);
-		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ASPMCharacter::StopADS);
 	}
+}
+
+bool ASPMCharacter::IsADSActive() const
+{
+	return bIsADS; 
 }
 
 USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const

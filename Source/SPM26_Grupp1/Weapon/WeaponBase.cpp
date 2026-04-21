@@ -2,7 +2,7 @@
 
 
 #include "WeaponBase.h"
-#include "ProjectileBase.h"
+#include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
@@ -51,6 +51,18 @@ FVector AWeaponBase::SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn
 		+ InstigatingPawn->GetActorForwardVector() * 100.f // forward from player
 		+ FVector(0.f, 0.f, 0.f); // can adjust Z to finetune
 	return SpawnLocation;
+}
+
+float AWeaponBase::GetMaxShootRange() const
+{
+	if (ProjectileClass)
+	{
+		return ProjectileClass
+			->GetDefaultObject<AProjectileBase>()
+			->GetProjectileMaxDistance();
+	}
+
+	return 0.f;
 }
 
 // Assigns spawn-parameters and spawns the projectile instance

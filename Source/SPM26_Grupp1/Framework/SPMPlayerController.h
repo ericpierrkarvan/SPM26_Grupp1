@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SPMPlayerController.generated.h"
 
+class UPlayerWidgetHUD;
 class UInputMappingContext;
 /**
  * 
@@ -23,7 +24,22 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input | Dev")
 	TObjectPtr<UInputAction> SwitchPlayerAction;
 
+#if WITH_EDITOR
+	bool bIsSwitchingPlayer = false;
+#endif
+
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	TSubclassOf<UPlayerWidgetHUD> MechanicHUDClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	TSubclassOf<UPlayerWidgetHUD> RobotHUDClass;
+
+	UPROPERTY()
+	UPlayerWidgetHUD* PlayerHudWidget;
+
+	virtual void AcknowledgePossession(class APawn* P) override;
+	
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 

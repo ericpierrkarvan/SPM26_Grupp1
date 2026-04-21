@@ -20,6 +20,9 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	
+	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
+	MagnetVfxComponent->SetupAttachment(RootComponent);
+	
 	// Bind hit event
 	// ProjectileMesh->OnComponentHit.AddDynamic(this, &AProj_MagneticCylinder::OnHit);
 	// UE_LOG(LogTemp, Warning, TEXT("OnHit bound to ProjectileMesh"));
@@ -96,6 +99,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 		SpawnedActor->SetLifeSpan(SpawnedMagneticFieldDuration);
 		
 		AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
+		AlignMagneticFieldVFX(ImpactResult, SpawnLocation);
 	}
 	
 	Destroy();
@@ -125,6 +129,41 @@ void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, con
 		SpawnedActor->SetActorLocation(SpawnLocation + Normal * OffSetDistance);
 	}
 }
+
+void AProj_MagneticCylinder::AlignMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation)
+{
+	if (!MagnetVfxComponent) return;
+
+	FVector Normal = ImpactResult.ImpactNormal;
+
+	// Mirror the same bounding box offset logic as AlignSpawnedMagneticField
+	// so the VFX sits flush on the surface at the same position as the field actor
+	FVector VFXOrigin;
+	FVector VFXBoxExtent;
+	GetActorBounds(false, VFXOrigin, VFXBoxExtent);
+
+	float OffsetDistance = FMath::Abs(FVector::DotProduct(VFXBoxExtent, Normal));
+	float HalfHeight = VFXBoxExtent.Z;
+	FVector AlignedLocation = SpawnLocation + Normal * OffsetDistance - FVector(0.f, 0.f, HalfHeight);
+
+	// Position the VFX at the aligned location
+	MagnetVfxComponent->SetWorldLocation(AlignedLocation);
+
+	FVector Up = FVector::UpVector;
+	FRotator AlignedRotation;
+
+	if (FMath::Abs(FVector::DotProduct(Normal, Up)) > 0.9f)
+	{
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, FVector::ForwardVector).Rotator();
+	}
+	else
+	{
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
+	}
+
+	MagnetVfxComponent->SetWorldRotation(AlignedRotation);
+}
+
 
 
 
