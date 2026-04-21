@@ -31,6 +31,11 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 void AMechanicCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("Velocity: %s, Pending: %s, MovementMode: %d"),
+		*GetCharacterMovement()->Velocity.ToString(),
+		*GetCharacterMovement()->PendingLaunchVelocity.ToString(),
+		GetCharacterMovement()->MovementMode.GetValue());
 }
 
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const

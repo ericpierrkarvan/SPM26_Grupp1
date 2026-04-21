@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
@@ -15,6 +16,8 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	PlatformDetectionSphere->SetupAttachment(RootComponent );
 	PlatformDetectionSphere->SetSphereRadius(40.f);
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+
+	LaunchArcComponent = CreateDefaultSubobject<ULaunchArcComponent>(TEXT("LaunchArcComponent"));
 }
 
 void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -50,15 +53,24 @@ void ARobotCharacter::BeginPlay()
 		float DetectionRadius = GetCapsuleComponent() ? GetCapsuleComponent()->GetScaledCapsuleRadius() * 0.9f : 40.f;
 		PlatformDetectionSphere->SetSphereRadius(DetectionRadius);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("CapsuleHalfHeight: %f, CapsuleRadius: %f"),
-	GetCapsuleComponent()->GetScaledCapsuleHalfHeight(),
-	GetCapsuleComponent()->GetScaledCapsuleRadius());
 }
 
 bool ARobotCharacter::CanJumpInternal_Implementation() const
 {
 	return Super::CanJumpInternal_Implementation() && !bIsInLaunchMode;
+}
+
+FVector ARobotCharacter::GetLaunchForce() const
+{
+	FVector Forward = GetActorForwardVector();
+	Forward.Z = 0.f;
+	Forward.Normalize();
+
+	const float ChargeRatio = FMath::Clamp(LaunchChargeTimer / MaxLaunchChargeTime, 0.f, 1.f);
+	//get the multiplier for the actual launch depending on how long the player have hold the charge
+	const float Force = FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio);
+
+	return (Forward * Force * LaunchForwardBias) + FVector(0.f, 0.f, Force * LaunchUpBias);
 }
 
 void ARobotCharacter::Tick(float DeltaSeconds)
@@ -88,6 +100,23 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		{
 			OnLaunchStateChanged.Broadcast(GetLaunchTimePercentage(), true);
 		}
+	}
+
+	if (bIsInLaunchMode && bHavePayload)
+	{
+		TArray<AActor*> ToIgnore;
+		PlatformDetectionSphere->GetOverlappingActors(ToIgnore);
+		ToIgnore.Add(this);
+
+		LaunchArcComponent->UpdateArc(
+		PlatformDetectionSphere->GetComponentLocation(),
+		GetLaunchForce(),
+		ToIgnore
+		);
+	}
+	else
+	{
+		//LaunchArcComponent->HideArc();
 	}
 
 	#if WITH_EDITOR
@@ -183,17 +212,8 @@ void ARobotCharacter::Launch()
 {
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 
-	//get the multiplier for the actual launch depending on how long the player have hold the charge
-	const float ChargeRatio = FMath::Clamp(LaunchChargeTimer / MaxLaunchChargeTime, 0.f, 1.f);
-	const float Force = FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio);
-
-	FVector Forward = GetActorForwardVector();
-	Forward.Z = 0.f;
-	Forward.Normalize();
-
-	FVector LaunchDir = (Forward * LaunchForwardBias) + FVector(0.f, 0.f, LaunchUpBias);
-	LaunchDir.Normalize();
-
+	const FVector LaunchForce = GetLaunchForce();
+	
 	TArray<AActor*> OverlappingActors;
 	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
 
@@ -204,13 +224,28 @@ void ARobotCharacter::Launch()
 
 		if (ACharacter* Char = Cast<ACharacter>(Actor))
 		{
-			Char->LaunchCharacter(LaunchDir * Force, true, true);
+			//Char->LaunchCharacter(LaunchForce, true, true);
+			Char->GetCharacterMovement()->Velocity = LaunchForce;
+			Char->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+			Char->GetCharacterMovement()->AirControl = 0.f;
+
+			
+			// Re-enable after a short delay
+			FTimerHandle AirControlTimer;
+			GetWorldTimerManager().SetTimer(AirControlTimer, [Char]()
+			{
+				if (Char && Char->GetCharacterMovement())
+				{
+					Char->GetCharacterMovement()->AirControl = 0.8f;
+				}
+			}, 0.5f, false);
+			
 		}
 		else if (UPrimitiveComponent* Other = Actor->FindComponentByClass<UPrimitiveComponent>())
 		{
 			if (Other->IsSimulatingPhysics())
 			{
-				Other->AddImpulse(LaunchDir * Force, NAME_None, true);
+				Other->AddImpulse(LaunchForce, NAME_None, true);
 			}
 		}
 	}

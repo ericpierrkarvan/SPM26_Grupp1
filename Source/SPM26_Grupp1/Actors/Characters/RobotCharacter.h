@@ -15,6 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLaunchStateChanged, float, Perce
 
 class URobotMovementComponent;
 class USphereComponent;
+class ULaunchArcComponent;
 
 UCLASS()
 class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
@@ -30,6 +31,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
+
+	FVector GetLaunchForce() const;
+	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -38,7 +42,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	USphereComponent* PlatformDetectionSphere;
-
+	UPROPERTY(VisibleAnywhere, Category="HeadLaunch")
+	ULaunchArcComponent* LaunchArcComponent;
+	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	float PlatformSphereHeightOffset = 0.f;
 
@@ -49,10 +55,10 @@ protected:
 	bool bDrawLauncherSphere = false;
 	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
-	float LaunchMaxForce = 1500.f;
+	float LaunchMaxForce = 2200.f;
 
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
-	float LaunchMinForce = 900.f;
+	float LaunchMinForce = 1500.f;
 	virtual bool CanJumpInternal_Implementation() const override;
 	
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
@@ -66,6 +72,7 @@ protected:
 
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
+
 
 	void Dash();
 	bool CanDash() const;

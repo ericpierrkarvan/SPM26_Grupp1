@@ -9,13 +9,13 @@ USPMCharacterMovementComponent::USPMCharacterMovementComponent(const FObjectInit
 	MaxWalkSpeed = 600.f;
 	MaxAcceleration = 2048.f;
 	BrakingDecelerationWalking = 4096.f;
-	bUseSeparateBrakingFriction = true;
-	BrakingFriction = 8.f; 
-
+	
 	//air stuff
-	JumpZVelocity = 966.f;
-	GravityScale = 2.2f;
+	JumpZVelocity = 833.f;
+	GravityScale = 1.f;
 	AirControl = 0.8f;
+	FallingLateralFriction = 0.5f;
+	MaxFlySpeed = 2500.f;
 }
 
 bool USPMCharacterMovementComponent::IsGrounded()
