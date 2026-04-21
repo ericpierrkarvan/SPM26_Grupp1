@@ -6,6 +6,45 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "SPMGameModeBase.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
+
+
+void ASPMPlayerController::AcknowledgePossession(class APawn* P)
+{
+	Super::AcknowledgePossession(P);
+#if WITH_EDITOR
+	if (bIsSwitchingPlayer) return; //dev only: if we are switching player then we dont want to recreate widgets
+#endif
+	if (!IsLocalController()) return;
+	
+	//see which widget we want
+	TSubclassOf<UPlayerWidgetHUD> ClassToUse = nullptr;
+	if (Cast<AMechanicCharacter>(P))
+	{
+		ClassToUse = MechanicHUDClass;
+	}
+	else if (Cast<ARobotCharacter>(P))
+	{
+		ClassToUse = RobotHUDClass;
+	}
+	if (!ClassToUse) return;
+
+	//if we have an old widget, lets remove it
+	if (PlayerHudWidget)
+	{
+		PlayerHudWidget->RemoveFromParent();
+		PlayerHudWidget = nullptr;
+	}
+	//and create a new widget
+	PlayerHudWidget = CreateWidget<UPlayerWidgetHUD>(this, ClassToUse);
+	if (PlayerHudWidget)
+	{
+		PlayerHudWidget->AddToPlayerScreen();
+		PlayerHudWidget->SetOwningCharacter(P); //the playerhud wants updated character references
+	}
+}
 
 void ASPMPlayerController::BeginPlay()
 {
@@ -19,6 +58,7 @@ void ASPMPlayerController::BeginPlay()
 	if (!Subsystem) return;
 
 	if (DefaultIMC) Subsystem->AddMappingContext(DefaultIMC, 0);
+	
 }
 
 void ASPMPlayerController::SetupInputComponent()

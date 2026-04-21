@@ -6,11 +6,15 @@
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 #include "RobotCharacter.generated.h"
 
-class USphereComponent;
+
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible);
+
+
 class URobotMovementComponent;
+class USphereComponent;
 
 UCLASS()
 class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
@@ -23,6 +27,9 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnLaunchStateChanged OnLaunchStateChanged;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
