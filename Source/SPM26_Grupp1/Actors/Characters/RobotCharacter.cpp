@@ -14,7 +14,7 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 		ACharacter::CharacterMovementComponentName))
 {
 	PlatformDetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PlatformDetectionSphere"));
-	PlatformDetectionSphere->SetupAttachment(RootComponent );
+	PlatformDetectionSphere->SetupAttachment(RootComponent);
 	PlatformDetectionSphere->SetSphereRadius(40.f);
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
@@ -28,7 +28,7 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		EIC->BindAction(IA_Dash, ETriggerEvent::Triggered, this, &ARobotCharacter::Dash);
 
-		EIC->BindAction(IA_ADS, ETriggerEvent::Started,   this, &ARobotCharacter::OnLaunchPressed);
+		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &ARobotCharacter::OnLaunchPressed);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ARobotCharacter::OnLaunchReleased);
 	}
 }
@@ -41,13 +41,13 @@ float ARobotCharacter::GetLaunchTimePercentage()
 void ARobotCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (PlatformDetectionSphere)
 	{
 		const float CapsuleHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 		PlatformDetectionSphere->SetRelativeLocation(FVector(0.f, 0.f, CapsuleHalfHeight + PlatformSphereHeightOffset));
 		PlatformDetectionSphere->OnComponentBeginOverlap.AddDynamic(
-		this, &ARobotCharacter::OnPlatformOverlapBegin);
+			this, &ARobotCharacter::OnPlatformOverlapBegin);
 		PlatformDetectionSphere->OnComponentEndOverlap.AddDynamic(
 			this, &ARobotCharacter::OnPlatformOverlapEnd);
 
@@ -77,7 +77,7 @@ FVector ARobotCharacter::GetLaunchForce() const
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
+
 	if (bHavePayload && !bIsInLaunchMode)
 	{
 		PayloadOverlapTime += DeltaSeconds;
@@ -87,7 +87,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			OnLaunchStateChanged.Broadcast(0.f, true); //notify hud
 		}
 	}
-	
+
 	if (bLaunchIsCharging)
 	{
 		LaunchChargeTimer += DeltaSeconds;
@@ -97,7 +97,8 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			//Max held timer, so lets launch and exit
 			Launch();
 			ExitLaunchMode();
-		}else
+		}
+		else
 		{
 			OnLaunchStateChanged.Broadcast(GetLaunchTimePercentage(), true);
 		}
@@ -110,9 +111,9 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		ToIgnore.Add(this);
 
 		LaunchArcComponent->UpdateArc(
-		PlatformDetectionSphere->GetComponentLocation(),
-		GetLaunchForce(),
-		ToIgnore
+			PlatformDetectionSphere->GetComponentLocation(),
+			GetLaunchForce(),
+			ToIgnore
 		);
 	}
 	else
@@ -120,7 +121,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		//LaunchArcComponent->HideArc();
 	}
 
-	#if WITH_EDITOR
+#if WITH_EDITOR
 	if (PlatformDetectionSphere && bDrawLauncherSphere)
 	{
 		TArray<AActor*> Overlapping;
@@ -141,7 +142,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			1.f
 		);
 	}
-	#endif
+#endif
 }
 
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
@@ -152,10 +153,28 @@ URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 void ARobotCharacter::Dash()
 {
 	if (!CanDash()) return;
-	
-	//Launch the character in the direction that they are facing and a little bit upwards
-	FVector DashVector = (GetActorForwardVector() + FVector(0, 0, 0.1f)) * DashPower;
-	LaunchCharacter(DashVector, true, true);
+
+	if (!GetRobotMovementComponent()) return;
+
+	FRotator ControlRotation = GetController()->GetControlRotation();
+	FRotator YawRotation{0, ControlRotation.Yaw, 0};
+
+	FVector DashDirection = GetActorForwardVector(); // FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
+	//LaunchCharacter(DashVector, true, true);
+
+	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
+	DashSource->InstanceName = TEXT("Dash");
+	DashSource->AccumulateMode = ERootMotionAccumulateMode::Override;
+	DashSource->Priority = 5;
+	DashSource->Force = DashVector;
+	DashSource->Duration = DashDuration;
+
+	DashSource->FinishVelocityParams.Mode = ERootMotionFinishVelocityMode::SetVelocity;
+	DashSource->FinishVelocityParams.SetVelocity = DashDirection * (DashPower / 2.f);
+
+	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
+
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }
 
@@ -165,7 +184,8 @@ bool ARobotCharacter::CanDash() const
 }
 
 void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                             UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                             UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                             const FHitResult& SweepResult)
 {
 	if (OtherActor == this) return;
 	if (OtherActor == Cast<AMagneticField_Cylinder>(OtherActor)) return;
@@ -174,7 +194,7 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 }
 
 void ARobotCharacter::OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor == this) return;
 
@@ -215,7 +235,7 @@ void ARobotCharacter::Launch()
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 
 	const FVector LaunchForce = GetLaunchForce();
-	
+
 	TArray<AActor*> OverlappingActors;
 	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
 
@@ -284,6 +304,6 @@ void ARobotCharacter::OnLaunchReleased()
 void ARobotCharacter::Move(const FInputActionValue& Value)
 {
 	if (bIsInLaunchMode) return; //cant move if we are in launch mode
-	
+
 	Super::Move(Value);
 }
