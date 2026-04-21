@@ -224,22 +224,23 @@ void ARobotCharacter::Launch()
 
 		if (ACharacter* Char = Cast<ACharacter>(Actor))
 		{
+			if (!Char->GetMovementComponent()) return;
 			//Char->LaunchCharacter(LaunchForce, true, true);
+			const float CachedAirControl = Char->GetCharacterMovement()->AirControl;
+
 			Char->GetCharacterMovement()->Velocity = LaunchForce;
 			Char->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 			Char->GetCharacterMovement()->AirControl = 0.f;
 
-			
-			// Re-enable after a short delay
+			//disable air control initially to enhance the "launch" effect
 			FTimerHandle AirControlTimer;
-			GetWorldTimerManager().SetTimer(AirControlTimer, [Char]()
+			GetWorldTimerManager().SetTimer(AirControlTimer, [Char, CachedAirControl]()
 			{
-				if (Char && Char->GetCharacterMovement())
+				if (IsValid(Char) && Char->GetCharacterMovement())
 				{
-					Char->GetCharacterMovement()->AirControl = 0.8f;
+					Char->GetCharacterMovement()->AirControl = CachedAirControl;
 				}
 			}, 0.5f, false);
-			
 		}
 		else if (UPrimitiveComponent* Other = Actor->FindComponentByClass<UPrimitiveComponent>())
 		{
