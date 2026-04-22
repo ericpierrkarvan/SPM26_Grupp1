@@ -49,4 +49,5 @@ private:
 	float GetCapsuleRadius() const;
 
 	void InitAnimations();
+	FTimerHandle TimerHandle;
 };
