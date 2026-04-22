@@ -51,6 +51,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category="HeadLaunch", meta=(ClampMin=0.f, ClampMax=1.f))
 	float PayloadLandingConfirmTime = 0.1f; //time before the head accepts something as being on its head
 
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
+	float PitchAtMaxRange = 20.f;//values equal or lower gets the max range
+
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
+	float PitchAtMinRange = 50.f;//values equal or higher gets the min range
+
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
+	float LaunchAngleMaxRange = 45.f; //launch angle when the camera is at "PitchAtMaxRange" or lower
+
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
+	float LaunchAngleMinRange = 70.f; //launch angle when the camera is at "PitchAtMinRange" or higher
+	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|DEV")
 	bool bDrawLauncherSphere = false;
 
