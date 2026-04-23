@@ -136,9 +136,18 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		PlatformDetectionSphere->GetOverlappingActors(ToIgnore);
 		ToIgnore.Add(this);
 
+		UCharacterMovementComponent* PayloadMoveComp = nullptr;
+		for (AActor* Actor : ToIgnore)
+		{
+			if (ACharacter* Char = Cast<ACharacter>(Actor))
+			{
+				PayloadMoveComp = Char->GetCharacterMovement();
+				break;
+			}
+		}
 		LaunchArcComponent->UpdateArc(
 			PlatformDetectionSphere->GetComponentLocation(),
-			GetLaunchForce(),
+			GetLaunchForce(), PayloadMoveComp,
 			ToIgnore
 		);
 	}

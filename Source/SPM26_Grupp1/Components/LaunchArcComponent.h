@@ -7,6 +7,8 @@
 #include "LaunchArcComponent.generated.h"
 
 
+class UCharacterMovementComponent;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API ULaunchArcComponent : public UActorComponent
 {
@@ -16,7 +18,7 @@ public:
 	// Sets default values for this component's properties
 	ULaunchArcComponent();
 
-	void UpdateArc(FVector StartLocation, FVector LaunchVelocity, TArray<AActor*> ActorsToIgnore);
+	void UpdateArc(FVector StartLocation, FVector LaunchVelocity, UCharacterMovementComponent* PayloadMoveComp, TArray<AActor*> ActorsToIgnore);
 
 protected:
 	// Called when the game starts
@@ -24,6 +26,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Arc")
 	float SimulationFrequency = 15.f;
+
+	float GetFrictionMultiplier(const UCharacterMovementComponent* MoveComp, FVector LaunchVelocity) const;
 
 public:	
 	// Called every frame
