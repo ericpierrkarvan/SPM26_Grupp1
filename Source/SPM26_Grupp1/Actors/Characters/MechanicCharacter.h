@@ -12,8 +12,6 @@ class UMechanicMovementComponent;
  * 
  */
 
-
-
 UCLASS()
 class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 {
@@ -41,10 +39,6 @@ protected:
 	TSubclassOf<AProjectileBase> ProjectileClass;
 	UPROPERTY()
 	TArray<TWeakObjectPtr<AActor>> ActiveMagneticFields;
-
-
-	UPROPERTY(EditDefaultsOnly, Category="Jump")
-	UParticleSystem* JumpParticleSystem;
 	
 	// The current location where a projectile will be spawned.
 	FVector CurrentProjectileSpawnPoint;
@@ -64,5 +58,4 @@ private:
 	void Shoot();
 	UFUNCTION(BlueprintCallable)
 	void DestroyAllMagneticFields();
-	
 };

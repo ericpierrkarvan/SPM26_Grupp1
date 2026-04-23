@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
@@ -215,8 +216,7 @@ void ARobotCharacter::Dash()
 
 	DashSource->FinishVelocityParams.Mode = ERootMotionFinishVelocityMode::SetVelocity;
 	DashSource->FinishVelocityParams.SetVelocity = DashDirection * (DashPower / 2.f);
-
-
+	GetRobotMovementComponent()->OnDashEvent.Broadcast(IsDashing());
 	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
