@@ -9,8 +9,14 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDash, bool, IsDashing);
+
 UCLASS()
 class SPM26_GRUPP1_API URobotMovementComponent : public USPMCharacterMovementComponent
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable, Category="Dash")
+	FOnDash OnDashEvent;
 };

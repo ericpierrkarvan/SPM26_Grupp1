@@ -32,7 +32,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
+	
 
+	
 	FVector GetLaunchForce() const;
 	
 	bool IsDashing() const;
@@ -108,7 +110,6 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=10.f))
 	float DashDuration = 0.2f;
-	
 
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsMagnetizable = true; // false for X seconds after dashing out of magnetic field.
