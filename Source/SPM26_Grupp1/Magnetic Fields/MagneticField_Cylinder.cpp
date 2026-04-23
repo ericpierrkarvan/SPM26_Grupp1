@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
 // Sets default values
 AMagneticField_Cylinder::AMagneticField_Cylinder()
@@ -37,9 +38,7 @@ void AMagneticField_Cylinder::Activate()
 	
 	MagnetVfxComponent->Activate();
 	UE_LOG(LogTemp, Warning, TEXT("Magnet VFX activated: %p"), MagnetVfxComponent);
-	
-	//Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
-	//Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
+
 }
 
 void AMagneticField_Cylinder::Disable()
@@ -56,9 +55,7 @@ void AMagneticField_Cylinder::Disable()
 		TargetCharacter = nullptr;
 		bHasCrippled = false;
 	}
-	
-	//Capsule->OnComponentBeginOverlap.RemoveAll(this);
-	//Capsule->OnComponentEndOverlap.RemoveAll(this);
+
 }
 
 // Called when the game starts or when spawned
@@ -98,9 +95,10 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	// Don't do anything if field is not Active
 	if (!bIsActive) return;
 	if (!IsValid(TargetCharacter)) return;
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(TargetCharacter);
+	if (Robot && !Robot->IsMagnetizable()) return;
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!IsValid(MovComp)) return;
 	
@@ -120,17 +118,16 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 		FVector::Dist(CurrentPlayerLocation, MagnetTarget));
 	float DistanceToTarget = FVector::Dist(CurrentPlayerLocation, MagnetTarget);
 	
-	// If not mechanic, do the magnetic dance
+	// If not mechanic, pull
 	if (!Cast<AMechanicCharacter>(TargetCharacter))
 	{
-		CalculateDirectionAndPullCharacter(MagnetTarget, DeltaTime);
-		CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
+		ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp);
 	}
 
 }
 
 // Calculates center point where objects are pulled toward (top of capsule).
-FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
+FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint() const
 {
 	//float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 	//CapsuleHeight = HalfHeight * 2;
@@ -147,8 +144,14 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 	return MagnetTarget;
 }
 
+void AMagneticField_Cylinder::ApplyMagneticPull(const FVector& MagnetTarget, const float DeltaTime, const float DistanceToTarget, UCharacterMovementComponent* MovComp) const
+{
+	CalculateDirectionAndPullCharacter(MagnetTarget, DeltaTime);
+	CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
+}
+
 // Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
-void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp)
+void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const
 {
 	if (DistanceToTarget <= StopDistance && IsValid(TargetCharacter))
 	{
@@ -184,10 +187,6 @@ void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& 
 	const FVector LatCorrection = LateralCorrection(MagnetTarget);
 	const FVector PullVelocity = (Direction * PullStrength * PullStrengthMultiplier + GravityCounterforce + LatCorrection) * DeltaTime;
 	
-	//MovComp->SetMovementMode(MOVE_Flying);
-	//MovComp->Velocity += PullVelocity;
-	
-	// AddForce to the character
 	MovComp->AddImpulse(PullVelocity, true);
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Pulling character: %s"), *TargetCharacter->GetName())
@@ -220,8 +219,6 @@ FVector AMagneticField_Cylinder::LateralCorrection(const FVector& MagnetTarget) 
 	return LateralCorrection + LateralDamping;
 }
 
-//FVector AMagneticField_Cylinder::LateralDamping(UCharacterMovementComponent* MovComp)
-
 void AMagneticField_Cylinder::AlignMagneticField()
 {
 	MagnetVfxComponent->SetRelativeLocation(FVector(0, 0, -CapsuleHalfHeight));
@@ -238,9 +235,11 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	// Don't do anything if character is the mechanic
 	if (!bIsActive) return; 
 	if (Cast<AMechanicCharacter>(OtherActor)) return;
-	
+
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
 	if (!Character) return;
+	
+	IfRobotSetWithinMagneticField(true, OtherActor);
 	
 	// Only respond to root capsule component
 	if (OtherComp != Character->GetCapsuleComponent()) return;
@@ -263,6 +262,7 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	if (Cast<AMechanicCharacter>(OtherActor)) return;
 	if (!Character) return;
 	if (OtherComp != Character->GetCapsuleComponent()) return;
+	IfRobotSetWithinMagneticField(false, OtherActor);
 	
 	bHasCrippled = false;
 
@@ -323,5 +323,14 @@ void AMagneticField_Cylinder::FreezeMovement(ACharacter* Character)
 		RootComp->BodyInstance.bLockYTranslation = true;
 		RootComp->BodyInstance.bLockZTranslation = true;
 		RootComp->BodyInstance.CreateDOFLock();
+	}
+}
+
+// Used in OverlapBegin to tag Robot in/not in field
+void AMagneticField_Cylinder::IfRobotSetWithinMagneticField(const bool bNewValue, AActor* OtherActor)
+{
+	if (Cast<ARobotCharacter>(OtherActor))
+	{
+		Cast<ARobotCharacter>(OtherActor)->SetIsWithinMagneticField(bNewValue);
 	}
 }

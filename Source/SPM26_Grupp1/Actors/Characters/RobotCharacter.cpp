@@ -183,6 +183,11 @@ void ARobotCharacter::Dash()
 	if (!CanDash()) return;
 
 	if (!GetRobotMovementComponent()) return;
+	
+	if (bIsWithinMagneticField)
+	{
+		StartMagnetizableImmunity(ImmunityInSeconds);
+	}
 
 	Dashing = true;
 
@@ -342,4 +347,30 @@ void ARobotCharacter::Move(const FInputActionValue& Value)
 	if (bIsInLaunchMode) return; //cant move if we are in launch mode
 
 	Super::Move(Value);
+}
+
+void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
+{
+	bIsMagnetizable = false;
+	
+	GetWorldTimerManager().ClearTimer(MagnetizableCooldownHandle);
+	
+	GetWorldTimerManager().SetTimer(
+		MagnetizableCooldownHandle,
+		[this]()
+		{
+			bIsMagnetizable = true;
+		},
+		Seconds,
+		false);
+}
+
+bool ARobotCharacter::IsMagnetizable() const
+{
+	return bIsMagnetizable;
+}
+
+void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
+{
+	bIsWithinMagneticField = bNewValue;
 }
