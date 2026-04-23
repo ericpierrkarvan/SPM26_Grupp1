@@ -11,6 +11,9 @@ class UMechanicMovementComponent;
 /**
  * 
  */
+
+
+
 UCLASS()
 class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 {
