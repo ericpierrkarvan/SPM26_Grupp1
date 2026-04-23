@@ -25,6 +25,8 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	FVector GetCurrentProjectileSpawnLocation() const;
 	void AddMagneticField(AActor* Field);
+	UFUNCTION(BlueprintCallable)
+	AWeaponBase* GetEquippedWeapon() const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
