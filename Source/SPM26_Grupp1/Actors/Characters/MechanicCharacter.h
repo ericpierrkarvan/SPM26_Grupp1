@@ -21,16 +21,21 @@ class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	FVector GetCurrentProjectileSpawnLocation() const;
+	void AddMagneticField(AActor* Field);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Shoot;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_DestroyFields;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* EquippedWeapon;
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<AWeaponBase> DefaultWeaponClass;
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<AProjectileBase> ProjectileClass;
+	UPROPERTY()
+	TArray<TWeakObjectPtr<AActor>> ActiveMagneticFields;
 
 
 	UPROPERTY(EditDefaultsOnly, Category="Jump")
@@ -52,4 +57,7 @@ private:
 	void MechanicDoubleJump();
 	void UpdateADSTrace();
 	void Shoot();
+	UFUNCTION(BlueprintCallable)
+	void DestroyAllMagneticFields();
+	
 };

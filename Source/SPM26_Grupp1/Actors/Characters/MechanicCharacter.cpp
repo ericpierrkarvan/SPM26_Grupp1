@@ -21,6 +21,7 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
+		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
 
 		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
@@ -148,5 +149,29 @@ void AMechanicCharacter::Shoot()
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Execute_Shoot(EquippedWeapon);
+	}
+}
+
+// Destroys all magnetic fields created by the mechanic.
+void AMechanicCharacter::DestroyAllMagneticFields()
+{
+	for (TWeakObjectPtr<AActor>& FieldPtr : ActiveMagneticFields)
+	{
+		// IsValid handles lifespan-destroyed actors safely
+		// TWeakObjectPtr doesnt prevent garbage collection and will return nullptr
+		// if actor already has been destroyed.
+		if (IsValid(FieldPtr.Get()))
+		{
+			FieldPtr->Destroy();
+		}
+	}
+	ActiveMagneticFields.Empty();
+}
+
+void AMechanicCharacter::AddMagneticField(AActor* Field)
+{
+	if (IsValid(Field))
+	{
+		ActiveMagneticFields.Add(Field);
 	}
 }
