@@ -66,13 +66,15 @@ FVector ARobotCharacter::GetLaunchForce() const
 	const float ChargeRatio = FMath::Clamp(LaunchChargeTimer / MaxLaunchChargeTime, 0.f, 1.f);
 
 	float RawPitch = GetControlRotation().Pitch; //pitch is between 0-360
-	const float SignedPitch = RawPitch > 180.f ? RawPitch - 360.f : RawPitch; //so lets convert it to a range between -90 to 90 where looking down is negative and looking up is positive
+	const float SignedPitch = RawPitch > 180.f ? RawPitch - 360.f : RawPitch;
+	//so lets convert it to a range between -90 to 90 where looking down is negative and looking up is positive
 	//we only want the part when camera is looking down to adjust the range of the launch
 	//so lets get the degrees of the when the camera is actually facing down
-	const float DegreesDown = FMath::Abs(FMath::Min(SignedPitch, 0.f)); 
+	const float DegreesDown = FMath::Abs(FMath::Min(SignedPitch, 0.f));
 
 	//map how far through the interval we are between 0 and 1
-	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange),0.f, 1.f);
+	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange), 0.f,
+	                                      1.f);
 	//give us the launch pitch between our two min/max-angles
 	const float FinalPitch = FMath::Lerp(LaunchAngleMaxRange, LaunchAngleMinRange, PitchAlpha);
 
@@ -86,14 +88,14 @@ FVector ARobotCharacter::GetLaunchForce() const
 	//and an extra force from holding down the launch key
 	const float ExtraForce = FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio) - BaseForce;
 
-	const float ExtraVertical   = ExtraForce * PitchAlpha;
+	const float ExtraVertical = ExtraForce * PitchAlpha;
 	const float ExtraHorizontal = ExtraForce * (1.f - PitchAlpha);
 
 	//split the base force between horizontal and vertical angles.
 	//for example sin(45) = cos (45) so the power will be equal between the axis
 	//if we have a higher angle, say 70, then sin(70) > cos(70) so the vertical will have more base power
 	const float HorizBase = BaseForce * FMath::Cos(FMath::DegreesToRadians(FinalPitch));
-	const float VertBase  = BaseForce * FMath::Sin(FMath::DegreesToRadians(FinalPitch));
+	const float VertBase = BaseForce * FMath::Sin(FMath::DegreesToRadians(FinalPitch));
 
 	const FVector TotalHorizontalForce = (HorizontalDir * (HorizBase + ExtraHorizontal));
 	const FVector TotalVerticalForce = FVector(0.f, 0.f, VertBase + ExtraVertical);
@@ -182,10 +184,12 @@ void ARobotCharacter::Dash()
 
 	if (!GetRobotMovementComponent()) return;
 
+	Dashing = true;
+
 	FRotator ControlRotation = GetController()->GetControlRotation();
 	FRotator YawRotation{0, ControlRotation.Yaw, 0};
 
-	FVector DashDirection = GetActorForwardVector(); // FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	FVector DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
 	//LaunchCharacter(DashVector, true, true);
 
@@ -199,9 +203,15 @@ void ARobotCharacter::Dash()
 	DashSource->FinishVelocityParams.Mode = ERootMotionFinishVelocityMode::SetVelocity;
 	DashSource->FinishVelocityParams.SetVelocity = DashDirection * (DashPower / 2.f);
 
-	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
 
+	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
+}
+
+bool ARobotCharacter::IsDashing() const
+{
+	return Dashing;
 }
 
 bool ARobotCharacter::CanDash() const

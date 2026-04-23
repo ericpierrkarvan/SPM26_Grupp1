@@ -51,8 +51,6 @@ void UMechanicMovementComponent::TryMantle()
 	                                   MaxFrontMantleCheckDistance);
 	FVector FrontEnd = FrontStart + ForwardVector * CheckDistance;
 	
-	DrawDebugLine(GetWorld(), FrontStart, FrontEnd, FColor::Red);
-	
 	//Perform forward trace
 	if (!GetWorld()->LineTraceSingleByProfile(WallDetectTraceResult, FrontStart, FrontEnd, "BlockAll", QueryParams))
 	{
@@ -71,8 +69,6 @@ void UMechanicMovementComponent::TryMantle()
 	{
 		return;
 	}
-
-	DrawDebugPoint(GetWorld(), WallDetectTraceResult.Location, 15, FColor::Green, false, 2.f);
 	
 	//Find the top surface to mantle on
 	TArray<FHitResult> HeightHits;
@@ -82,7 +78,7 @@ void UMechanicMovementComponent::TryMantle()
 	float WallSin = FMath::Sqrt(1 - WallCos * WallCos);
 
 	FVector TraceStart = WallDetectTraceResult.Location + ForwardVector + WallUp * MantleReachHeight / WallSin;
-	DrawDebugLine(GetWorld(), TraceStart, WallDetectTraceResult.Location + ForwardVector, FColor::Black);
+	
 	
 	//Perform multi trace to check all valid points to mantle onto
 	if (!GetWorld()->LineTraceMultiByProfile(HeightHits, TraceStart, WallDetectTraceResult.Location + ForwardVector, "BlockAll",
@@ -108,7 +104,6 @@ void UMechanicMovementComponent::TryMantle()
 	}
 	
 	float Height = SurfaceHit.Location - FrontStart | FVector::UpVector;
-	DrawDebugPoint(GetWorld(), SurfaceHit.Location, 20, FColor::Blue, false, 2.f);
 	
 	if (Height > MantleReachHeight)
 	{
@@ -127,13 +122,19 @@ void UMechanicMovementComponent::TryMantle()
 	{
 		return;
 	}
-
+	
+#if WITH_EDITOR
+	DrawDebugLine(GetWorld(), FrontStart, FrontEnd, FColor::Red);
+	DrawDebugLine(GetWorld(), TraceStart, WallDetectTraceResult.Location + ForwardVector, FColor::Black);
+	DrawDebugPoint(GetWorld(), WallDetectTraceResult.Location, 15, FColor::Green, false, 2.f);
+	DrawDebugPoint(GetWorld(), SurfaceHit.Location, 20, FColor::Blue, false, 2.f);
 	DrawDebugCapsule(GetWorld(), ComponentLocation, GetCapsuleRadius(), GetCapsuleHalfHeight(), FQuat::Identity,
 	                 FColor::Red, false, 2.f);
 
 	DrawDebugCapsule(GetWorld(), TransitionTarget, GetCapsuleHalfHeight(), GetCapsuleRadius(), FQuat::Identity,
 	                 FColor::Green, false, 2.f);
-
+#endif
+	
 	//Override the rootmotion for a certain duration and make the character move to the target location
 	RootMotionSource.Reset();
 	RootMotionSource = MakeShared<FRootMotionSource_MoveToForce>();
