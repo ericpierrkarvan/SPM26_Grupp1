@@ -33,7 +33,9 @@ public:
 	FOnLaunchStateChanged OnLaunchStateChanged;
 
 	FVector GetLaunchForce() const;
-
+	
+	bool IsDashing() const;
+	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -85,17 +87,21 @@ protected:
 
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
+	FTimerHandle TimerHandle;
 
 
 	void Dash();
 	bool CanDash() const;
-
+	bool Dashing = false;
+	void ResetDashHandle(){ Dashing = false; }
+	
 	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=2000.f))
 	float DashPower = 100.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=10.f))
 	float DashDuration = 0.2f;
 	
+
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsMagnetizable; // false for X seconds after dashing out of magnetic field.
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")

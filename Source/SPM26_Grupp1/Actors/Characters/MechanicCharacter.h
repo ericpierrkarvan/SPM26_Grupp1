@@ -22,6 +22,7 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	FVector GetCurrentProjectileSpawnLocation() const;
 	void AddMagneticField(AActor* Field);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Shoot;
@@ -35,16 +36,20 @@ protected:
 	TSubclassOf<AProjectileBase> ProjectileClass;
 	UPROPERTY()
 	TArray<TWeakObjectPtr<AActor>> ActiveMagneticFields;
+
+
+	UPROPERTY(EditDefaultsOnly, Category="Jump")
+	UParticleSystem* JumpParticleSystem;
 	
 	// The current location where a projectile will be spawned.
 	FVector CurrentProjectileSpawnPoint;
-	
+
 	UFUNCTION(BlueprintCallable, Category="Aim")
 	bool PerformAimTrace(FHitResult& OutHit);
 
 	FVector GetLineTraceEndPoint(const FVector& TraceStart, const APlayerController* PlayerController) const;
 	virtual void Tick(float DeltaTime) override;
-	
+
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();
