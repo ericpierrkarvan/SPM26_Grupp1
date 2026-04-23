@@ -31,8 +31,10 @@ protected:
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	
 	FVector LateralCorrection(const FVector& MagnetTarget) const; 
-	FVector CalculateMagnetCenterPoint();
-	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp);
+	FVector CalculateMagnetCenterPoint() const;
+	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
+	                       UCharacterMovementComponent* MovComp) const;
+	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime) const;
 	void AlignMagneticField();
 	
@@ -108,4 +110,5 @@ public:
 	void RestoreMovement(ACharacter* Character);
 	UFUNCTION()
 	void FreezeMovement(ACharacter* Character);
+	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
 };

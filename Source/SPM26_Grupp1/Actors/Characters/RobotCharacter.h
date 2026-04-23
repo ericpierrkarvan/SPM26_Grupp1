@@ -28,6 +28,7 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();
+	void SetIsWithinMagneticField(bool bNewValue);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -35,6 +36,7 @@ public:
 	FVector GetLaunchForce() const;
 	
 	bool IsDashing() const;
+	bool IsMagnetizable() const;
 	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -88,6 +90,7 @@ protected:
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
+	FTimerHandle MagnetizableCooldownHandle;
 
 
 	void Dash();
@@ -103,9 +106,11 @@ private:
 	
 
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
-	bool bIsMagnetizable; // false for X seconds after dashing out of magnetic field.
+	bool bIsMagnetizable = true; // false for X seconds after dashing out of magnetic field.
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
-	bool bIsWithinMagneticField;
+	bool bIsWithinMagneticField = false;
+	UPROPERTY(EditAnywhere, Category = "Magnet")
+	float ImmunityInSeconds = 0.2f;
 
 	UFUNCTION()
 	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -131,4 +136,6 @@ private:
 	float PayloadOverlapTime = 0.f;
 
 	virtual void Move(const FInputActionValue& Value) override;
+	void StartMagnetizableImmunity(float Seconds);
+
 };
