@@ -69,6 +69,12 @@ void ASPMCharacter::BeginPlay()
 
 }
 
+void ASPMCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	SetOwner(GetController());
+}
+
 void ASPMCharacter::Move(const FInputActionValue& Value)
 {
 	FVector2D Axis = Value.Get<FVector2D>();

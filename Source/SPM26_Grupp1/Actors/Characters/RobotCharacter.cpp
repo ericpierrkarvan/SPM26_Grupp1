@@ -73,8 +73,7 @@ FVector ARobotCharacter::GetLaunchForce() const
 	const float DegreesDown = FMath::Abs(FMath::Min(SignedPitch, 0.f));
 
 	//map how far through the interval we are between 0 and 1
-	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange), 0.f,
-	                                      1.f);
+	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange),0.f, 1.f);
 	//give us the launch pitch between our two min/max-angles
 	const float FinalPitch = FMath::Lerp(LaunchAngleMaxRange, LaunchAngleMinRange, PitchAlpha);
 
@@ -138,15 +137,24 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		PlatformDetectionSphere->GetOverlappingActors(ToIgnore);
 		ToIgnore.Add(this);
 
+		UCharacterMovementComponent* PayloadMoveComp = nullptr;
+		for (AActor* Actor : ToIgnore)
+		{
+			if (ACharacter* Char = Cast<ACharacter>(Actor))
+			{
+				PayloadMoveComp = Char->GetCharacterMovement();
+				break;
+			}
+		}
 		LaunchArcComponent->UpdateArc(
 			PlatformDetectionSphere->GetComponentLocation(),
-			GetLaunchForce(),
+			GetLaunchForce(), PayloadMoveComp,
 			ToIgnore
 		);
 	}
 	else
 	{
-		//LaunchArcComponent->HideArc();
+		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
 
 #if WITH_EDITOR
