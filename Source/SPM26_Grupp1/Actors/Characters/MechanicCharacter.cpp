@@ -6,6 +6,7 @@
 #include "CollisionDebugDrawingPublic.h"
 #include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
+#include "Kismet/GamePlayStatics.h"
 
 AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(
@@ -20,11 +21,12 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
+		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
 
 		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
 
-		EIC->BindAction(IA_ADS, ETriggerEvent::Started,   this, &AMechanicCharacter::StartADS);
+		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &AMechanicCharacter::StartADS);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &AMechanicCharacter::StopADS);
 	}
 }
@@ -46,7 +48,6 @@ void AMechanicCharacter::BeginPlay()
 
 	// Equips magnetgun and attaches it to mechanic
 	EquipWeapon();
-
 }
 
 void AMechanicCharacter::MechanicDoubleJump()
@@ -63,6 +64,8 @@ void AMechanicCharacter::MechanicDoubleJump()
 		float JumpZVelocity = GetMechanicMovementComponent()->JumpZVelocity;
 		LaunchCharacter(FVector(0, 0,
 		                        JumpZVelocity * 1.4f), false, true);
+
+		GetMechanicMovementComponent()->DoubleJumpEvent.Broadcast(JumpZVelocity);
 	}
 }
 
@@ -76,16 +79,16 @@ void AMechanicCharacter::EquipWeapon()
 
 		EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
 		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
-										  TEXT("hand_r"));
+		                                  TEXT("hand_r"));
 	}
 }
 
 FVector AMechanicCharacter::GetCurrentProjectileSpawnLocation() const
 {
-	FVector SpawnLocation = GetActorLocation() 
+	FVector SpawnLocation = GetActorLocation()
 		+ GetActorForwardVector() * 100.f // forward from player
 		+ FVector(0.f, 0.f, 0.f);
-	
+
 	return SpawnLocation;
 }
 
@@ -94,39 +97,40 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 {
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController) return false;
-	
+
 	FVector TraceStart = GetCurrentProjectileSpawnLocation();
 	FVector TraceEnd = GetLineTraceEndPoint(TraceStart, PlayerController);
-	
+
 	// Ignores own character
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this);
-	
+
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility);
-	
+
 	// Draws the linetrace
 	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Blue, false, -1, 0, 1);
-	
+
 	return bHit;
 }
 
-FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart, const APlayerController* PlayerController) const
+FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart,
+                                                 const APlayerController* PlayerController) const
 {
 	float ProjMaxDist = EquippedWeapon->GetMaxShootRange();
-	
+
 	FVector CameraLocation;
 	FRotator CameraRotation;
 	PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
-	
+
 	FVector TraceEnd = TraceStart + CameraRotation.Vector().GetSafeNormal() * ProjMaxDist;
-	
+
 	return TraceEnd;
 }
 
 void AMechanicCharacter::UpdateADSTrace()
 {
 	if (!IsADSActive()) return;
-	
+
 	FHitResult HitResult;
 	if (PerformAimTrace(HitResult))
 	{
@@ -136,7 +140,6 @@ void AMechanicCharacter::UpdateADSTrace()
 			UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
 		}
 	}
-
 }
 
 void AMechanicCharacter::Shoot()
@@ -145,5 +148,29 @@ void AMechanicCharacter::Shoot()
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Execute_Shoot(EquippedWeapon);
+	}
+}
+
+// Destroys all magnetic fields created by the mechanic.
+void AMechanicCharacter::DestroyAllMagneticFields()
+{
+	for (TWeakObjectPtr<AActor>& FieldPtr : ActiveMagneticFields)
+	{
+		// IsValid handles lifespan-destroyed actors safely
+		// TWeakObjectPtr doesnt prevent garbage collection and will return nullptr
+		// if actor already has been destroyed.
+		if (IsValid(FieldPtr.Get()))
+		{
+			FieldPtr->Destroy();
+		}
+	}
+	ActiveMagneticFields.Empty();
+}
+
+void AMechanicCharacter::AddMagneticField(AActor* Field)
+{
+	if (IsValid(Field))
+	{
+		ActiveMagneticFields.Add(Field);
 	}
 }

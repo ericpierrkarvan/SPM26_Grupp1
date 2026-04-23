@@ -33,8 +33,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraComponent* MagnetVfxComponent;
 	
-
-	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
@@ -45,5 +43,6 @@ protected:
 	
 	void AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
 	void AlignMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation);
-
+	AActor* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
+	void RegisterFieldInMechanicArray(AActor* Field) const;
 };

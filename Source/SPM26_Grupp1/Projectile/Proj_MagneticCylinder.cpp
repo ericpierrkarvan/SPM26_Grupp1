@@ -4,6 +4,7 @@
 #include "Proj_MagneticCylinder.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 
 // Sets default values
 AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -23,19 +24,11 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
 	MagnetVfxComponent->SetupAttachment(RootComponent);
 	
-	// Bind hit event
-	// ProjectileMesh->OnComponentHit.AddDynamic(this, &AProj_MagneticCylinder::OnHit);
-	// UE_LOG(LogTemp, Warning, TEXT("OnHit bound to ProjectileMesh"));
-	
 	// OnProjectileStop instead of OnHit because bugging
 	if (ProjectileMovementComp)
 	{
 		ProjectileMovementComp->OnProjectileStop.AddDynamic(this, &AProj_MagneticCylinder::OnProjectileStopped);
 		// UE_LOG(LogTemp, Warning, TEXT("ProjectileStop trigger"));
-	}
-	if (!ProjectileMovementComp)
-	{
-		// UE_LOG(LogTemp, Warning, TEXT("No ProjectileMovementComp"));
 	}
 	
 }
@@ -78,26 +71,20 @@ void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 	Destroy();
 }
 
-// Checks projectile collision -> spawns magnetic field and destroy projectile
+// On projectile collision spawns magnetic field, registers the field in TArray,
+// aligns the field and the VFX, and destroys projectile
 void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Projectile stopped, hit: %s"), 
-	//	ImpactResult.GetActor() ? *ImpactResult.GetActor()->GetName() : TEXT("NULL"));
-
+	
 	if (ImpactActorClass)
 	{
 		FRotator SpawnRotation = ImpactResult.ImpactNormal.Rotation();
 		// Offset to compensate for cylinder being built along Z axis
 		SpawnRotation += FRotator(90.f, 0.f, 0.f);
-		FVector SpawnLocation = ImpactResult.ImpactPoint;
-
-		FActorSpawnParameters Params;
-		Params.Owner = GetOwner();
-		Params.Instigator = GetInstigator();
-
-		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
-		SpawnedActor->SetLifeSpan(SpawnedMagneticFieldDuration);
+		const FVector SpawnLocation = ImpactResult.ImpactPoint;
 		
+		AActor* SpawnedActor = SpawnMagneticField(SpawnLocation, SpawnRotation);
+		RegisterFieldInMechanicArray(SpawnedActor);
 		AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
 		AlignMagneticFieldVFX(ImpactResult, SpawnLocation);
 	}
@@ -105,6 +92,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 	Destroy();
 }
 
+// Align Magnetic Field based on normal.
 void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation)
 {
 	if (SpawnedActor)
@@ -130,6 +118,7 @@ void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, con
 	}
 }
 
+// Align VFX effect to the magnetic field.
 void AProj_MagneticCylinder::AlignMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation)
 {
 	if (!MagnetVfxComponent) return;
@@ -162,6 +151,28 @@ void AProj_MagneticCylinder::AlignMagneticFieldVFX(const FHitResult& ImpactResul
 	}
 
 	MagnetVfxComponent->SetWorldRotation(AlignedRotation);
+}
+
+// Spawns Magnetic Field after projectile collision.
+AActor* AProj_MagneticCylinder::SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const
+{
+	FActorSpawnParameters Params;
+	Params.Owner = GetOwner();
+	Params.Instigator = GetInstigator();
+
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
+	SpawnedActor->SetLifeSpan(SpawnedMagneticFieldDuration);
+	
+	return SpawnedActor;
+}
+
+// Registers field in Mechanic's ActiveMagneticFields. Used f.ex. for destroying fields.
+void AProj_MagneticCylinder::RegisterFieldInMechanicArray(AActor* Field) const
+{
+	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(GetInstigator()))
+	{
+		MechanicCharacter->AddMagneticField(Field);
+	}
 }
 
 
