@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 #include "RobotCharacter.generated.h"
 
 
@@ -29,6 +30,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();
 	void SetIsWithinMagneticField(bool bNewValue);
+	int32 GetPolarityValue() const;
+	EPolarity GetPolarity() const;
+	void SwitchPolarityValue();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -116,6 +120,9 @@ private:
 	bool bIsWithinMagneticField = false;
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	float ImmunityInSeconds = 0.2f;
+	
+	UPROPERTY(EditAnywhere, Category = "Polarity")
+	EPolarity Polarity = EPolarity::Negative;
 
 	UFUNCTION()
 	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,

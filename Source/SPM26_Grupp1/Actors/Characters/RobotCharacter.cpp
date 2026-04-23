@@ -382,3 +382,18 @@ void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
 	bIsWithinMagneticField = bNewValue;
 }
+
+int32 ARobotCharacter::GetPolarityValue() const
+{
+	return Polarity == EPolarity::Positive ? 1 : -1;
+}
+
+EPolarity ARobotCharacter::GetPolarity() const
+{
+	return Polarity;
+}
+
+void ARobotCharacter::SwitchPolarityValue()
+{
+	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+}

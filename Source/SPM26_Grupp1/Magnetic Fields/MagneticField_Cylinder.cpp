@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 // Sets default values
 AMagneticField_Cylinder::AMagneticField_Cylinder()
@@ -56,6 +57,21 @@ void AMagneticField_Cylinder::Disable()
 		bHasCrippled = false;
 	}
 
+}
+
+void AMagneticField_Cylinder::SetPolarity(const int32 InPolarity)
+{
+	PolarityValue = InPolarity;
+	PolarityValue == 1 ? Polarity = EPolarity::Positive : Polarity = EPolarity::Negative;
+}
+
+EPolarity AMagneticField_Cylinder::GetPolarity() const
+{
+	return Polarity;
+}
+int32 AMagneticField_Cylinder::GetPolarityValue() const
+{
+	return Polarity == EPolarity::Positive ? 1 : -1;
 }
 
 // Called when the game starts or when spawned
@@ -162,7 +178,7 @@ void AMagneticField_Cylinder::ApplyMagneticRepulsion(const FVector& MagnetTarget
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const FVector& MagnetTarget, const float DeltaTime, const float DistanceToTarget, UCharacterMovementComponent* MovComp) const
 {
-	Mode == EMagneticMode::Pull ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
+	Polarity == EPolarity::Positive ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
 }
 
 // Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
@@ -268,7 +284,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	TargetCharacter = Character;
 	
-	if (Mode == EMagneticMode::Pull)
+	if (ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
 	{
 		// Gravity = 0 in magnet field while pulling
 		Character->GetCharacterMovement()->GravityScale = 0;
@@ -291,8 +307,9 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	
 	bHasCrippled = false;
 
+	// If the two objects should attract, need to restoremovement on escape
 	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
-	if (MovementComponent && Mode == EMagneticMode::Pull)
+	if (MovementComponent && ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
 	{
 		RestoreMovement(Character);
 	}
@@ -320,7 +337,7 @@ void AMagneticField_Cylinder::CrippleMovement(ACharacter* Character)
 }
 
 // Restores movement (when exiting magnetic field)
-void AMagneticField_Cylinder::RestoreMovement(ACharacter* Character)
+void AMagneticField_Cylinder::RestoreMovement(ACharacter* Character) const
 {
 	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
 	if (MovementComponent)
@@ -358,4 +375,20 @@ void AMagneticField_Cylinder::IfRobotSetWithinMagneticField(const bool bNewValue
 	{
 		Cast<ARobotCharacter>(OtherActor)->SetIsWithinMagneticField(bNewValue);
 	}
+}
+
+bool AMagneticField_Cylinder::ShouldAttract(const EPolarity Field, const EPolarity Other)
+{
+	if (Field == EPolarity::Positive && Other == EPolarity::None) return true;
+	if (Field == EPolarity::Negative && Other == EPolarity::None) return false;
+	return Field != Other;
+}
+
+// Gets polarity of the object. Any object other than Robot, MagnetGun and Field = None
+EPolarity AMagneticField_Cylinder::GetObjectPolarity(AActor* Actor)
+{
+	if (const ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) return Robot->GetPolarity();
+	if (const AMagnetGun* MagnetGun = Cast<AMagnetGun>(Actor)) return MagnetGun->GetPolarity();
+	if (const AMagneticField_Cylinder* Field = Cast<AMagneticField_Cylinder>(Actor)) return Field->GetPolarity();
+	return EPolarity::None;
 }

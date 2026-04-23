@@ -5,6 +5,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
+#include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 // Sets default values
 AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -84,9 +86,15 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 		const FVector SpawnLocation = ImpactResult.ImpactPoint;
 		
 		AActor* SpawnedActor = SpawnMagneticField(SpawnLocation, SpawnRotation);
-		RegisterFieldInMechanicArray(SpawnedActor);
-		AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
-		AlignMagneticFieldVFX(ImpactResult, SpawnLocation);
+		
+		AMagneticField_Cylinder* Field = Cast<AMagneticField_Cylinder>(SpawnedActor);
+		if (Field)
+		{
+			Field->SetPolarity(GetOwner<AMagnetGun>()->GetPolarityValue());
+			RegisterFieldInMechanicArray(SpawnedActor);
+			AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
+			AlignMagneticFieldVFX(ImpactResult, SpawnLocation);
+		}
 	}
 	
 	Destroy();

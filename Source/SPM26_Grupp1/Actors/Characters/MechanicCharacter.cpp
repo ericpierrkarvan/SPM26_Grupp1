@@ -174,3 +174,8 @@ void AMechanicCharacter::AddMagneticField(AActor* Field)
 		ActiveMagneticFields.Add(Field);
 	}
 }
+
+AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
+{
+	return EquippedWeapon;
+}
