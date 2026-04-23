@@ -13,6 +13,13 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	{
 		RobotCharacter->OnLaunchStateChanged.RemoveDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
 	}
+	if (MechanicCharacter)
+	{
+		if (MechanicCharacter->GetEquippedWeapon())
+		{
+			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+		}
+	}
 	
 	MechanicCharacter = Cast<AMechanicCharacter>(NewCharacter);
 	RobotCharacter = Cast<ARobotCharacter>(NewCharacter);
@@ -21,9 +28,21 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	{
 		RobotCharacter->OnLaunchStateChanged.AddDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
 	}
+	else if (MechanicCharacter)
+	{
+		if (MechanicCharacter->GetEquippedWeapon())
+		{
+			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.AddDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+		}
+	}
 }
 
 void UPlayerWidgetHUD::UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility)
 {
 	UpdateRobotLaunchBar(NewPercentage, NewVisibility);
+}
+
+void UPlayerWidgetHUD::OnAmmoChanged(int32 CurrentAmmo, int32 MaxAmmo, bool bAmmoIncreased)
+{
+	UpdateAmmo(CurrentAmmo, MaxAmmo, bAmmoIncreased);
 }
