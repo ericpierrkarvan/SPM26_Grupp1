@@ -9,6 +9,13 @@
 #include "NiagaraFunctionLibrary.h"
 #include "MagneticField_Cylinder.generated.h"
 
+UENUM(BlueprintType)
+enum class EMagneticMode : uint8
+{
+	Pull,
+	Repel
+};
+
 /**
  * 
  */
@@ -34,7 +41,11 @@ protected:
 	FVector CalculateMagnetCenterPoint() const;
 	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                       UCharacterMovementComponent* MovComp) const;
+	void ApplyMagneticRepulsion(const FVector& MagnetTarget) const;
+	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
+	                        UCharacterMovementComponent* MovComp) const;
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
+	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime) const;
 	void AlignMagneticField();
 	
@@ -58,7 +69,11 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrength;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float RepelStrength;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrengthMultiplier = 50.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float RepelStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float StopDistance = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
@@ -68,10 +83,16 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float MaxPullForce = 8.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float MinRepelForce = 10.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float MaxRepelForce = 20.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
 	
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	EMagneticMode Mode = EMagneticMode::Repel;
 	
 	// Used for crippling/restoring character movement
 	float OriginalSpeed;
