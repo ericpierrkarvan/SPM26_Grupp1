@@ -65,8 +65,7 @@ void AMechanicCharacter::MechanicDoubleJump()
 		LaunchCharacter(FVector(0, 0,
 		                        JumpZVelocity * 1.4f), false, true);
 
-		if (JumpParticleSystem)
-			UGameplayStatics::SpawnEmitterAtLocation(this, JumpParticleSystem, GetActorLocation(), GetActorRotation());
+		GetMechanicMovementComponent()->DoubleJumpEvent.Broadcast(JumpZVelocity);
 	}
 }
 

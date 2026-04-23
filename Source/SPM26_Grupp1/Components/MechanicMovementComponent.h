@@ -9,6 +9,8 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDoubleJump, float, JumpZVelocity);
+
 UCLASS()
 class SPM26_GRUPP1_API UMechanicMovementComponent : public USPMCharacterMovementComponent
 {
@@ -35,7 +37,11 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Mantle")
 	UAnimMontage* MantleAnimation;
-
+	
+	UPROPERTY(BlueprintAssignable, Category = "DoubleJump")
+	FOnDoubleJump DoubleJumpEvent;
+	
+	
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
 
