@@ -35,10 +35,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USPMCharacterMovementComponent* GetSPMMovementComponent() const;
 
+	virtual void PossessedBy(AController* NewController) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
 

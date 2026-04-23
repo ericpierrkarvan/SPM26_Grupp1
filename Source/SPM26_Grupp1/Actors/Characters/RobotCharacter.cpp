@@ -153,7 +153,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	}
 	else
 	{
-		//LaunchArcComponent->HideArc();
+		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
 
 #if WITH_EDITOR

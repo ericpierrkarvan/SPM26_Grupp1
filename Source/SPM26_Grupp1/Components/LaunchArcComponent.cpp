@@ -3,8 +3,10 @@
 
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 
+#include "Components/InstancedStaticMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 
 // Sets default values for this component's properties
 ULaunchArcComponent::ULaunchArcComponent()
@@ -13,7 +15,13 @@ ULaunchArcComponent::ULaunchArcComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	ArcDots = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("ArcDots"));
+	ArcDots->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ArcDots->SetCastShadow(false);
+
+	LandingIndicator = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LandingIndicator"));
+	LandingIndicator->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	LandingIndicator->SetCastShadow(false);
 }
 
 void ULaunchArcComponent::UpdateArc(FVector StartLocation, FVector LaunchVelocity, UCharacterMovementComponent* PayloadMoveComp, TArray<AActor*> ActorsToIgnore)
@@ -21,6 +29,8 @@ void ULaunchArcComponent::UpdateArc(FVector StartLocation, FVector LaunchVelocit
 	AActor* Owner = GetOwner();
 	if (!Owner) return;
 
+
+	
 	const float FrictionMultiplier = GetFrictionMultiplier(PayloadMoveComp, LaunchVelocity);
     
 	FVector ArcVelocity = LaunchVelocity;
@@ -30,17 +40,25 @@ void ULaunchArcComponent::UpdateArc(FVector StartLocation, FVector LaunchVelocit
 	FPredictProjectilePathParams Params;
 	Params.StartLocation = StartLocation;
 	Params.ActorsToIgnore = ActorsToIgnore;
-	Params.LaunchVelocity = LaunchVelocity;
+	Params.LaunchVelocity = ArcVelocity;
 	Params.bTraceWithCollision = true;
 	Params.TraceChannel = ECC_WorldStatic;
 	Params.MaxSimTime = 3.f;
 	Params.SimFrequency = SimulationFrequency;
-	Params.DrawDebugType = EDrawDebugTrace::ForOneFrame;
+	Params.DrawDebugType = bShowDebugTrace ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None;
 	Params.DrawDebugTime = 0.f;
 	Params.ActorsToIgnore.Add(Owner);
 
 	FPredictProjectilePathResult Result;
 	UGameplayStatics::PredictProjectilePath(Owner, Params, Result);
+
+	UpdateArcMeshVisuals(Result);
+}
+
+void ULaunchArcComponent::HideArc()
+{
+	if (ArcDots) ArcDots->ClearInstances();
+	if (LandingIndicator) LandingIndicator->ClearInstances();
 }
 
 
@@ -49,8 +67,11 @@ void ULaunchArcComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	if (bOnlyShowForLocalPlayer)
+	{
+		ArcDots->SetOnlyOwnerSee(true);
+		LandingIndicator->SetOnlyOwnerSee(true);
+	}
 }
 
 
@@ -79,5 +100,36 @@ void ULaunchArcComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void ULaunchArcComponent::UpdateArcMeshVisuals(FPredictProjectilePathResult PathResult)
+{
+	if (DotMesh)
+	{
+		ArcDots->SetStaticMesh(DotMesh);
+		LandingIndicator->SetStaticMesh(DotMesh);
+	}
+
+	//clear old instances
+	ArcDots->ClearInstances();
+	LandingIndicator->ClearInstances();
+
+	for (int32 i = 0; i < PathResult.PathData.Num(); i++)
+	{
+		if (i % DotInterval != 0) continue; //if we want to draw at specific interval
+
+		FTransform DotTransform;
+		DotTransform.SetLocation(PathResult.PathData[i].Location);
+		DotTransform.SetScale3D(FVector(DotScale));
+		ArcDots->AddInstance(DotTransform);
+	}
+	//the final hit, make it a bit bigger
+	if (PathResult.HitResult.bBlockingHit)
+	{
+		FTransform LandingTransform;
+		LandingTransform.SetLocation(PathResult.HitResult.Location + FVector(0.f, 0.f, 1.f));
+		LandingTransform.SetScale3D(FVector(LandingDotScale));
+		LandingIndicator->AddInstance(LandingTransform);
+	}
 }
 
