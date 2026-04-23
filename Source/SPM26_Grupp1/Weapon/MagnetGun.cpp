@@ -14,7 +14,7 @@ AMagnetGun::AMagnetGun()
 
 int AMagnetGun::GetPolarityValue() const
 {
-	return EPolarity::Positive ? 1 : -1;
+	return Polarity == EPolarity::Positive ? 1 : -1;
 }
 
 EPolarity AMagnetGun::GetPolarity() const
