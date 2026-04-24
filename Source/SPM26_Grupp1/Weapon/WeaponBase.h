@@ -78,13 +78,13 @@ protected:
 
 	
 	//AUDIO
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* FireAudioComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* ADSAudioComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* ReloadComponent;
 	
 	//time until the ammo regeneration starts
