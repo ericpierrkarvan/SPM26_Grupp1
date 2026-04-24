@@ -20,15 +20,21 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	RootComponent = Capsule;
 	Capsule->SetCapsuleSize(50, 250);
 	
-	// Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh")); // Possible visual of center pullpoint of magnet
-	// Mesh->SetupAttachment(RootComponent);
-	
-	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
-	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
-	
 	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
 	MagnetVfxComponent->SetupAttachment(RootComponent);
 
+}
+
+// Called when the game starts or when spawned
+void AMagneticField_Cylinder::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	// Collision collider
+	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	CapsuleHeight = CapsuleHalfHeight * 2;
+	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
+	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
 }
 
 void AMagneticField_Cylinder::Activate()
@@ -90,17 +96,6 @@ EPolarity AMagneticField_Cylinder::GetPolarity() const
 int32 AMagneticField_Cylinder::GetPolarityValue() const
 {
 	return Polarity == EPolarity::Positive ? 1 : -1;
-}
-
-// Called when the game starts or when spawned
-void AMagneticField_Cylinder::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	// Collision collider
-	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-	CapsuleHeight = CapsuleHalfHeight * 2;
-	
 }
 
 // Currently Magnetfield lifetime's end destroys magnet. This method makes sure no double instance of cripplemovement

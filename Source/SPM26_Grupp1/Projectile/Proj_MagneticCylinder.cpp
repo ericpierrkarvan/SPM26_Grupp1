@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
+#include "SPM26_Grupp1/Material/SPMPhysicalMaterial.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 // Sets default values
@@ -34,6 +35,9 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 		ProjectileMovementComp->OnProjectileStop.AddDynamic(this, &AProj_MagneticCylinder::OnProjectileStopped);
 		// UE_LOG(LogTemp, Warning, TEXT("ProjectileStop trigger"));
 	}
+
+	//we need to get the material for when the projectile stops, ie it hits something
+	ProjectileMesh->bReturnMaterialOnMove = true;
 	
 }
 
@@ -82,22 +86,33 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 	
 	if (ImpactActorClass)
 	{
-		FRotator SpawnRotation = ImpactResult.ImpactNormal.Rotation();
-		// Offset to compensate for cylinder being built along Z axis
-		SpawnRotation += FRotator(90.f, 0.f, 0.f);
-		const FVector SpawnLocation = ImpactResult.ImpactPoint;
-		
-		AActor* SpawnedActor = SpawnMagneticField(SpawnLocation, SpawnRotation);
-		UCapsuleComponent* Capsule = Cast<AMagneticField_Cylinder>(SpawnedActor)->GetCapsuleComponent();
-		AMagneticField_Cylinder* Field = Cast<AMagneticField_Cylinder>(SpawnedActor);
-		
-		if (Field && Capsule)
+		bool bSpawnMagneticField = true;
+		USPMPhysicalMaterial* PhysMat = Cast<USPMPhysicalMaterial>(ImpactResult.PhysMaterial.Get());
+		//check if the material we're hitting dont want us to spawn a magnetic field
+		if (PhysMat && !PhysMat->bCanSpawnMagneticField)
 		{
-			const int32 GunPolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
-			Field->SetPolarity(GunPolarity);
-			RegisterFieldInMechanicArray(SpawnedActor);
-			AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
-			AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, GunPolarity, Field);
+			bSpawnMagneticField = false;
+		}
+		
+		if (bSpawnMagneticField)
+		{
+			FRotator SpawnRotation = ImpactResult.ImpactNormal.Rotation();
+			// Offset to compensate for cylinder being built along Z axis
+			SpawnRotation += FRotator(90.f, 0.f, 0.f);
+			const FVector SpawnLocation = ImpactResult.ImpactPoint;
+		
+			AActor* SpawnedActor = SpawnMagneticField(SpawnLocation, SpawnRotation);
+			UCapsuleComponent* Capsule = Cast<AMagneticField_Cylinder>(SpawnedActor)->GetCapsuleComponent();
+			AMagneticField_Cylinder* Field = Cast<AMagneticField_Cylinder>(SpawnedActor);
+		
+			if (Field && Capsule)
+			{
+				const int32 GunPolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
+				Field->SetPolarity(GunPolarity);
+				RegisterFieldInMechanicArray(SpawnedActor);
+				AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
+				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, GunPolarity, Field);
+			}
 		}
 	}
 	
