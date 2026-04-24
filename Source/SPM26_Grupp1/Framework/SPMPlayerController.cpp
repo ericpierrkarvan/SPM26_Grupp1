@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "SPMGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
@@ -18,7 +19,7 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 	if (bIsSwitchingPlayer) return; //dev only: if we are switching player then we dont want to recreate widgets
 #endif
 	if (!IsLocalController()) return;
-	
+
 	//see which widget we want
 	TSubclassOf<UPlayerWidgetHUD> ClassToUse = nullptr;
 	if (Cast<AMechanicCharacter>(P))
@@ -44,6 +45,8 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 		PlayerHudWidget->AddToPlayerScreen();
 		PlayerHudWidget->SetOwningCharacter(P); //the playerhud wants updated character references
 	}
+	
+	
 }
 
 void ASPMPlayerController::BeginPlay()
@@ -58,7 +61,6 @@ void ASPMPlayerController::BeginPlay()
 	if (!Subsystem) return;
 
 	if (DefaultIMC) Subsystem->AddMappingContext(DefaultIMC, 0);
-	
 }
 
 void ASPMPlayerController::SetupInputComponent()
@@ -74,7 +76,13 @@ void ASPMPlayerController::SetupInputComponent()
 		if (SwitchPlayerAction)
 		{
 			EIC->BindAction(SwitchPlayerAction, ETriggerEvent::Started,
-							this, &ASPMPlayerController::OnSwitchPlayer);
+			                this, &ASPMPlayerController::OnSwitchPlayer);
+		}
+		//Just nu finns denna endast i Editorn, kommer nog att fixas när vi gjort det möjligt att spela båda karaktärerna samtidigt
+		if (PauseAction)
+		{
+			EIC->BindAction(PauseAction, ETriggerEvent::Started,
+			                this, &ASPMPlayerController::OnPause);
 		}
 	}
 #endif
@@ -87,3 +95,35 @@ void ASPMPlayerController::OnSwitchPlayer()
 		GM->SwitchKeyboardToPlayer();
 }
 #endif
+
+void ASPMPlayerController::OnPause()
+{
+	const bool bIsPaused = UGameplayStatics::IsGamePaused(this);
+	UGameplayStatics::SetGamePaused(this, !bIsPaused);
+	
+	if (!bIsPaused)
+	{
+		if (PauseMenuHudClass && !PauseMenuWidget)
+		{
+			PauseMenuWidget = CreateWidget<UUserWidget>(this, PauseMenuHudClass);
+		}
+		
+		if (PauseMenuWidget && !PauseMenuWidget->IsInViewport())
+		{
+			PauseMenuWidget->AddToViewport();
+		}
+		SetInputMode(FInputModeGameOnly());
+		bShowMouseCursor = true;
+	}
+	else
+	{
+		if (PauseMenuWidget)
+		{
+			PauseMenuWidget->RemoveFromParent();
+		}
+		
+		SetInputMode(FInputModeGameAndUI());
+		bShowMouseCursor = false;
+	}
+	
+}
