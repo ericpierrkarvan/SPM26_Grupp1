@@ -25,10 +25,13 @@ public:
 	void Activate();
 	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
 	void Disable();
-	void SetPolarity(const int32 InPolarity);
+	void SetPolarity(const int32 NewPolarity);
+	UNiagaraComponent* GetVFXComponent() const;
+	UCapsuleComponent* GetCapsuleComponent() const;
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -38,15 +41,18 @@ protected:
 	FVector LateralCorrection(const FVector& MagnetTarget) const; 
 	FVector CalculateMagnetCenterPoint() const;
 	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
-	                       UCharacterMovementComponent* MovComp) const;
-	void ApplyMagneticRepulsion(const FVector& MagnetTarget) const;
+	                       UCharacterMovementComponent* MovComp);
+	void ApplyMagneticRepulsion(const FVector& MagnetTarget);
 	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
-	                        UCharacterMovementComponent* MovComp) const;
+	                        UCharacterMovementComponent* MovComp);
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
-	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget) const;
-	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime) const;
+	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget);
+	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
 	void AlignMagneticField();
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
+	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
+	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
+	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
 	
 	UFUNCTION()
@@ -58,7 +64,9 @@ protected:
 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
-	UNiagaraSystem* MagnetVfxAsset;
+	UNiagaraSystem* PositivePolarityVFX;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraSystem* NegativePolarityVFX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraComponent* MagnetVfxComponent;
 
