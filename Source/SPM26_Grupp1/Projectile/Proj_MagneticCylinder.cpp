@@ -135,44 +135,7 @@ void AProj_MagneticCylinder::AlignMagneticFieldVFX(const UCapsuleComponent* Caps
 	Polarity == 1 ? AlignPositiveMagneticFieldVFX(CapsuleComp, ImpactResult, SpawnLocation, Polarity, Field) : AlignNegativeMagneticFieldVFX(ImpactResult, SpawnLocation, Polarity, Field);
 }
 
-void AProj_MagneticCylinder::SetPositiveMagnetVFXLocation(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field)
-{
-	if (!Field || !Field->GetVFXComponent()) return;
-	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
-	
-	const float HalfHeight = CapsuleComp->GetScaledCapsuleHalfHeight();
-	FVector RelativeAlignedLocation = FVector(0.f,0.f,-HalfHeight);
-	
-	// Position the VFX at the aligned location
-	VFXComp->SetRelativeLocation(RelativeAlignedLocation);
-}
 
-void AProj_MagneticCylinder::SetPositiveMagnetVFXRotation(const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field)
-{
-	if (!Field || !Field->GetVFXComponent()) return;
-	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
-	
-	const FVector Normal = ImpactResult.ImpactNormal;
-	FVector Up = FVector::UpVector;
-	FRotator AlignedRotation;
-
-	// DotProduct(Normal, Up) measures how parallel impact normal is to world Up (0,0,1).
-	// Result changes from -1 to 1, where 1 means they point in the exact same direction.
-	if (FMath::Abs(FVector::DotProduct(Normal, Up)) > 0.9f)
-	{
-		// Here Normal is pointing nearly straight up or down
-		// Using Up as reference would be near-parallel with normal causing problems. So use ForwardVector instead
-		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, FVector::ForwardVector).Rotator();
-	}
-	else
-	{
-		// Normal is pointing at enough of an angle from Up, safe to use as reference axis
-		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
-	}
-
-	AlignedRotation.Pitch += 180.f;
-	VFXComp->SetWorldRotation(AlignedRotation);
-}
 
 void AProj_MagneticCylinder::AlignPositiveMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field)
 {
@@ -264,6 +227,45 @@ void AProj_MagneticCylinder::AlignNegativeMagneticFieldVFX(const FHitResult& Imp
 		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
 	}
 
+	VFXComp->SetWorldRotation(AlignedRotation);
+}
+
+void AProj_MagneticCylinder::SetPositiveMagnetVFXLocation(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field)
+{
+	if (!Field || !Field->GetVFXComponent()) return;
+	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
+	
+	const float HalfHeight = CapsuleComp->GetScaledCapsuleHalfHeight();
+	FVector RelativeAlignedLocation = FVector(0.f,0.f,-HalfHeight);
+	
+	// Position the VFX at the aligned location
+	VFXComp->SetRelativeLocation(RelativeAlignedLocation);
+}
+
+void AProj_MagneticCylinder::SetPositiveMagnetVFXRotation(const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field)
+{
+	if (!Field || !Field->GetVFXComponent()) return;
+	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
+	
+	const FVector Normal = ImpactResult.ImpactNormal;
+	FVector Up = FVector::UpVector;
+	FRotator AlignedRotation;
+
+	// DotProduct(Normal, Up) measures how parallel impact normal is to world Up (0,0,1).
+	// Result changes from -1 to 1, where 1 means they point in the exact same direction.
+	if (FMath::Abs(FVector::DotProduct(Normal, Up)) > 0.9f)
+	{
+		// Here Normal is pointing nearly straight up or down
+		// Using Up as reference would be near-parallel with normal causing problems. So use ForwardVector instead
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, FVector::ForwardVector).Rotator();
+	}
+	else
+	{
+		// Normal is pointing at enough of an angle from Up, safe to use as reference axis
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
+	}
+
+	AlignedRotation.Pitch += 180.f;
 	VFXComp->SetWorldRotation(AlignedRotation);
 }
 
