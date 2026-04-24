@@ -2,12 +2,22 @@
 
 
 #include "WeaponBase.h"
+#include "FMODAudioComponent.h"
 #include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	FireAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("FireAudioComponent"));
+	FireAudioComponent->SetupAttachment(RootComponent);
+
+	ADSAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("ADSAudioComponent"));
+	ADSAudioComponent->SetupAttachment(RootComponent);
+
+	ReloadComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("ReloadAudioComponent"));
+	ReloadComponent->SetupAttachment(RootComponent);
 }
 
 void AWeaponBase::SetCurrentAmmo(int32 NewAmmo)
@@ -15,6 +25,10 @@ void AWeaponBase::SetCurrentAmmo(int32 NewAmmo)
 	bool bAmmoIncreased = NewAmmo > iCurrentAmmo;
 	iCurrentAmmo = FMath::Clamp(NewAmmo, 0, iMaxClipSize);
 	OnAmmoChanged.Broadcast(iCurrentAmmo, iMaxClipSize, bAmmoIncreased);
+	if (bAmmoIncreased)
+	{
+		OnReload();
+	}
 }
 
 void AWeaponBase::SpawnProjectile()
@@ -156,6 +170,7 @@ void AWeaponBase::Shoot_Implementation()
 
 		TimeSinceLastShot = 0.f;
 		TimeSinceLastRegen = 0.f;
+		OnShoot();
 	}
 }
 

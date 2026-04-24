@@ -12,8 +12,6 @@ class UMechanicMovementComponent;
  * 
  */
 
-
-
 UCLASS()
 class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 {
@@ -41,10 +39,6 @@ protected:
 	TSubclassOf<AProjectileBase> ProjectileClass;
 	UPROPERTY()
 	TArray<TWeakObjectPtr<AActor>> ActiveMagneticFields;
-
-
-	UPROPERTY(EditDefaultsOnly, Category="Jump")
-	UParticleSystem* JumpParticleSystem;
 	
 	// The current location where a projectile will be spawned.
 	FVector CurrentProjectileSpawnPoint;
@@ -55,6 +49,9 @@ protected:
 	FVector GetLineTraceEndPoint(const FVector& TraceStart, const APlayerController* PlayerController) const;
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void StartADS() override;
+	virtual void StopADS() override;
+
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();
@@ -64,5 +61,4 @@ private:
 	void Shoot();
 	UFUNCTION(BlueprintCallable)
 	void DestroyAllMagneticFields();
-	
 };
