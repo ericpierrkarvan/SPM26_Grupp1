@@ -12,12 +12,15 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	if (RobotCharacter)
 	{
 		RobotCharacter->OnLaunchStateChanged.RemoveDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
+		RobotCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
 	}
 	if (MechanicCharacter)
 	{
+		MechanicCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+			MechanicCharacter->GetEquippedWeapon()->OnWeaponFired.RemoveDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
 		}
 	}
 	
@@ -27,12 +30,15 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	if (RobotCharacter)
 	{
 		RobotCharacter->OnLaunchStateChanged.AddDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
+		RobotCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
 	}
 	else if (MechanicCharacter)
 	{
+		MechanicCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.AddDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+			MechanicCharacter->GetEquippedWeapon()->OnWeaponFired.AddDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
 		}
 	}
 }
