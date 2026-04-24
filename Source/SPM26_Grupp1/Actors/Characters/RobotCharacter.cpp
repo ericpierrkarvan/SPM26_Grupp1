@@ -393,7 +393,10 @@ EPolarity ARobotCharacter::GetPolarity() const
 	return Polarity;
 }
 
-void ARobotCharacter::SwitchPolarityValue()
+void ARobotCharacter::SwitchPolarity_Implementation()
 {
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+	FColor Color;
+	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));
 }

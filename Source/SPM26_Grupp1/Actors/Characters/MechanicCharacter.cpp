@@ -23,11 +23,7 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
 		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
-		EIC->BindAction(IA_SwitchGunPolarity, ETriggerEvent::Triggered, this, &AMechanicCharacter::SwitchGunPolarity);
-
-		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
-
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &AMechanicCharacter::StartADS);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &AMechanicCharacter::StopADS);
 	}
@@ -130,7 +126,7 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility);
 
 	// Draws the linetrace
-	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Blue, false, -1, 0, 1);
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, PolarityColor, false, -1, 0, 1);
 
 	return bHit;
 }
@@ -202,13 +198,15 @@ AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
 	return EquippedWeapon;
 }
 
-void AMechanicCharacter::SwitchGunPolarity() 
+// Switches the MagnetGun's polarity.
+void AMechanicCharacter::SwitchPolarity_Implementation() 
 {
 	AMagnetGun* MagnetGun = Cast<AMagnetGun>(GetEquippedWeapon());
 	if (MagnetGun)
 	{
 		MagnetGun->SwitchPolarity();
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, TEXT("Switched Gun Polarity"));
+		MagnetGun->GetPolarity() == EPolarity::Positive ? PolarityColor = FColor::Blue : PolarityColor = FColor::Orange;
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, PolarityColor, TEXT("Switched Gun Polarity"));
 	}
 }
 
