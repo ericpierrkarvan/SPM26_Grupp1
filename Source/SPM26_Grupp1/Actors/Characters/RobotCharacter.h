@@ -27,7 +27,7 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void SwitchPolarity() override;
+	virtual void SwitchPolarity_Implementation() override;
 	
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();

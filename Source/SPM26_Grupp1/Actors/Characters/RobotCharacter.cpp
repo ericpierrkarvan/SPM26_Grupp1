@@ -31,7 +31,6 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &ARobotCharacter::OnLaunchPressed);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ARobotCharacter::OnLaunchReleased);
-		EIC->BindAction(IA_SwitchPolarity, ETriggerEvent::Triggered, this, &ARobotCharacter::SwitchPolarity);
 	}
 }
 
@@ -394,7 +393,10 @@ EPolarity ARobotCharacter::GetPolarity() const
 	return Polarity;
 }
 
-void ARobotCharacter::SwitchPolarity()
+void ARobotCharacter::SwitchPolarity_Implementation()
 {
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+	FColor Color;
+	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));
 }

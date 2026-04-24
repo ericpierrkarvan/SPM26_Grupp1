@@ -22,7 +22,7 @@ class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void SwitchPolarity() override;
+	virtual void SwitchPolarity_Implementation() override;
 	
 	FVector GetCurrentProjectileSpawnLocation() const;
 	void AddMagneticField(AActor* Field);
@@ -46,6 +46,7 @@ protected:
 	
 	// The current location where a projectile will be spawned.
 	FVector CurrentProjectileSpawnPoint;
+	FColor PolarityColor = FColor::Blue;
 
 	UFUNCTION(BlueprintCallable, Category="Aim")
 	bool PerformAimTrace(FHitResult& OutHit);

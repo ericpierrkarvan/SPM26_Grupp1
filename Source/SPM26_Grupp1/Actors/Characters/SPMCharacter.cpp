@@ -302,7 +302,6 @@ void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 	GetSPMMovementComponent()->IncrementJumpCount();
 }
 
-void ASPMCharacter::SwitchPolarity()
+void ASPMCharacter::SwitchPolarity_Implementation()
 {
-
 }
