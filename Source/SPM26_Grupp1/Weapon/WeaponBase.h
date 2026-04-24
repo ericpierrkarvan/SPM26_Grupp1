@@ -33,6 +33,10 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Weapon|Ammo")
 	FOnAmmoChanged OnAmmoChanged;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnADS(bool bIsADS);
+
 	
 protected:
 	virtual void BeginPlay() override;
@@ -103,6 +107,8 @@ private:
 	float TimeSinceLastRegen = 0.0f;
 
 	void RegenerateAmmo(float DeltaTime);
+
+	
 	
 	
 };

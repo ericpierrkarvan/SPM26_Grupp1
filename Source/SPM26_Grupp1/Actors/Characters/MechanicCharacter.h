@@ -49,6 +49,9 @@ protected:
 	FVector GetLineTraceEndPoint(const FVector& TraceStart, const APlayerController* PlayerController) const;
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void StartADS() override;
+	virtual void StopADS() override;
+
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();

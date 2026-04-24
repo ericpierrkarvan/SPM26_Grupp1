@@ -38,6 +38,26 @@ void AMechanicCharacter::Tick(float DeltaTime)
 	UpdateADSTrace();
 }
 
+void AMechanicCharacter::StartADS()
+{
+	Super::StartADS();
+
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->OnADS(true);
+	}
+}
+
+void AMechanicCharacter::StopADS()
+{
+	Super::StopADS();
+
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->OnADS(false);
+	}
+}
+
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
 {
 	return Cast<UMechanicMovementComponent>(GetCharacterMovement());
