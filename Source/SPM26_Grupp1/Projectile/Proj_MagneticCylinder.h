@@ -55,4 +55,5 @@ protected:
 	                                   const AMagneticField_Cylinder* Field) const;
 	AActor* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 	void RegisterFieldInMechanicArray(AActor* Field) const;
+	
 };
