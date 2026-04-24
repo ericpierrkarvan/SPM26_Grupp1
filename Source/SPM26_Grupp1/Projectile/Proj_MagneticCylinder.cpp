@@ -2,9 +2,13 @@
 
 
 #include "Proj_MagneticCylinder.h"
+
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
+#include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 // Sets default values
 AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -21,8 +25,8 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	
-	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
-	MagnetVfxComponent->SetupAttachment(RootComponent);
+	// MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
+	// MagnetVfxComponent->SetupAttachment(RootComponent);
 	
 	// OnProjectileStop instead of OnHit because bugging
 	if (ProjectileMovementComp)
@@ -84,9 +88,17 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 		const FVector SpawnLocation = ImpactResult.ImpactPoint;
 		
 		AActor* SpawnedActor = SpawnMagneticField(SpawnLocation, SpawnRotation);
-		RegisterFieldInMechanicArray(SpawnedActor);
-		AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
-		AlignMagneticFieldVFX(ImpactResult, SpawnLocation);
+		UCapsuleComponent* Capsule = Cast<AMagneticField_Cylinder>(SpawnedActor)->GetCapsuleComponent();
+		AMagneticField_Cylinder* Field = Cast<AMagneticField_Cylinder>(SpawnedActor);
+		
+		if (Field && Capsule)
+		{
+			const int32 GunPolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
+			Field->SetPolarity(GunPolarity);
+			RegisterFieldInMechanicArray(SpawnedActor);
+			AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
+			AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, GunPolarity, Field);
+		}
 	}
 	
 	Destroy();
@@ -118,12 +130,72 @@ void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, con
 	}
 }
 
-// Align VFX effect to the magnetic field.
-void AProj_MagneticCylinder::AlignMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation)
+void AProj_MagneticCylinder::AlignMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field)
 {
-	if (!MagnetVfxComponent) return;
+	Polarity == 1 ? AlignPositiveMagneticFieldVFX(CapsuleComp, ImpactResult, SpawnLocation, Polarity, Field) : AlignNegativeMagneticFieldVFX(ImpactResult, SpawnLocation, Polarity, Field);
+}
 
-	FVector Normal = ImpactResult.ImpactNormal;
+
+
+void AProj_MagneticCylinder::AlignPositiveMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field)
+{
+	SetPositiveMagnetVFXLocation(CapsuleComp, ImpactResult, Field);
+	SetPositiveMagnetVFXRotation(ImpactResult, Field);
+}
+
+void AProj_MagneticCylinder::AlignPositiveMagneticFieldVFXOVERCOOKED(const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field) const
+{
+	UE_LOG(LogTemp, Warning, TEXT("Entered AlignPositiveMagneticFieldVFX..."));
+	if (!Field || !Field->GetVFXComponent()) return;
+	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
+	UE_LOG(LogTemp, Warning, TEXT("Start VFX Location: %s"), *VFXComp->GetComponentLocation().ToString());
+	
+	const FVector Normal = ImpactResult.ImpactNormal;
+
+	// Mirror the same bounding box offset logic as AlignSpawnedMagneticField
+	// so the VFX sits flush on the surface at the same position as the field actor
+	FVector VFXOrigin;
+	FVector VFXBoxExtent;
+	GetActorBounds(false, VFXOrigin, VFXBoxExtent);
+	
+	float OffsetDistance = FMath::Abs(FVector::DotProduct(VFXBoxExtent, Normal));
+	float HalfHeight = VFXBoxExtent.Z;
+	UE_LOG(LogTemp, Warning, TEXT("HalfHeight: %f"), HalfHeight);
+	FVector AlignedLocation = SpawnLocation + Normal * OffsetDistance + FVector(0.f, 0.f, HalfHeight);
+
+	// Position the VFX at the aligned location
+	VFXComp->SetWorldLocation(AlignedLocation);
+	UE_LOG(LogTemp, Warning, TEXT("End VFX Location: %s"), *VFXComp->GetComponentLocation().ToString());
+
+	FVector Up = FVector::UpVector;
+	FRotator AlignedRotation;
+
+	// DotProduct(Normal, Up) measures how parallel impact normal is to world Up (0,0,1).
+	// Result changes from -1 to 1, where 1 means they point in the exact same direction.
+	if (FMath::Abs(FVector::DotProduct(Normal, Up)) > 0.9f)
+	{
+		// Here Normal is pointing nearly straight up or down
+		// Using Up as reference would be near-parallel with normal causing problems. So use ForwardVector instead
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, FVector::ForwardVector).Rotator();
+	}
+	else
+	{
+		// Normal is pointing at enough of an angle from Up, safe to use as reference axis
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
+	}
+
+	VFXComp->SetWorldRotation(AlignedRotation);
+}
+
+// Align VFX effect to the magnetic field.
+void AProj_MagneticCylinder::AlignNegativeMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field) const
+{
+	UE_LOG(LogTemp, Warning, TEXT("Entered AlignNegativeMagneticFieldVFX..."));
+	if (!Field || !Field->GetVFXComponent()) return;
+	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
+	UE_LOG(LogTemp, Warning, TEXT("Start VFX rotation: %s"), *VFXComp->GetComponentRotation().ToString());
+
+	const FVector Normal = ImpactResult.ImpactNormal;
 
 	// Mirror the same bounding box offset logic as AlignSpawnedMagneticField
 	// so the VFX sits flush on the surface at the same position as the field actor
@@ -133,24 +205,68 @@ void AProj_MagneticCylinder::AlignMagneticFieldVFX(const FHitResult& ImpactResul
 
 	float OffsetDistance = FMath::Abs(FVector::DotProduct(VFXBoxExtent, Normal));
 	float HalfHeight = VFXBoxExtent.Z;
-	FVector AlignedLocation = SpawnLocation + Normal * OffsetDistance - FVector(0.f, 0.f, HalfHeight);
-
+	FVector AlignedLocation = SpawnLocation + Normal * OffsetDistance + FVector(0.f, 0.f, HalfHeight);
+	
 	// Position the VFX at the aligned location
-	MagnetVfxComponent->SetWorldLocation(AlignedLocation);
+	VFXComp->SetWorldLocation(AlignedLocation);
 
 	FVector Up = FVector::UpVector;
 	FRotator AlignedRotation;
 
+	// DotProduct(Normal, Up) measures how parallel impact normal is to world Up (0,0,1).
+	// Result changes from -1 to 1, where 1 means they point in the exact same direction.
 	if (FMath::Abs(FVector::DotProduct(Normal, Up)) > 0.9f)
 	{
+		// Here Normal is pointing nearly straight up or down
+		// Using Up as reference would be near-parallel with normal causing problems. So use ForwardVector instead
 		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, FVector::ForwardVector).Rotator();
 	}
 	else
 	{
+		// Normal is pointing at enough of an angle from Up, safe to use as reference axis
 		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
 	}
 
-	MagnetVfxComponent->SetWorldRotation(AlignedRotation);
+	VFXComp->SetWorldRotation(AlignedRotation);
+}
+
+void AProj_MagneticCylinder::SetPositiveMagnetVFXLocation(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field)
+{
+	if (!Field || !Field->GetVFXComponent()) return;
+	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
+	
+	const float HalfHeight = CapsuleComp->GetScaledCapsuleHalfHeight();
+	FVector RelativeAlignedLocation = FVector(0.f,0.f,-HalfHeight);
+	
+	// Position the VFX at the aligned location
+	VFXComp->SetRelativeLocation(RelativeAlignedLocation);
+}
+
+void AProj_MagneticCylinder::SetPositiveMagnetVFXRotation(const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field)
+{
+	if (!Field || !Field->GetVFXComponent()) return;
+	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
+	
+	const FVector Normal = ImpactResult.ImpactNormal;
+	FVector Up = FVector::UpVector;
+	FRotator AlignedRotation;
+
+	// DotProduct(Normal, Up) measures how parallel impact normal is to world Up (0,0,1).
+	// Result changes from -1 to 1, where 1 means they point in the exact same direction.
+	if (FMath::Abs(FVector::DotProduct(Normal, Up)) > 0.9f)
+	{
+		// Here Normal is pointing nearly straight up or down
+		// Using Up as reference would be near-parallel with normal causing problems. So use ForwardVector instead
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, FVector::ForwardVector).Rotator();
+	}
+	else
+	{
+		// Normal is pointing at enough of an angle from Up, safe to use as reference axis
+		AlignedRotation = FRotationMatrix::MakeFromZX(Normal, Up).Rotator();
+	}
+
+	AlignedRotation.Pitch += 180.f;
+	VFXComp->SetWorldRotation(AlignedRotation);
 }
 
 // Spawns Magnetic Field after projectile collision.

@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "Kismet/GamePlayStatics.h"
+#include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(
@@ -21,8 +22,8 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
-		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this,
-		                &AMechanicCharacter::DestroyAllMagneticFields);
+		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
+		EIC->BindAction(IA_SwitchGunPolarity, ETriggerEvent::Triggered, this, &AMechanicCharacter::SwitchGunPolarity);
 
 		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
@@ -200,3 +201,14 @@ AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
 {
 	return EquippedWeapon;
 }
+
+void AMechanicCharacter::SwitchGunPolarity() 
+{
+	AMagnetGun* MagnetGun = Cast<AMagnetGun>(GetEquippedWeapon());
+	if (MagnetGun)
+	{
+		MagnetGun->SwitchPolarity();
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, TEXT("Switched Gun Polarity"));
+	}
+}
+

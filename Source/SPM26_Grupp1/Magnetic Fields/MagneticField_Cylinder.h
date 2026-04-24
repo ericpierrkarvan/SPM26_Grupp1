@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MagneticField_Cylinder.generated.h"
 
 /**
@@ -24,6 +25,13 @@ public:
 	void Activate();
 	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
 	void Disable();
+	void SetPolarity(const int32 NewPolarity);
+	UNiagaraComponent* GetVFXComponent() const;
+	UCapsuleComponent* GetCapsuleComponent() const;
+	EPolarity GetPolarity() const;
+	int32 GetPolarityValue() const;
+	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -33,13 +41,32 @@ protected:
 	FVector LateralCorrection(const FVector& MagnetTarget) const; 
 	FVector CalculateMagnetCenterPoint() const;
 	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
-	                       UCharacterMovementComponent* MovComp) const;
+	                       UCharacterMovementComponent* MovComp);
+	void ApplyMagneticRepulsion(const FVector& MagnetTarget);
+	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
+	                        UCharacterMovementComponent* MovComp);
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
-	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime) const;
+	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget);
+	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
 	void AlignMagneticField();
+	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
+	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
+	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
+	
+	bool ShouldAttract(EPolarity Field, EPolarity Other);
+	
+	UFUNCTION()
+	void CrippleMovement(ACharacter* Character);
+	UFUNCTION()
+	void RestoreMovement(ACharacter* Character) const;
+	UFUNCTION()
+	void FreezeMovement(ACharacter* Character);
+
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
-	UNiagaraSystem* MagnetVfxAsset;
+	UNiagaraSystem* PositivePolarityVFX;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraSystem* NegativePolarityVFX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraComponent* MagnetVfxComponent;
 
@@ -47,7 +74,6 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
 	// Components
 	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* Capsule;
@@ -58,7 +84,11 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrength;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float RepelStrength;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrengthMultiplier = 50.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float RepelStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float StopDistance = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
@@ -68,10 +98,18 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float MaxPullForce = 8.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float MinRepelForce = 10.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float MaxRepelForce = 20.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
 	
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	EPolarity Polarity = EPolarity::Positive;
+	UPROPERTY()
+	int32 PolarityValue;
 	
 	// Used for crippling/restoring character movement
 	float OriginalSpeed;
@@ -104,11 +142,5 @@ public:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
-	UFUNCTION()
-	void CrippleMovement(ACharacter* Character);
-	UFUNCTION()
-	void RestoreMovement(ACharacter* Character);
-	UFUNCTION()
-	void FreezeMovement(ACharacter* Character);
-	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
+
 };
