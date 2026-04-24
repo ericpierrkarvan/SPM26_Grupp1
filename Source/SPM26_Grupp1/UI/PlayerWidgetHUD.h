@@ -28,4 +28,16 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateRobotLaunchBar(float NewPercentage, bool NewVisibility);
+
+	UFUNCTION()
+	void OnAmmoChanged(int32 CurrentAmmo, int32 MaxAmmo, bool bAmmoIncreased);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateAmmo(int32 CurrentAmmo, int32 MaxAmmo, bool bAmmoIncreased);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "ADS")
+	void OnADS(bool bIsADS);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnWeaponFired();
 };

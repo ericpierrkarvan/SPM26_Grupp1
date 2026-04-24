@@ -11,6 +11,8 @@
 
 #include "SPMCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
+
 class UInteractableComponent;
 class USPMCharacterMovementComponent;
 class USpringArmComponent;
@@ -36,7 +38,8 @@ public:
 	USPMCharacterMovementComponent* GetSPMMovementComponent() const;
 
 	virtual void PossessedBy(AController* NewController) override;
-
+	UPROPERTY(BlueprintAssignable, Category = "Camera|ADS")
+	FOnADS OnADS;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -78,6 +81,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveOut;
 
+
+	
 	virtual void StartADS();
 	virtual void StopADS();
 	bool bIsADS = false;

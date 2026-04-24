@@ -2,12 +2,33 @@
 
 
 #include "WeaponBase.h"
+#include "FMODAudioComponent.h"
 #include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
-	FireRate = 0.1f;
+	PrimaryActorTick.bCanEverTick = true;
+
+	FireAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("FireAudioComponent"));
+	FireAudioComponent->SetupAttachment(RootComponent);
+
+	ADSAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("ADSAudioComponent"));
+	ADSAudioComponent->SetupAttachment(RootComponent);
+
+	ReloadComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("ReloadAudioComponent"));
+	ReloadComponent->SetupAttachment(RootComponent);
+}
+
+void AWeaponBase::SetCurrentAmmo(int32 NewAmmo)
+{
+	bool bAmmoIncreased = NewAmmo > iCurrentAmmo;
+	iCurrentAmmo = FMath::Clamp(NewAmmo, 0, iMaxClipSize);
+	OnAmmoChanged.Broadcast(iCurrentAmmo, iMaxClipSize, bAmmoIncreased);
+	if (bAmmoIncreased)
+	{
+		OnReload();
+	}
 }
 
 void AWeaponBase::SpawnProjectile()
@@ -53,6 +74,48 @@ FVector AWeaponBase::SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn
 	return SpawnLocation;
 }
 
+void AWeaponBase::RegenerateAmmo(float DeltaTime)
+{
+	if (iCurrentAmmo >= iMaxClipSize) return;
+	if (TimeSinceLastShot < AmmoRegenDelay) return;
+	
+	float TimeIntoRegen = TimeSinceLastShot - AmmoRegenDelay;
+
+	//TimeIntoRegen will just increase between each tick when we havent fired
+	//formula is f(x) = constant / (1 + x) meaning when X grows the functions goes towards 0
+	//so as time goes on the CurrentRegenTime will get shorter so we get an accelerated feel
+	float CurrentRegenTime = FMath::Max(AmmoRegenTime / (1.f + TimeIntoRegen * RegenAcceleration), MinRegenTime);
+
+	TimeSinceLastRegen += DeltaTime;
+	if (TimeSinceLastRegen >= CurrentRegenTime)
+	{
+		SetCurrentAmmo(iCurrentAmmo + 1);
+		TimeSinceLastRegen = 0.f;
+	}
+}
+
+void AWeaponBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	TimeSinceLastShot += DeltaSeconds;
+	
+	// Fire rate cooldown
+	if (!bCanShoot && TimeSinceLastShot >= (1.f / ShotsPerSecond))
+	{
+		bCanShoot = true;
+	}
+	
+	RegenerateAmmo(DeltaSeconds);
+
+	if (iCurrentAmmo >= iMaxClipSize)
+	{
+		//TimeSinceLastShot is not interesting if we are at full ammo,
+		//so lets just cap the timer to prevent the timer to grow forever
+		TimeSinceLastShot = AmmoRegenDelay;
+	}
+}
+
 float AWeaponBase::GetMaxShootRange() const
 {
 	if (ProjectileClass)
@@ -63,6 +126,22 @@ float AWeaponBase::GetMaxShootRange() const
 	}
 
 	return 0.f;
+}
+
+uint8 AWeaponBase::GetCurrentAmmo() const
+{
+	return iCurrentAmmo;
+}
+
+float AWeaponBase::GetShotsPerSecond() const
+{
+	return ShotsPerSecond;
+}
+
+void AWeaponBase::BeginPlay()
+{
+	Super::BeginPlay();
+	iCurrentAmmo = iMaxClipSize;
 }
 
 // Assigns spawn-parameters and spawns the projectile instance
@@ -87,8 +166,18 @@ void AWeaponBase::Shoot_Implementation()
 	//UE_LOG(LogTemp, Warning, TEXT("Shoot_Implementation called. ProjectileClass: %s, Instigator: %s"),
 	//	ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
 	//	GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
-	
-	SpawnProjectile();
+	if (CanShoot_Implementation())
+	{
+		SpawnProjectile();
+		bCanShoot = false;
+		SetCurrentAmmo(iCurrentAmmo - 1);
+		
+
+		TimeSinceLastShot = 0.f;
+		TimeSinceLastRegen = 0.f;
+		OnWeaponFired.Broadcast();
+		OnShoot();
+	}
 }
 
 void AWeaponBase::Reload_Implementation()
@@ -98,6 +187,6 @@ void AWeaponBase::Reload_Implementation()
 
 bool AWeaponBase::CanShoot_Implementation() const
 {
-	return true;
+	return bCanShoot && iCurrentAmmo > 0;
 }
 

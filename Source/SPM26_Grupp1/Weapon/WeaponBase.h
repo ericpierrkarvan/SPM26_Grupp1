@@ -7,6 +7,10 @@
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
+class UFMODAudioComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAmmoChanged, int32, CurrentAmmo, int32, MaxAmmo, bool, bAmmoIncreased);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponFired);
+
 UCLASS(Abstract, Blueprintable)
 class SPM26_GRUPP1_API AWeaponBase : public AActor, public IWeaponInterface
 {
@@ -15,20 +19,38 @@ class SPM26_GRUPP1_API AWeaponBase : public AActor, public IWeaponInterface
 public:	
 	// Sets default values for this actor's properties
 	AWeaponBase();
+	virtual void Tick(float DeltaSeconds) override;
 	
 	// IWeaponInterface
 	virtual void Shoot_Implementation() override;
 	virtual void Reload_Implementation() override;
 	virtual bool CanShoot_Implementation() const override;
 	
-	float GetMaxShootRange() const;	
+	float GetMaxShootRange() const;
+
+	UFUNCTION(BlueprintCallable)
+	uint8 GetCurrentAmmo() const;
 	
+	UPROPERTY(BlueprintAssignable, Category = "Weapon|Ammo")
+	FOnAmmoChanged OnAmmoChanged;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnADS(bool bIsADS);
+
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
+	FOnWeaponFired OnWeaponFired;
+
+	UFUNCTION(BlueprintCallable)
+	float GetShotsPerSecond() const;
 protected:
+	virtual void BeginPlay() override;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<class AProjectileBase> ProjectileClass;
-	
+
+	//shots per second
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	float FireRate;
+	float ShotsPerSecond = 1.5f;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	USkeletalMeshComponent* WeaponMesh;
@@ -38,18 +60,59 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	float ProjectileMaxDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Ammo")
+	float AmmoRegenDelay = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Ammo")
+	float RegenAcceleration = 0.8f; // how quickly regen speeds up
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Ammo")
+	float MinRegenTime = 0.2f; // fastest possible regen interval
 	
-	/*
-	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	int32 MaxAmmo = 30;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
+	uint8 iMaxClipSize = 5;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon|Ammo")
+	uint8 iCurrentAmmo = 5;
+
+	void SetCurrentAmmo(int32 NewAmmo);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnShoot();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnReload();
+
 	
-	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	int32 CurrentAmmo;
-	*/
+	//AUDIO
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* FireAudioComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* ADSAudioComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* ReloadComponent;
+	
+	//time until the ammo regeneration starts
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Ammo")
+	float AmmoRegenTime = 1.5f;
 	
 	void SpawnProjectile();
 	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
 	FRotator SetDirectionOfSpawnedProjectile(AController* Controller);
 	FVector SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
+
+	
+private:
+	bool bCanShoot = true;
+	float TimeSinceLastShot = 0;
+	float TimeSinceLastRegen = 0.0f;
+
+	void RegenerateAmmo(float DeltaTime);
+
+	
+	
 	
 };
