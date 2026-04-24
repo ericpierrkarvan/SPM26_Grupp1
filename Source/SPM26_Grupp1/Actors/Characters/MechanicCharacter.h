@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "SPM26_Grupp1/Weapon/WeaponBase.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MechanicCharacter.generated.h"
 
 class UMechanicMovementComponent;
@@ -23,6 +24,8 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	FVector GetCurrentProjectileSpawnLocation() const;
 	void AddMagneticField(AActor* Field);
+	void SwitchGunPolarity();
+
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const;
 
@@ -31,6 +34,8 @@ protected:
 	TObjectPtr<UInputAction> IA_Shoot;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_DestroyFields;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_SwitchGunPolarity;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* EquippedWeapon;
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")

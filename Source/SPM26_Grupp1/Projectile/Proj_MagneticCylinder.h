@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "NiagaraComponent.h"
 #include "ProjectileBase.h"
+#include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 #include "Proj_MagneticCylinder.generated.h"
 
 UCLASS()
@@ -30,8 +31,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraSystem* MagnetVfxAsset;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
-	UNiagaraComponent* MagnetVfxComponent;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	// UNiagaraComponent* MagnetVfxComponent;
 	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
@@ -42,7 +43,16 @@ protected:
 	void OnProjectileStopped(const FHitResult& ImpactResult);
 	
 	void AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
-	void AlignMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation);
+	void AlignMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field);
+	void SetPositiveMagnetVFXLocation(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult,
+	                                  const AMagneticField_Cylinder* Field);
+	void SetPositiveMagnetVFXRotation(const FHitResult& ImpactResult, const AMagneticField_Cylinder* Field);
+	void AlignPositiveMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, int32 Polarity,
+	                                   const AMagneticField_Cylinder* Field);
+	void AlignPositiveMagneticFieldVFXOVERCOOKED(const FHitResult& ImpactResult, const FVector& SpawnLocation,
+	                                             int32 Polarity, const AMagneticField_Cylinder* Field) const;
+	void AlignNegativeMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation, int32 Polarity,
+	                                   const AMagneticField_Cylinder* Field) const;
 	AActor* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 	void RegisterFieldInMechanicArray(AActor* Field) const;
 };

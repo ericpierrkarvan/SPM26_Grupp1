@@ -8,8 +8,8 @@
 #include "WeaponBase.generated.h"
 
 class UFMODAudioComponent;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAmmoChanged, int32, CurrentAmmo, int32, MaxAmmo, bool, bAmmoIncreased)
-;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAmmoChanged, int32, CurrentAmmo, int32, MaxAmmo, bool, bAmmoIncreased);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponFired);
 
 UCLASS(Abstract, Blueprintable)
 class SPM26_GRUPP1_API AWeaponBase : public AActor, public IWeaponInterface
@@ -37,7 +37,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
 	void OnADS(bool bIsADS);
 
-	
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
+	FOnWeaponFired OnWeaponFired;
+
+	UFUNCTION(BlueprintCallable)
+	float GetShotsPerSecond() const;
 protected:
 	virtual void BeginPlay() override;
 	
@@ -46,7 +50,7 @@ protected:
 
 	//shots per second
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	float ShootsPerSecond = 1.5f;
+	float ShotsPerSecond = 1.5f;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	USkeletalMeshComponent* WeaponMesh;

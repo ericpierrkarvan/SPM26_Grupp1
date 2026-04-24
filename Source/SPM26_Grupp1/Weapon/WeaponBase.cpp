@@ -101,7 +101,7 @@ void AWeaponBase::Tick(float DeltaSeconds)
 	TimeSinceLastShot += DeltaSeconds;
 	
 	// Fire rate cooldown
-	if (!bCanShoot && TimeSinceLastShot >= (1.f / ShootsPerSecond))
+	if (!bCanShoot && TimeSinceLastShot >= (1.f / ShotsPerSecond))
 	{
 		bCanShoot = true;
 	}
@@ -131,6 +131,11 @@ float AWeaponBase::GetMaxShootRange() const
 uint8 AWeaponBase::GetCurrentAmmo() const
 {
 	return iCurrentAmmo;
+}
+
+float AWeaponBase::GetShotsPerSecond() const
+{
+	return ShotsPerSecond;
 }
 
 void AWeaponBase::BeginPlay()
@@ -170,6 +175,7 @@ void AWeaponBase::Shoot_Implementation()
 
 		TimeSinceLastShot = 0.f;
 		TimeSinceLastRegen = 0.f;
+		OnWeaponFired.Broadcast();
 		OnShoot();
 	}
 }

@@ -200,13 +200,14 @@ void ASPMCharacter::StartADS()
 {
 	bIsADS = true;
 	ADSCurveDirection = 1.f;
-	UE_LOG(LogTemp, Warning, TEXT("%s:hehe "), *GetClass()->GetName())
+	
 	if (GetCharacterMovement())
 	{
 		//when aiming we want the pawn to follow the direction of the camera
 		GetCharacterMovement()->bOrientRotationToMovement   = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
+	OnADS.Broadcast(bIsADS);
 }
 
 void ASPMCharacter::StopADS()
@@ -220,6 +221,7 @@ void ASPMCharacter::StopADS()
 		GetCharacterMovement()->bOrientRotationToMovement   = true;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
+	OnADS.Broadcast(bIsADS);
 }
 
 void ASPMCharacter::UpdateCamera(float DeltaTime)
