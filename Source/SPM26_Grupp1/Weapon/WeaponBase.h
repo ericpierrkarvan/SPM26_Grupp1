@@ -7,7 +7,9 @@
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAmmoChanged, int32, CurrentAmmo, int32, MaxAmmo, bool, bAmmoIncreased);
+class UFMODAudioComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAmmoChanged, int32, CurrentAmmo, int32, MaxAmmo, bool, bAmmoIncreased)
+;
 
 UCLASS(Abstract, Blueprintable)
 class SPM26_GRUPP1_API AWeaponBase : public AActor, public IWeaponInterface
@@ -67,7 +69,23 @@ protected:
 	uint8 iCurrentAmmo = 5;
 
 	void SetCurrentAmmo(int32 NewAmmo);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnShoot();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnReload();
+
 	
+	//AUDIO
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* FireAudioComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* ADSAudioComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* ReloadComponent;
 	
 	//time until the ammo regeneration starts
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Ammo")
