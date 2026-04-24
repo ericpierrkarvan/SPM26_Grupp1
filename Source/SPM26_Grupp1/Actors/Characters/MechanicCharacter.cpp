@@ -23,7 +23,7 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
 		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
-		EIC->BindAction(IA_SwitchGunPolarity, ETriggerEvent::Triggered, this, &AMechanicCharacter::SwitchGunPolarity);
+		EIC->BindAction(IA_SwitchPolarity, ETriggerEvent::Triggered, this, &AMechanicCharacter::SwitchPolarity);
 
 		//Todo: Kanske behöver binda till en egen jump?
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
@@ -202,7 +202,8 @@ AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
 	return EquippedWeapon;
 }
 
-void AMechanicCharacter::SwitchGunPolarity() 
+// Switches the MagnetGun's polarity.
+void AMechanicCharacter::SwitchPolarity() 
 {
 	AMagnetGun* MagnetGun = Cast<AMagnetGun>(GetEquippedWeapon());
 	if (MagnetGun)

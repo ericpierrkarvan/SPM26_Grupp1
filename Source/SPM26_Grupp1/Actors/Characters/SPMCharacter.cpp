@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 
 // Sets default values
@@ -281,6 +282,8 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_Interact, ETriggerEvent::Triggered, this, &ASPMCharacter::Interact);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);
+		EIC->BindAction(IA_SwitchPolarity, ETriggerEvent::Triggered, this, &ASPMCharacter::SwitchPolarity);
+		
 	}
 }
 
@@ -297,4 +300,9 @@ USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
 void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 {
 	GetSPMMovementComponent()->IncrementJumpCount();
+}
+
+void ASPMCharacter::SwitchPolarity()
+{
+
 }

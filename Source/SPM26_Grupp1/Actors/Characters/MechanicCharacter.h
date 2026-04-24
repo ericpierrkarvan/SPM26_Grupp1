@@ -22,9 +22,10 @@ class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
 
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void SwitchPolarity() override;
+	
 	FVector GetCurrentProjectileSpawnLocation() const;
 	void AddMagneticField(AActor* Field);
-	void SwitchGunPolarity();
 
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const;
@@ -34,8 +35,6 @@ protected:
 	TObjectPtr<UInputAction> IA_Shoot;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_DestroyFields;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> IA_SwitchGunPolarity;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* EquippedWeapon;
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
