@@ -23,7 +23,16 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input | Dev")
 	TObjectPtr<UInputAction> SwitchPlayerAction;
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> PauseAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	TSubclassOf<UUserWidget> PauseMenuHudClass; 
+	
+	UPROPERTY()
+	UUserWidget* PauseMenuWidget;
+	
 #if WITH_EDITOR
 	bool bIsSwitchingPlayer = false;
 #endif
@@ -42,7 +51,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
-
+	void OnPause();
 private:
 #if WITH_EDITOR
 	void OnSwitchPlayer();
