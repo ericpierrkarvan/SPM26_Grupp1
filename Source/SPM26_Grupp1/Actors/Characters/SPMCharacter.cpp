@@ -46,16 +46,7 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 void ASPMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(IMC_Default, 0);
-		}
-	}
-
+	
 	if (CameraBoom)
 	{
 		DefaultCameraArmLength = CameraBoom->TargetArmLength;
@@ -73,6 +64,16 @@ void ASPMCharacter::BeginPlay()
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(IMC_Default, 0);
+		}
+	}
+	
 	SetOwner(GetController());
 }
 
