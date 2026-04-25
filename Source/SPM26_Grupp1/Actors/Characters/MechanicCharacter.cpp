@@ -201,11 +201,17 @@ AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
 // Switches the MagnetGun's polarity.
 void AMechanicCharacter::SwitchPolarity_Implementation() 
 {
+	if (!CanSwitchPolarity()) return;
+	
 	AMagnetGun* MagnetGun = Cast<AMagnetGun>(GetEquippedWeapon());
 	if (MagnetGun)
 	{
+		SwitchPolarityTimer = PolaritySwitchCooldown;
 		MagnetGun->SwitchPolarity();
-		MagnetGun->GetPolarity() == EPolarity::Positive ? PolarityColor = FColor::Blue : PolarityColor = FColor::Orange;
+		EPolarity NewPolarity = MagnetGun->GetPolarity();
+		OnPolaritySwitched.Broadcast(NewPolarity, PolaritySwitchCooldown);
+		
+		NewPolarity == EPolarity::Positive ? PolarityColor = FColor::Blue : PolarityColor = FColor::Orange;
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, PolarityColor, TEXT("Switched Gun Polarity"));
 	}
 }

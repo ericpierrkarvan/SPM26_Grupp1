@@ -6,6 +6,7 @@
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
+
 void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 {
 	//unsubscribe from old dynamics
@@ -13,10 +14,13 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	{
 		RobotCharacter->OnLaunchStateChanged.RemoveDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
 		RobotCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
+		RobotCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 	}
 	if (MechanicCharacter)
 	{
 		MechanicCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
+		MechanicCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
+
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
@@ -31,10 +35,13 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	{
 		RobotCharacter->OnLaunchStateChanged.AddDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
 		RobotCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
+		RobotCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
+
 	}
 	else if (MechanicCharacter)
 	{
 		MechanicCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
+		MechanicCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.AddDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);

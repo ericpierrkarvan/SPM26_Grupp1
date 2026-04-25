@@ -39,7 +39,7 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 		MoveComp->RotationRate = FRotator(0.f, 500.f, 0.f);
 	}
 
-	
+
 }
 
 // Called when the game starts or when spawned
@@ -268,6 +268,15 @@ void ASPMCharacter::Tick(float DeltaTime)
 
 	LookForInteractables(DeltaTime);
 	UpdateCamera(DeltaTime);
+
+	if (SwitchPolarityTimer > 0)
+	{
+		SwitchPolarityTimer -= DeltaTime;
+		if (SwitchPolarityTimer <= 0.f)
+		{
+			SwitchPolarityTimer = 0;
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -304,4 +313,14 @@ void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 
 void ASPMCharacter::SwitchPolarity_Implementation()
 {
+}
+
+bool ASPMCharacter::CanSwitchPolarity() const
+{
+	return SwitchPolarityTimer <= 0.f;
+}
+
+float ASPMCharacter::GetPolaritySwitchCooldown() const
+{
+	return PolaritySwitchCooldown;
 }
