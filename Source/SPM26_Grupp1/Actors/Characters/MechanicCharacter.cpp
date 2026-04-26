@@ -116,17 +116,32 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController) return false;
 
-	FVector TraceStart = GetCurrentProjectileSpawnLocation();
-	FVector TraceEnd = GetLineTraceEndPoint(TraceStart, PlayerController);
-
 	// Ignores own character
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this);
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility);
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	//first do a trace from camera so we can see what the player is trying to hit with its crosshair
+	//and use that end point for the second trace/direction when we actually spawn the projectile
+	FVector TraceEnd = GetLineTraceEndPoint(CameraLocation, PlayerController);
+	FHitResult CameraHit;
+	//Todo: prob needs its own trace channel
+	GetWorld()->LineTraceSingleByChannel(CameraHit, CameraLocation, TraceEnd, ECC_Visibility, CollisionParams);
+
+	//we want to get the end location for the camera trace
+	FVector CameraHitLocation = CameraHit.bBlockingHit ? CameraHit.ImpactPoint : TraceEnd;
+	
+	FVector GunTraceStart = GetCurrentProjectileSpawnLocation();
+	FVector GunToTarget = (CameraHitLocation - GunTraceStart).GetSafeNormal() * EquippedWeapon->GetMaxShootRange();
+	FVector GunTraceEnd = GunTraceStart + GunToTarget;
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, GunTraceStart, GunTraceEnd, ECC_Visibility, CollisionParams);
 
 	// Draws the linetrace
-	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, PolarityColor, false, -1, 0, 1);
+	DrawDebugLine(GetWorld(), GunTraceStart, GunTraceEnd, PolarityColor, false, -1, 0, 1);
 
 	return bHit;
 }
@@ -148,14 +163,13 @@ FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart,
 void AMechanicCharacter::UpdateADSTrace()
 {
 	if (!IsADSActive()) return;
-
-	FHitResult HitResult;
-	if (PerformAimTrace(HitResult))
+	
+	if (PerformAimTrace(ADSResult))
 	{
-		AActor* HitActor = HitResult.GetActor();
+		AActor* HitActor = ADSResult.GetActor();
 		if (HitActor)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
 		}
 	}
 }
@@ -165,7 +179,7 @@ void AMechanicCharacter::Shoot()
 	if (!IsADSActive()) return;
 	if (EquippedWeapon)
 	{
-		EquippedWeapon->Execute_Shoot(EquippedWeapon);
+		EquippedWeapon->Execute_Shoot(EquippedWeapon, ADSResult);
 	}
 }
 

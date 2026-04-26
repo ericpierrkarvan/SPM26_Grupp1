@@ -66,4 +66,5 @@ private:
 	void Shoot();
 	UFUNCTION(BlueprintCallable)
 	void DestroyAllMagneticFields();
+	FHitResult ADSResult;
 };

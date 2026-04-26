@@ -23,7 +23,7 @@ class SPM26_GRUPP1_API IWeaponInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
-	void Shoot();
+	void Shoot(const FHitResult& AimHitResult);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
 	void Reload();

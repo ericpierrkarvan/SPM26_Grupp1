@@ -22,7 +22,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	
 	// IWeaponInterface
-	virtual void Shoot_Implementation() override;
+	virtual void Shoot_Implementation(const FHitResult &AimHitResult) override;
 	virtual void Reload_Implementation() override;
 	virtual bool CanShoot_Implementation() const override;
 	
@@ -99,10 +99,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon|Ammo")
 	float AmmoRegenTime = 1.5f;
 	
-	void SpawnProjectile();
+	void SpawnProjectile(const FHitResult& AimHitResult);
 	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
-	FRotator SetDirectionOfSpawnedProjectile(AController* Controller);
-	FVector SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
+	FRotator SetDirectionOfSpawnedProjectile(FVector TargetLocation, AActor* InstigatingPawn);
+	FVector GetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
 
 	
 private:
