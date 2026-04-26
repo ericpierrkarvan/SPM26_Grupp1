@@ -9,6 +9,7 @@
 
 class UPlayerWidgetHUD;
 class UInputMappingContext;
+class ACheckpoint;
 /**
  * 
  */
@@ -37,7 +38,11 @@ public:
 	bool bIsSwitchingPlayer = false;
 #endif
 	
-	void SetCheckpoint(AActor* NewCheckpoint);
+	void SetCheckpoint(ACheckpoint* NewCheckpoint);
+	
+	FTransform GetCheckpointTransform() const;
+	
+	void OnRespawn();
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<UPlayerWidgetHUD> MechanicHUDClass;
@@ -55,7 +60,7 @@ protected:
 	void OnPause();
 private:
 	UPROPERTY()
-	TObjectPtr<AActor> LastCheckpoint;
+	TObjectPtr<ACheckpoint> LastCheckpoint;
 #if WITH_EDITOR
 	void OnSwitchPlayer();
 #endif

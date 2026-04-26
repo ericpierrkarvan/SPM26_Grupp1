@@ -3,67 +3,118 @@
 
 #include "SPMPlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
 #if WITH_EDITOR
 void ASPMGameModeBase::SwitchKeyboardToPlayer()
 {
-    // Cache originals on first switch
-    if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid())
-    {
-        APlayerController* PC0 = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-        APlayerController* PC1 = UGameplayStatics::GetPlayerController(GetWorld(), 1);
-        if (!PC0 || !PC1) return;
+	// Cache originals on first switch
+	if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid())
+	{
+		APlayerController* PC0 = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		APlayerController* PC1 = UGameplayStatics::GetPlayerController(GetWorld(), 1);
+		if (!PC0 || !PC1) return;
 
-        OriginalPawn0 = PC0->GetPawn();
-        OriginalPawn1 = PC1->GetPawn();
+		OriginalPawn0 = PC0->GetPawn();
+		OriginalPawn1 = PC1->GetPawn();
 
-        if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid())
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Dev: Pawns not ready yet"));
-            return;
-        }
-    }
+		if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Dev: Pawns not ready yet"));
+			return;
+		}
+	}
 
-    SwapPossession();
+	SwapPossession();
 }
 
 void ASPMGameModeBase::SwapPossession()
 {
-    ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-    ASPMPlayerController* PC1 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
+	ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	ASPMPlayerController* PC1 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
 
-    if (!PC0 || !PC1) return;
-    if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid()) return;
+	if (!PC0 || !PC1) return;
+	if (!OriginalPawn0.IsValid() || !OriginalPawn1.IsValid()) return;
 
-    PC0->bIsSwitchingPlayer = true; //flag for keeping the player widget in correct viewport
-    PC1->bIsSwitchingPlayer = true;
-    
-    ActiveKeyboardPlayer = (ActiveKeyboardPlayer + 1) % 2;
+	PC0->bIsSwitchingPlayer = true; //flag for keeping the player widget in correct viewport
+	PC1->bIsSwitchingPlayer = true;
 
-    PC0->UnPossess();
-    PC1->UnPossess();
+	ActiveKeyboardPlayer = (ActiveKeyboardPlayer + 1) % 2;
 
-    if (ActiveKeyboardPlayer == 1)
-    {
-        PC0->Possess(OriginalPawn1.Get());
-        PC1->Possess(OriginalPawn0.Get());
-    }
-    else
-    {
-        PC0->Possess(OriginalPawn0.Get());
-        PC1->Possess(OriginalPawn1.Get());
-    }
+	PC0->UnPossess();
+	PC1->UnPossess();
 
-    // Lock each viewport camera to its original pawn
-    PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
-    PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
+	if (ActiveKeyboardPlayer == 1)
+	{
+		PC0->Possess(OriginalPawn1.Get());
+		PC1->Possess(OriginalPawn0.Get());
+	}
+	else
+	{
+		PC0->Possess(OriginalPawn0.Get());
+		PC1->Possess(OriginalPawn1.Get());
+	}
 
-    PC0->bIsSwitchingPlayer = false; 
-    PC1->bIsSwitchingPlayer = false;
-    
-    UE_LOG(LogTemp, Warning, TEXT("Dev: Keyboard goes to Player %d | PC0 possesses: %s | PC1 possesses: %s"),
-        ActiveKeyboardPlayer,
-        *PC0->GetPawn()->GetName(),
-        *PC1->GetPawn()->GetName());
+	// Lock each viewport camera to its original pawn
+	PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
+	PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
+
+	PC0->bIsSwitchingPlayer = false;
+	PC1->bIsSwitchingPlayer = false;
+
+	UE_LOG(LogTemp, Warning, TEXT("Dev: Keyboard goes to Player %d | PC0 possesses: %s | PC1 possesses: %s"),
+	       ActiveKeyboardPlayer,
+	       *PC0->GetPawn()->GetName(),
+	       *PC1->GetPawn()->GetName());
 }
 #endif
+
+
+void ASPMGameModeBase::RespawnPlayer(AController* Controller)
+{
+	if (!Controller) return;
+
+	ASPMPlayerController* PlayerController = Cast<ASPMPlayerController>(Controller);
+	if (!PlayerController) return;
+
+	FTransform RespawnTransform = PlayerController->GetCheckpointTransform();
+	
+	ACharacter* OldCharacter = Controller->GetCharacter();
+	ACharacter* NewCharacter;
+	FActorSpawnParameters Params;
+	Params.Owner = Controller;
+	if (Cast<ARobotCharacter>(OldCharacter))
+	{
+		NewCharacter = GetWorld()->SpawnActor<ARobotCharacter>(RobotCharacterClass, RespawnTransform, Params);
+	} 
+	else if (Cast<AMechanicCharacter>(OldCharacter))
+	{
+		NewCharacter = GetWorld()->SpawnActor<AMechanicCharacter>(MechanicCharacterClass, RespawnTransform, Params);
+	}
+	else
+	{
+		return;
+	}
+	
+	if (OldCharacter)
+	{
+		OldCharacter->Destroy();
+	}
+	
+	if (NewCharacter)
+	{
+		Controller->Possess(NewCharacter);
+
+#if WITH_EDITOR
+		if (Controller == UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			OriginalPawn0 = NewCharacter;
+		}
+		else if (Controller == UGameplayStatics::GetPlayerController(GetWorld(), 1))
+		{
+			OriginalPawn1 = NewCharacter;
+		}
+#endif
+	}
+}

@@ -105,8 +105,8 @@ private:
 
 	void PerformDash();
 	bool CanDash() const;
-	bool Dashing = false;
-	void ResetDashHandle(){ Dashing = false; }
+	bool bIsDashing = false;
+	void ResetDashHandle(){ bIsDashing = false; }
 	float DashCooldown = 1.0f;
 	float DashTimer = 0.f;
 	

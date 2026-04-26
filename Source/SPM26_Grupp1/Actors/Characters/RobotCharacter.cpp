@@ -201,7 +201,7 @@ void ARobotCharacter::PerformDash()
 	{
 		StartMagnetizableImmunity(ImmunityInSeconds);
 	}
-	Dashing = true;
+	bIsDashing = true;
 
 	FRotator ControlRotation = GetController()->GetControlRotation();
 	FRotator YawRotation{0, ControlRotation.Yaw, 0};
@@ -227,7 +227,7 @@ void ARobotCharacter::PerformDash()
 
 bool ARobotCharacter::IsDashing() const
 {
-	return Dashing;
+	return bIsDashing;
 }
 
 bool ARobotCharacter::CanDash() const
