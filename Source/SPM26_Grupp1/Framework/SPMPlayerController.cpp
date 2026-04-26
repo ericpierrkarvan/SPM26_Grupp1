@@ -127,3 +127,8 @@ void ASPMPlayerController::OnPause()
 	}
 	
 }
+
+void ASPMPlayerController::SetCheckpoint(AActor* NewCheckpoint)
+{
+	LastCheckpoint = NewCheckpoint;
+}

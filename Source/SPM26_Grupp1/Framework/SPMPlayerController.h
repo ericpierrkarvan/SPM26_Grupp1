@@ -36,7 +36,8 @@ public:
 #if WITH_EDITOR
 	bool bIsSwitchingPlayer = false;
 #endif
-
+	
+	void SetCheckpoint(AActor* NewCheckpoint);
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<UPlayerWidgetHUD> MechanicHUDClass;
@@ -53,6 +54,8 @@ protected:
 	virtual void SetupInputComponent() override;
 	void OnPause();
 private:
+	UPROPERTY()
+	TObjectPtr<AActor> LastCheckpoint;
 #if WITH_EDITOR
 	void OnSwitchPlayer();
 #endif
