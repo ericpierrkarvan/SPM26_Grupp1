@@ -31,7 +31,7 @@ void AWeaponBase::SetCurrentAmmo(int32 NewAmmo)
 	}
 }
 
-void AWeaponBase::SpawnProjectile()
+void AWeaponBase::SpawnProjectile(const FHitResult& AimHitResult)
 {
 	if (!ProjectileClass) return;
 	
@@ -47,26 +47,22 @@ void AWeaponBase::SpawnProjectile()
 	// FVector SpawnLocation = WeaponMesh->GetSocketLocation("MuzzleSocket");
 	// FRotator SpawnRotation = WeaponMesh->GetSocketRotation("MuzzleSocket");
 	
-	FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(Controller);
-	FVector SpawnLocationOfSpawnedProjectile = SetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
+	FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(AimHitResult.ImpactPoint, InstigatingPawn);
+	FVector SpawnLocationOfSpawnedProjectile = GetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
 	
 	// Assigns spawn parameters and creates the projectile
 	SpawnProjectileInstance(InstigatingPawn, SpawnLocationOfSpawnedProjectile, DirectionOfSpawnedProjectile);
 	
 }
 
-// Direction comes from the camera, it aims where you look
-FRotator AWeaponBase::SetDirectionOfSpawnedProjectile(AController* Controller)
+//Rotate the projectile towards the targetlocation
+FRotator AWeaponBase::SetDirectionOfSpawnedProjectile(FVector TargetLocation, AActor* InstigatingPawn)
 {
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	Controller->GetPlayerViewPoint(CameraLocation, CameraRotation);
-	
-	return CameraRotation;
+	return (TargetLocation - GetSpawnLocationOfSpawnedProjectile(InstigatingPawn)).ToOrientationRotator();
 }
 
 // Spawn location comes from character's position
-FVector AWeaponBase::SetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn)
+FVector AWeaponBase::GetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn)
 {
 	FVector SpawnLocation = InstigatingPawn->GetActorLocation() 
 		+ InstigatingPawn->GetActorForwardVector() * 100.f // forward from player
@@ -161,14 +157,14 @@ void AWeaponBase::SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnL
 		);
 }
 
-void AWeaponBase::Shoot_Implementation()
+void AWeaponBase::Shoot_Implementation(const FHitResult &AimHitResult)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Shoot_Implementation called. ProjectileClass: %s, Instigator: %s"),
 	//	ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
 	//	GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
 	if (CanShoot_Implementation())
 	{
-		SpawnProjectile();
+		SpawnProjectile(AimHitResult);
 		bCanShoot = false;
 		SetCurrentAmmo(iCurrentAmmo - 1);
 		
