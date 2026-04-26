@@ -10,6 +10,7 @@
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
+#include "SPM26_Grupp1/Actors/Checkpoint.h"
 
 
 void ASPMPlayerController::AcknowledgePossession(class APawn* P)
@@ -124,6 +125,30 @@ void ASPMPlayerController::OnPause()
 		
 		SetInputMode(FInputModeGameAndUI());
 		bShowMouseCursor = false;
+	}
+	
+}
+
+void ASPMPlayerController::SetCheckpoint(ACheckpoint* NewCheckpoint)
+{
+	LastCheckpoint = NewCheckpoint;
+}
+
+FTransform ASPMPlayerController::GetCheckpointTransform() const
+{
+	if (LastCheckpoint)
+	{
+		return LastCheckpoint->GetTransform();
+	}
+	
+	return FTransform();
+}
+
+void ASPMPlayerController::OnRespawn()
+{
+	if (ASPMGameModeBase* GM = Cast<ASPMGameModeBase>(GetWorld()->GetAuthGameMode()))
+	{
+		GM->RespawnPlayer(this);
 	}
 	
 }
