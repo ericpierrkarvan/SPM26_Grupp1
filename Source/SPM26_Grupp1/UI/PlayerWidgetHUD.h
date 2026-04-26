@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 #include "PlayerWidgetHUD.generated.h"
 
 class AMechanicCharacter;
@@ -40,4 +41,7 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
 	void OnWeaponFired();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Polarity")
+	void OnPolaritySwitched(EPolarity NewPolarity, float PolaritySwitchCooldown);
 };

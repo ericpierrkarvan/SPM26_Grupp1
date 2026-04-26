@@ -39,23 +39,14 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 		MoveComp->RotationRate = FRotator(0.f, 500.f, 0.f);
 	}
 
-	
+
 }
 
 // Called when the game starts or when spawned
 void ASPMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(IMC_Default, 0);
-		}
-	}
-
+	
 	if (CameraBoom)
 	{
 		DefaultCameraArmLength = CameraBoom->TargetArmLength;
@@ -73,6 +64,16 @@ void ASPMCharacter::BeginPlay()
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(IMC_Default, 0);
+		}
+	}
+	
 	SetOwner(GetController());
 }
 
@@ -268,6 +269,15 @@ void ASPMCharacter::Tick(float DeltaTime)
 
 	LookForInteractables(DeltaTime);
 	UpdateCamera(DeltaTime);
+
+	if (SwitchPolarityTimer > 0)
+	{
+		SwitchPolarityTimer -= DeltaTime;
+		if (SwitchPolarityTimer <= 0.f)
+		{
+			SwitchPolarityTimer = 0;
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -304,4 +314,14 @@ void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 
 void ASPMCharacter::SwitchPolarity_Implementation()
 {
+}
+
+bool ASPMCharacter::CanSwitchPolarity() const
+{
+	return SwitchPolarityTimer <= 0.f;
+}
+
+float ASPMCharacter::GetPolaritySwitchCooldown() const
+{
+	return PolaritySwitchCooldown;
 }

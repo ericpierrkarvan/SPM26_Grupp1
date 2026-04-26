@@ -12,6 +12,7 @@
 #include "SPMCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 
 class UInteractableComponent;
 class USPMCharacterMovementComponent;
@@ -33,6 +34,12 @@ public:
 	void SwitchPolarity();
 	virtual void SwitchPolarity_Implementation();
 
+	bool CanSwitchPolarity() const;
+	UFUNCTION(BlueprintCallable, Category="Polarity")
+	float GetPolaritySwitchCooldown() const;
+	UPROPERTY(BlueprintAssignable, Category = "Polarity")
+	FOnPolaritySwitched OnPolaritySwitched;
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	bool IsADSActive() const;
@@ -88,6 +95,10 @@ protected:
 	TObjectPtr<UCurveFloat> ADSCurveOut;
 
 
+	
+	UPROPERTY(EditAnywhere, Category="Polarity")
+	float PolaritySwitchCooldown = 0.35f;
+	float SwitchPolarityTimer = 0.f;
 	
 	virtual void StartADS();
 	virtual void StopADS();
