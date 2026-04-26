@@ -15,6 +15,8 @@ class SPM26_GRUPP1_API ASPMGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	UFUNCTION()
+	void RespawnPlayer(AController* Controller);
 #if WITH_EDITOR
 	void SwitchKeyboardToPlayer();
 
@@ -24,4 +26,11 @@ private:
 	TWeakObjectPtr<APawn> OriginalPawn1;
 	void SwapPossession();
 #endif
+	
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class ARobotCharacter> RobotCharacterClass;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AMechanicCharacter> MechanicCharacterClass;
+	
 };
