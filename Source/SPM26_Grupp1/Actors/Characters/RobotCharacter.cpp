@@ -27,7 +27,7 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EIC->BindAction(IA_Dash, ETriggerEvent::Triggered, this, &ARobotCharacter::Dash);
+		EIC->BindAction(IA_Dash, ETriggerEvent::Triggered, this, &ARobotCharacter::PerformDash);
 
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &ARobotCharacter::OnLaunchPressed);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ARobotCharacter::OnLaunchReleased);
@@ -74,7 +74,8 @@ FVector ARobotCharacter::GetLaunchForce() const
 	const float DegreesDown = FMath::Abs(FMath::Min(SignedPitch, 0.f));
 
 	//map how far through the interval we are between 0 and 1
-	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange),0.f, 1.f);
+	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange), 0.f,
+	                                      1.f);
 	//give us the launch pitch between our two min/max-angles
 	const float FinalPitch = FMath::Lerp(LaunchAngleMaxRange, LaunchAngleMinRange, PitchAlpha);
 
@@ -105,6 +106,9 @@ FVector ARobotCharacter::GetLaunchForce() const
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (DashTimer > 0)
+		DashTimer -= DeltaSeconds;
 
 	if (bHavePayload && !bIsInLaunchMode)
 	{
@@ -187,17 +191,16 @@ URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 	return Cast<URobotMovementComponent>(GetCharacterMovement());
 }
 
-void ARobotCharacter::Dash()
+void ARobotCharacter::PerformDash()
 {
 	if (!CanDash()) return;
 
 	if (!GetRobotMovementComponent()) return;
-	
+
 	if (bIsWithinMagneticField)
 	{
 		StartMagnetizableImmunity(ImmunityInSeconds);
 	}
-
 	Dashing = true;
 
 	FRotator ControlRotation = GetController()->GetControlRotation();
@@ -205,7 +208,6 @@ void ARobotCharacter::Dash()
 
 	FVector DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
-	//LaunchCharacter(DashVector, true, true);
 
 	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
 	DashSource->InstanceName = TEXT("Dash");
@@ -219,6 +221,7 @@ void ARobotCharacter::Dash()
 	GetRobotMovementComponent()->OnDashEvent.Broadcast(IsDashing());
 	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
+	DashTimer = DashCooldown;
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }
 
@@ -229,7 +232,7 @@ bool ARobotCharacter::IsDashing() const
 
 bool ARobotCharacter::CanDash() const
 {
-	return !bIsInLaunchMode;
+	return !bIsInLaunchMode && DashTimer <= 0;
 }
 
 void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -360,9 +363,9 @@ void ARobotCharacter::Move(const FInputActionValue& Value)
 void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 {
 	bIsMagnetizable = false;
-	
+
 	GetWorldTimerManager().ClearTimer(MagnetizableCooldownHandle);
-	
+
 	GetWorldTimerManager().SetTimer(
 		MagnetizableCooldownHandle,
 		[this]()
@@ -397,10 +400,10 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 {
 	if (!CanSwitchPolarity()) return;
 	SwitchPolarityTimer = PolaritySwitchCooldown;
-	
+
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
-	
+
 	FColor Color;
 	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));
