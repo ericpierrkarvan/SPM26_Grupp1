@@ -172,7 +172,7 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint()
 void AMagneticField_Cylinder::ApplyMagneticPull(const FVector& MagnetTarget, const float DeltaTime, const float DistanceToTarget, UCharacterMovementComponent* MovComp)
 {
 	CalculateDirectionAndPullCharacter(MagnetTarget, DeltaTime);
-	CheckDistanceToTargetAndSnap(DistanceToTarget, MagnetTarget, MovComp);
+	CheckDistanceToTargetAndStopMovement(DistanceToTarget, MagnetTarget, MovComp);
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(const FVector& MagnetTarget)
@@ -192,7 +192,7 @@ void AMagneticField_Cylinder::ApplyMagneticForce(const FVector& MagnetTarget, co
 }
 
 // Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
-void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const
+void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const
 {
 	if (DistanceToTarget <= StopDistance && IsValid(TargetCharacter))
 	{

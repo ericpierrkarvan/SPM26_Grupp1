@@ -45,7 +45,7 @@ protected:
 	void ApplyMagneticRepulsion(const FVector& MagnetTarget);
 	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                        UCharacterMovementComponent* MovComp);
-	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
+	void CheckDistanceToTargetAndStopMovement(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
 	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget);
 	FVector GenerateDynamicDirectionForRepel(const FVector& RepelDirection) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
@@ -110,7 +110,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float RepelStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float StopDistance = 50.f;
+	float StopDistance = 15.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float MaxSpeed = 2000.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
