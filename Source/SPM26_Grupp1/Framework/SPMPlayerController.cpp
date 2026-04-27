@@ -111,12 +111,15 @@ void ASPMPlayerController::OnPause()
 		{
 			PauseMenuWidget = CreateWidget<UUserWidget>(this, PauseMenuHudClass);
 		}
+
+		SetInputMode(FInputModeUIOnly());
 		
 		if (PauseMenuWidget && !PauseMenuWidget->IsInViewport())
 		{
 			PauseMenuWidget->AddToViewport();
 		}
-		SetInputMode(FInputModeGameOnly());
+		
+		
 		bShowMouseCursor = true;
 	}
 	else
