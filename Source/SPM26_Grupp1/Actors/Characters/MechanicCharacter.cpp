@@ -216,6 +216,18 @@ AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
 	return EquippedWeapon;
 }
 
+EPolarity AMechanicCharacter::GetPolarity() const
+{
+	if (EquippedWeapon)
+	{
+		if (AMagnetGun* MG = Cast<AMagnetGun>(EquippedWeapon))
+		{
+			return MG->GetPolarity();
+		}
+	}
+	return Super::GetPolarity();
+}
+
 // Switches the MagnetGun's polarity.
 void AMechanicCharacter::SwitchPolarity_Implementation() 
 {

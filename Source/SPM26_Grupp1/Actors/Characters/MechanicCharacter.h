@@ -29,7 +29,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const;
-
+	virtual EPolarity GetPolarity() const override;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Shoot;
