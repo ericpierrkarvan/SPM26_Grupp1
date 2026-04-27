@@ -7,6 +7,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Actors/Checkpoint.h"
+#include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
@@ -248,6 +250,8 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 {
 	if (OtherActor == this) return;
 	if (OtherActor == Cast<AMagneticField_Cylinder>(OtherActor)) return;
+	if (OtherActor == Cast<ACheckpoint>(OtherActor)) return;
+	if (OtherActor == Cast<ADeathField>(OtherActor)) return;
 
 	bHavePayload = true;
 }

@@ -79,15 +79,15 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 	if (!PlayerController) return;
 
 	FTransform RespawnTransform = PlayerController->GetCheckpointTransform();
-	
-	ACharacter* OldCharacter = Controller->GetCharacter();
+
+	ACharacter* OldCharacter = PlayerController->GetCharacter();
 	ACharacter* NewCharacter;
 	FActorSpawnParameters Params;
 	Params.Owner = Controller;
 	if (Cast<ARobotCharacter>(OldCharacter))
 	{
 		NewCharacter = GetWorld()->SpawnActor<ARobotCharacter>(RobotCharacterClass, RespawnTransform, Params);
-	} 
+	}
 	else if (Cast<AMechanicCharacter>(OldCharacter))
 	{
 		NewCharacter = GetWorld()->SpawnActor<AMechanicCharacter>(MechanicCharacterClass, RespawnTransform, Params);
@@ -96,25 +96,37 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 	{
 		return;
 	}
-	
-	if (OldCharacter)
-	{
-		OldCharacter->Destroy();
-	}
-	
+
 	if (NewCharacter)
 	{
-		Controller->Possess(NewCharacter);
+		PlayerController->Possess(NewCharacter);
 
 #if WITH_EDITOR
-		if (Controller == UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		
+		if (OldCharacter == OriginalPawn0.Get())
 		{
 			OriginalPawn0 = NewCharacter;
 		}
-		else if (Controller == UGameplayStatics::GetPlayerController(GetWorld(), 1))
+		else if (OldCharacter == OriginalPawn1.Get())
 		{
 			OriginalPawn1 = NewCharacter;
 		}
+		
+		ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+		ASPMPlayerController* PC1 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
+		
+		if (PC0 && PC1 && OriginalPawn0.IsValid() && OriginalPawn1.IsValid())
+		{
+			PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
+			PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Dev: Player destroyed %s"), *NewCharacter->GetName());
 #endif
+	}
+
+	if (OldCharacter)
+	{
+		OldCharacter->Destroy();
 	}
 }
