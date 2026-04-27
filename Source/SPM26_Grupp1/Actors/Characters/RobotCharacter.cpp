@@ -7,7 +7,6 @@
 #include "MechanicCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
@@ -419,6 +418,11 @@ void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 	bIsWithinMagneticField = bNewValue;
 }
 
+bool ARobotCharacter::GetIsWithinMagneticField() const
+{
+	return bIsWithinMagneticField;
+}
+
 int32 ARobotCharacter::GetPolarityValue() const
 {
 	return Polarity == EPolarity::Positive ? 1 : -1;
@@ -437,6 +441,23 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
 
+	ScreenDebugPolaritySwitchMessage();
+	NotifyOverlappingActorsOnPolarityChange();
+}
+
+void ARobotCharacter::NotifyOverlappingActorsOnPolarityChange() const
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, AMagneticField_Cylinder::StaticClass());
+	
+	for (AActor* Actor : OverlappingActors)
+	{
+		Cast<AMagneticField_Cylinder>(Actor)->OnPolarityChanged();
+	}
+}
+
+void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const
+{
 	FColor Color;
 	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));

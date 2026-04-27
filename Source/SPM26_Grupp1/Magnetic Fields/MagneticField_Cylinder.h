@@ -39,7 +39,7 @@ protected:
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	
 	FVector LateralCorrection(const FVector& MagnetTarget) const; 
-	FVector CalculateMagnetCenterPoint() const;
+	FVector CalculateMagnetCenterPoint();
 	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                       UCharacterMovementComponent* MovComp);
 	void ApplyMagneticRepulsion(const FVector& MagnetTarget);
@@ -54,7 +54,7 @@ protected:
 	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
 	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
-	
+
 	// Overlap events
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
@@ -63,6 +63,7 @@ protected:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult);
+	void SetAttractParameters(AActor* OtherActor, ACharacter* Character);
 	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
@@ -73,7 +74,7 @@ protected:
 	UFUNCTION()
 	void CrippleMovement(ACharacter* Character);
 	UFUNCTION()
-	void RestoreMovement(ACharacter* Character) const;
+	void RestoreMovement(const ACharacter* Character) const;
 	UFUNCTION()
 	void FreezeMovement(ACharacter* Character);
 
@@ -86,11 +87,13 @@ protected:
 	UNiagaraComponent* MagnetVfxComponent;
 	
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
+	bool bCharacterInsideField = false;
 
 public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void OnPolarityChanged();
 	// Components
 	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* Capsule;
