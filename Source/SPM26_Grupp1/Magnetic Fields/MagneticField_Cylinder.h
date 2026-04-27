@@ -47,13 +47,28 @@ protected:
 	                        UCharacterMovementComponent* MovComp);
 	void CheckDistanceToTargetAndSnap(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
 	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget);
+	FVector GenerateDynamicDirectionForRepel(const FVector& RepelDirection) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
-	void AlignMagneticField();
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
 	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
 	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
 	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
+	
+	// Overlap events
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
 	
 	UFUNCTION()
 	void CrippleMovement(ACharacter* Character);
@@ -69,6 +84,8 @@ protected:
 	UNiagaraSystem* NegativePolarityVFX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraComponent* MagnetVfxComponent;
+	
+	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
 
 public:
 
@@ -112,9 +129,9 @@ public:
 	int32 PolarityValue;
 	
 	// Used for crippling/restoring character movement
-	float OriginalSpeed;
-	float OriginalMaxAcceleration;
-	float OriginalBrakingDecelerationWalking;
+	float OriginalSpeed = 600;
+	float OriginalMaxAcceleration = 2048;
+	float OriginalBrakingDecelerationWalking = 4096;
 	float CapsuleHeight;
 	float CapsuleHalfHeight;
 	
@@ -128,19 +145,5 @@ public:
 	UPROPERTY()
 	class ACharacter* TargetCharacter;
 	bool bHasCrippled; // cripplemovement() has crippled a character
-
-	// Overlap events
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex,
-		bool bFromSweep,
-		const FHitResult& SweepResult);
-	UFUNCTION()
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex);
 
 };

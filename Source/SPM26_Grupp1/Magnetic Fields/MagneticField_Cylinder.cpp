@@ -142,7 +142,7 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 
 }
 
-// Calculates center point where objects are pulled toward (top of capsule).
+// Calculates center point where objects are pulled toward/repelled from (top of capsule).
 FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint() const
 {
 	//float HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
@@ -155,7 +155,12 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint() const
 	const FVector CapsuleUp = Capsule->GetUpVector();
 	const FVector CapsuleLocation = Capsule->GetComponentLocation();
 	const float MagnetTargetZOffSet = CapsuleHalfHeight - CharacterHalfHeight;
-	const FVector MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet;
+	FVector MagnetTarget;
+	if (Polarity == EPolarity::Positive)
+	{
+		MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet * PolarityValue;
+	} 
+	else MagnetTarget = CapsuleLocation + CapsuleUp * MagnetTargetZOffSet * -PolarityValue;
 	
 	return MagnetTarget;
 }
@@ -169,12 +174,17 @@ void AMagneticField_Cylinder::ApplyMagneticPull(const FVector& MagnetTarget, con
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(const FVector& MagnetTarget)
 {
 	CalculateDirectionAndRepelCharacter(MagnetTarget);
-	UE_LOG(LogTemp, Warning, TEXT("Applying Magnetic Repulsion"));
 }
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const FVector& MagnetTarget, const float DeltaTime, const float DistanceToTarget, UCharacterMovementComponent* MovComp)
 {
-	Polarity == EPolarity::Positive ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
+	EPolarity OtherPolarity = EPolarity::None;
+	if (ActorToAttractOrPull.IsValid())
+	{
+		OtherPolarity = GetObjectPolarity(ActorToAttractOrPull.Get());
+	}
+	ShouldAttract(this->Polarity, OtherPolarity) ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
+	// Polarity == EPolarity::Positive ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
 }
 
 // Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
@@ -185,11 +195,8 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndSnap(const float DistanceT
 		// Snap to place
 		TargetCharacter->SetActorLocation(MagnetTarget);
 		
-		// Zero out residual velocity before disabling movement
-		// Lock movement
 		if (!MovComp) return;
 		MovComp->StopMovementImmediately();
-		//MovComp->DisableMovement();
 	}
 }
 
@@ -198,16 +205,41 @@ void AMagneticField_Cylinder::CalculateDirectionAndRepelCharacter(const FVector&
 {
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
+	const FVector BlendedDirection = GenerateDynamicDirectionForRepel(RepelDirection);
 	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
 	
-	TargetCharacter->LaunchCharacter(RepelDirection * RepelStrength * RepelStrengthMultiplier, false, false);
+	TargetCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+	TargetCharacter->LaunchCharacter(BlendedDirection * RepelStrength * RepelStrengthMultiplier, false, false);
+}
+
+// The higher the player speed, the more it impacts direction of repulsion
+FVector AMagneticField_Cylinder::GenerateDynamicDirectionForRepel(const FVector& RepelDirection) const
+{
+	// Get the character's current velocity and normalize it
+	const FVector PlayerVelocity = TargetCharacter->GetVelocity();
+	const float PlayerSpeed = PlayerVelocity.Size();
+	const FVector PlayerVelocityDir = PlayerVelocity.GetSafeNormal();
+	UE_LOG(LogTemp, Warning, TEXT("Repulsion PlayerSpeed = %f"), PlayerSpeed);
+
+	// Define a speed threshold — below this, pure repulsion; above, velocity starts mattering
+	constexpr float SpeedInfluenceThreshold = 450.0f;
+	constexpr float MaxSpeedForFullInfluence = 1200.0f;
+
+	// Alpha: 0 = pure repel direction, 1 = fully velocity-influenced
+	const float VelocityBlendAlpha = FMath::Clamp(
+		(PlayerSpeed - SpeedInfluenceThreshold) / (MaxSpeedForFullInfluence - SpeedInfluenceThreshold),
+		0.0f, 1.0f
+	);
+	
+	// Blend between pure repulsion and a direction that factors in player momentum
+	// Using the velocity direction here deflects them along their travel path
+	const FVector BlendedDirection = FMath::Lerp(RepelDirection, PlayerVelocityDir, VelocityBlendAlpha).GetSafeNormal();
+	return BlendedDirection;
 }
 
 // Calculates direction of pull and pulls (Normal from character to MagnetTarget)
 void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime)
 {
-	// TargetCharacter->LaunchCharacter(Direction * PullStrength * PullStrengthMultiplier, false, false);
-	// FVector Direction = (MagnetTarget - TargetCharacter->GetActorLocation()).GetSafeNormal();
 	
 	UCharacterMovementComponent* MovComp = TargetCharacter->GetCharacterMovement();
 	if (!MovComp) return;
@@ -226,13 +258,6 @@ void AMagneticField_Cylinder::CalculateDirectionAndPullCharacter(const FVector& 
 	const FVector PullVelocity = (PullDirection * PullStrength * PullStrengthMultiplier + GravityCounterforce + LatCorrection) * DeltaTime;
 	
 	MovComp->AddImpulse(PullVelocity, true);
-	
-	//UE_LOG(LogTemp, Warning, TEXT("Pulling character: %s"), *TargetCharacter->GetName())
-	//UE_LOG(LogTemp, Warning, TEXT("GravityZ raw: %f"), MovComp->GetGravityZ());
-	//UE_LOG(LogTemp, Warning, TEXT("GravityAlongPull: %f"), GravityAlongPull);
-	//UE_LOG(LogTemp, Warning, TEXT("Direction: %s"), *Direction.ToString());
-	//UE_LOG(LogTemp, Warning, TEXT("GravityCounterforce: %s"), *GravityCounterforce.ToString());
-	//UE_LOG(LogTemp, Warning, TEXT("GravityScale on MoveComp: %f"), MovComp->GravityScale);
 	
 }
 
@@ -257,11 +282,6 @@ FVector AMagneticField_Cylinder::LateralCorrection(const FVector& MagnetTarget) 
 	return LateralCorrection + LateralDamping;
 }
 
-void AMagneticField_Cylinder::AlignMagneticField()
-{
-	MagnetVfxComponent->SetRelativeLocation(FVector(0, 0, -CapsuleHalfHeight));
-}
-
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
                                              AActor* OtherActor,
                                              UPrimitiveComponent* OtherComp,
@@ -269,19 +289,14 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              bool bFromSweep,
                                              const FHitResult& SweepResult)
 {
-	// Don't do anything if field not Active
-	// Don't do anything if character is the mechanic
-	if (!bIsActive) return; 
-	if (Cast<AMechanicCharacter>(OtherActor)) return;
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (!Character) return;
-	// Only respond to root capsule component
-	if (OtherComp != Character->GetCapsuleComponent()) return;
-	if (bHasCrippled) return;
+	ActorToAttractOrPull = OtherActor;
+	if (!ValidateOverLapBegin(OtherActor, OtherComp, Character)) return;
 	
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	TargetCharacter = Character;
 	
+	UE_LOG(LogTemp, Warning, TEXT("Field polarity: %s, Other polarity: %s, Should attract? %d"), *UEnum::GetValueAsString(Polarity), *UEnum::GetValueAsString(GetObjectPolarity(OtherActor)), ShouldAttract(Polarity, GetObjectPolarity(OtherActor)));
 	if (ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
 	{
 		// Gravity = 0 in magnet field while pulling
@@ -289,6 +304,19 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 		bHasCrippled = true;
 		CrippleMovement(Character);
 	}
+
+}
+
+// Validates the input, nulls etc
+bool AMagneticField_Cylinder::ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const
+{
+	if (!bIsActive) return false;											// Don't do anything if field not Active
+	if (Cast<AMechanicCharacter>(OtherActor)) return false;					// Don't do anything if character is the mechanic
+	if (!Character) return false;											// Don't do anything if no character
+	if (OtherComp != Character->GetCapsuleComponent()) return false;		// Only respond to root capsule component
+	if (bHasCrippled) return false;											// Don't do anything if already crippled.
+	
+	return true;															// All checks ok.
 
 }
 
@@ -310,8 +338,10 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	if (MovementComponent && ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
 	{
 		RestoreMovement(Character);
+		UE_LOG(LogTemp, Warning, TEXT("Restored movement of character: %s"), *Character->GetName());
 	}
 	TargetCharacter = nullptr;
+	ActorToAttractOrPull = nullptr;
 }
 
 // Cripples movement (when entering magnetic field)
@@ -340,13 +370,13 @@ void AMagneticField_Cylinder::RestoreMovement(ACharacter* Character) const
 	UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement();
 	if (MovementComponent)
 	{
-		MovementComponent->GravityScale = 2.2f;
+		MovementComponent->GravityScale = 1.f;
 		MovementComponent->SetMovementMode(MOVE_Walking);
 		MovementComponent->MaxWalkSpeed = OriginalSpeed;
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %p, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
+	UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %s, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
 	*MovementComponent->GetMovementName(), MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
 }
 
