@@ -107,6 +107,10 @@ protected:
 	UFMODAudioComponent* HeadLaunchStartAudioComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HeadLaunch|Audio")
 	UFMODAudioComponent* HeadLaunchEndAudioComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ADSObjectOnHeadMovementMultiplier = 0.1;
+	
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
@@ -162,4 +166,5 @@ private:
 	virtual void Move(const FInputActionValue& Value) override;
 	void StartMagnetizableImmunity(float Seconds);
 
+	virtual float GetADSMovementMultiplier() const override;
 };
