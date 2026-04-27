@@ -34,7 +34,7 @@ public:
 	float GetLaunchTimePercentage();
 	void SetIsWithinMagneticField(bool bNewValue);
 	int32 GetPolarityValue() const;
-	EPolarity GetPolarity() const;
+	virtual EPolarity GetPolarity() const override;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -43,7 +43,6 @@ public:
 	
 	bool IsDashing() const;
 	bool IsMagnetizable() const;
-	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;

@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "InputAction.h"
 #include "SPM26_Grupp1/Framework/SPMPlayerController.h"
-
 #include "GameFramework/Character.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 
 
 #include "SPMCharacter.generated.h"
@@ -18,6 +18,7 @@ class UInteractableComponent;
 class USPMCharacterMovementComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class APolarity;
 
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
@@ -39,7 +40,8 @@ public:
 	float GetPolaritySwitchCooldown() const;
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
 	FOnPolaritySwitched OnPolaritySwitched;
-	
+	UFUNCTION(BlueprintCallable, Category="Polarity")
+	virtual EPolarity GetPolarity() const;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	bool IsADSActive() const;
