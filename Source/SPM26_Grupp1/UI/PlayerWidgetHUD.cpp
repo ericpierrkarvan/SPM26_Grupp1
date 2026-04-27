@@ -20,6 +20,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	{
 		MechanicCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
 		MechanicCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
+		MechanicCharacter->OnSurfaceCanSpawnMagneticField.RemoveDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
 
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
@@ -42,6 +43,8 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 	{
 		MechanicCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
 		MechanicCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
+		MechanicCharacter->OnSurfaceCanSpawnMagneticField.AddDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
+		
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.AddDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);

@@ -8,6 +8,8 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MechanicCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceCanSpawnMagneticField, bool, bShowIndicator);
+
 class UMechanicMovementComponent;
 /**
  * 
@@ -30,6 +32,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AWeaponBase* GetEquippedWeapon() const;
 	virtual EPolarity GetPolarity() const override;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSurfaceCanSpawnMagneticField OnSurfaceCanSpawnMagneticField;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Shoot;
@@ -57,6 +62,8 @@ protected:
 	virtual void StartADS() override;
 	virtual void StopADS() override;
 
+	
+
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();
@@ -67,4 +74,8 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void DestroyAllMagneticFields();
 	FHitResult ADSResult;
+
+	bool bLastShowMagneticSurface = true;
+
+	
 };
