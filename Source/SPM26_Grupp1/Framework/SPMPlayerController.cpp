@@ -68,22 +68,25 @@ void ASPMPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
+	if (EIC)
+	{
+		if (PauseAction)
+		{
+			EIC->BindAction(PauseAction, ETriggerEvent::Started,
+							this, &ASPMPlayerController::OnPause);
+		}
+	}
+
 #if WITH_EDITOR
 	if (!GetLocalPlayer() || GetLocalPlayer()->GetControllerId() != 0) return;
 
-	if (UEnhancedInputComponent* EIC =
-		Cast<UEnhancedInputComponent>(InputComponent))
+	if (EIC)
 	{
 		if (SwitchPlayerAction)
 		{
 			EIC->BindAction(SwitchPlayerAction, ETriggerEvent::Started,
 			                this, &ASPMPlayerController::OnSwitchPlayer);
-		}
-		//Just nu finns denna endast i Editorn, kommer nog att fixas när vi gjort det möjligt att spela båda karaktärerna samtidigt
-		if (PauseAction)
-		{
-			EIC->BindAction(PauseAction, ETriggerEvent::Started,
-			                this, &ASPMPlayerController::OnPause);
 		}
 	}
 #endif
