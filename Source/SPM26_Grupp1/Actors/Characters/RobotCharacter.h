@@ -8,6 +8,7 @@
 #include "RobotCharacter.generated.h"
 
 
+class UFMODAudioComponent;
 /**
  * 
  */
@@ -96,7 +97,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=4.f))
 	float MaxLaunchChargeTime = 2.f;
 
+	UFUNCTION(BlueprintImplementableEvent, Category="HeadLaunch")
+	void OnLaunchStart();
 
+	UFUNCTION(BlueprintImplementableEvent, Category="HeadLaunch")
+	void OnLaunchEnd();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HeadLaunch|Audio")
+	UFMODAudioComponent* HeadLaunchStartAudioComp;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HeadLaunch|Audio")
+	UFMODAudioComponent* HeadLaunchEndAudioComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ADSObjectOnHeadMovementMultiplier = 0.1;
+	
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
@@ -152,4 +166,5 @@ private:
 	virtual void Move(const FInputActionValue& Value) override;
 	void StartMagnetizableImmunity(float Seconds);
 
+	virtual float GetADSMovementMultiplier() const override;
 };

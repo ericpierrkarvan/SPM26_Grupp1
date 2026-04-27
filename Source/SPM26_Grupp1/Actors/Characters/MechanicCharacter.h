@@ -24,7 +24,7 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
 	
-	FVector GetCurrentProjectileSpawnLocation() const;
+	FVector GetCurrentProjectileSpawnLocation();
 	void AddMagneticField(AActor* Field);
 
 	UFUNCTION(BlueprintCallable)

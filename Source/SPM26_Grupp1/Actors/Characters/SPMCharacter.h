@@ -54,7 +54,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
 
@@ -94,7 +93,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveOut;
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ADSMovementMultiplier = 0.5f;
 	
 	UPROPERTY(EditAnywhere, Category="Polarity")
 	float PolaritySwitchCooldown = 0.35f;
@@ -146,5 +146,6 @@ private:
 	
 	FVector DefaultCameraOffset = FVector::ZeroVector;
 	FVector CurrentCameraOffset = FVector::ZeroVector;
-	
+
+	virtual float GetADSMovementMultiplier() const;
 };

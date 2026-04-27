@@ -90,8 +90,8 @@ void ASPMCharacter::Move(const FInputActionValue& Value)
 		const FVector ForwardDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(ForwardDir, Axis.Y);
-		AddMovementInput(RightDir, Axis.X);
+		AddMovementInput(ForwardDir, Axis.Y * GetADSMovementMultiplier());
+		AddMovementInput(RightDir, Axis.X * GetADSMovementMultiplier());
 	}
 }
 
@@ -196,6 +196,15 @@ APlayerController* ASPMCharacter::GetViewingPlayerController() const
 		}
 	}
 	return nullptr;
+}
+
+float ASPMCharacter::GetADSMovementMultiplier() const
+{
+	if (bIsADS && GetCharacterMovement()->IsMovingOnGround())
+	{
+		return ADSMovementMultiplier;
+	}
+	return 1.f;
 }
 
 void ASPMCharacter::StartADS()

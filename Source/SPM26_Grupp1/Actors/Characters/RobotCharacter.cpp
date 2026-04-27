@@ -3,6 +3,7 @@
 
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "FMODAudioComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,6 +21,12 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
 	LaunchArcComponent = CreateDefaultSubobject<ULaunchArcComponent>(TEXT("LaunchArcComponent"));
+
+	HeadLaunchStartAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchStartAudioComp"));
+	HeadLaunchStartAudioComp->SetupAttachment(RootComponent);
+
+	HeadLaunchEndAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchEndAudioComp"));
+	HeadLaunchEndAudioComp->SetupAttachment(RootComponent);
 }
 
 void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -285,7 +292,7 @@ void ARobotCharacter::ExitLaunchMode()
 void ARobotCharacter::Launch()
 {
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
-
+	
 	const FVector LaunchForce = GetLaunchForce();
 
 	TArray<AActor*> OverlappingActors;
@@ -324,6 +331,8 @@ void ARobotCharacter::Launch()
 			}
 		}
 	}
+
+	OnLaunchEnd();
 }
 
 void ARobotCharacter::OnLaunchPressed()
@@ -342,6 +351,7 @@ void ARobotCharacter::OnLaunchPressed()
 		return;
 	}
 	//if we're already in launch mode, then we start the charge:
+	if (!bLaunchIsCharging) OnLaunchStart();
 	bLaunchIsCharging = true;
 }
 
@@ -355,8 +365,6 @@ void ARobotCharacter::OnLaunchReleased()
 
 void ARobotCharacter::Move(const FInputActionValue& Value)
 {
-	if (bIsInLaunchMode) return; //cant move if we are in launch mode
-
 	Super::Move(Value);
 }
 
@@ -374,6 +382,17 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 		},
 		Seconds,
 		false);
+}
+
+float ARobotCharacter::GetADSMovementMultiplier() const
+{
+	if (bLaunchIsCharging) return 0; //if we are trying to eject something
+	if (bIsADS && GetCharacterMovement()->IsMovingOnGround())
+	{
+		//we are in ads, different multipliers if we have an object on our head or not
+		return bHavePayload ? ADSObjectOnHeadMovementMultiplier : ADSMovementMultiplier;
+	}
+	return 1.f;
 }
 
 bool ARobotCharacter::IsMagnetizable() const
