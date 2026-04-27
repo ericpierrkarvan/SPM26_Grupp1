@@ -292,7 +292,7 @@ void ARobotCharacter::ExitLaunchMode()
 void ARobotCharacter::Launch()
 {
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
-
+	
 	const FVector LaunchForce = GetLaunchForce();
 
 	TArray<AActor*> OverlappingActors;
@@ -331,6 +331,8 @@ void ARobotCharacter::Launch()
 			}
 		}
 	}
+
+	OnLaunchEnd();
 }
 
 void ARobotCharacter::OnLaunchPressed()
@@ -358,7 +360,6 @@ void ARobotCharacter::OnLaunchReleased()
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 
 	Launch();
-	OnLaunchEnd();
 	ExitLaunchMode();
 }
 
