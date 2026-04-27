@@ -4,6 +4,7 @@
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "FMODAudioComponent.h"
+#include "MechanicCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -249,11 +250,10 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              const FHitResult& SweepResult)
 {
 	if (OtherActor == this) return;
-	if (OtherActor == Cast<AMagneticField_Cylinder>(OtherActor)) return;
-	if (OtherActor == Cast<ACheckpoint>(OtherActor)) return;
-	if (OtherActor == Cast<ADeathField>(OtherActor)) return;
-
-	bHavePayload = true;
+	if (IsLaunchableObject(OtherActor))
+	{
+		bHavePayload = true;
+	}
 }
 
 void ARobotCharacter::OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -397,6 +397,16 @@ float ARobotCharacter::GetADSMovementMultiplier() const
 		return bHavePayload ? ADSObjectOnHeadMovementMultiplier : ADSMovementMultiplier;
 	}
 	return 1.f;
+}
+
+bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
+{
+	//todo check for some throwable comp
+	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Object))
+	{
+		return true;
+	}
+	return false;
 }
 
 bool ARobotCharacter::IsMagnetizable() const

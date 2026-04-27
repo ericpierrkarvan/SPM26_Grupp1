@@ -167,4 +167,6 @@ private:
 	void StartMagnetizableImmunity(float Seconds);
 
 	virtual float GetADSMovementMultiplier() const override;
+
+	bool IsLaunchableObject(AActor* Object) const;
 };
