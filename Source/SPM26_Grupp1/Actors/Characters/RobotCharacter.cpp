@@ -292,7 +292,7 @@ void ARobotCharacter::ExitLaunchMode()
 void ARobotCharacter::Launch()
 {
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
-
+	
 	const FVector LaunchForce = GetLaunchForce();
 
 	TArray<AActor*> OverlappingActors;
@@ -331,6 +331,8 @@ void ARobotCharacter::Launch()
 			}
 		}
 	}
+
+	OnLaunchEnd();
 }
 
 void ARobotCharacter::OnLaunchPressed()
@@ -358,14 +360,11 @@ void ARobotCharacter::OnLaunchReleased()
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 
 	Launch();
-	OnLaunchEnd();
 	ExitLaunchMode();
 }
 
 void ARobotCharacter::Move(const FInputActionValue& Value)
 {
-	if (bIsInLaunchMode) return; //cant move if we are in launch mode
-
 	Super::Move(Value);
 }
 
@@ -383,6 +382,17 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 		},
 		Seconds,
 		false);
+}
+
+float ARobotCharacter::GetADSMovementMultiplier() const
+{
+	if (bLaunchIsCharging) return 0; //if we are trying to eject something
+	if (bIsADS && GetCharacterMovement()->IsMovingOnGround())
+	{
+		//we are in ads, different multipliers if we have an object on our head or not
+		return bHavePayload ? ADSObjectOnHeadMovementMultiplier : ADSMovementMultiplier;
+	}
+	return 1.f;
 }
 
 bool ARobotCharacter::IsMagnetizable() const
