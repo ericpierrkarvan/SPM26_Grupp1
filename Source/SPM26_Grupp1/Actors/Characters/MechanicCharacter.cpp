@@ -101,8 +101,14 @@ void AMechanicCharacter::EquipWeapon()
 	}
 }
 
-FVector AMechanicCharacter::GetCurrentProjectileSpawnLocation() const
+FVector AMechanicCharacter::GetCurrentProjectileSpawnLocation()
 {
+	if (EquippedWeapon)
+	{
+		return EquippedWeapon->GetSpawnLocationOfSpawnedProjectile(this);
+	}
+
+	//default assumption
 	FVector SpawnLocation = GetActorLocation()
 		+ GetActorForwardVector() * 100.f // forward from player
 		+ FVector(0.f, 0.f, 0.f);
