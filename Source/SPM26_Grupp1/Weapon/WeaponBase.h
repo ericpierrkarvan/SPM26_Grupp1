@@ -42,6 +42,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetShotsPerSecond() const;
+
+	FVector GetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -102,7 +105,7 @@ protected:
 	void SpawnProjectile(const FHitResult& AimHitResult);
 	void SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnLocation, FRotator SpawnRotation);
 	FRotator SetDirectionOfSpawnedProjectile(FVector TargetLocation, AActor* InstigatingPawn);
-	FVector GetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
+	
 
 	
 private:

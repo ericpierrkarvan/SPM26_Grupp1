@@ -3,6 +3,7 @@
 
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "FMODAudioComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,6 +21,12 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
 	LaunchArcComponent = CreateDefaultSubobject<ULaunchArcComponent>(TEXT("LaunchArcComponent"));
+
+	HeadLaunchStartAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchStartAudioComp"));
+	HeadLaunchStartAudioComp->SetupAttachment(RootComponent);
+
+	HeadLaunchEndAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchEndAudioComp"));
+	HeadLaunchEndAudioComp->SetupAttachment(RootComponent);
 }
 
 void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -342,6 +349,7 @@ void ARobotCharacter::OnLaunchPressed()
 		return;
 	}
 	//if we're already in launch mode, then we start the charge:
+	if (!bLaunchIsCharging) OnLaunchStart();
 	bLaunchIsCharging = true;
 }
 
@@ -350,6 +358,7 @@ void ARobotCharacter::OnLaunchReleased()
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 
 	Launch();
+	OnLaunchEnd();
 	ExitLaunchMode();
 }
 

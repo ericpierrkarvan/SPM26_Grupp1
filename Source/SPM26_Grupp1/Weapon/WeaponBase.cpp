@@ -47,7 +47,7 @@ void AWeaponBase::SpawnProjectile(const FHitResult& AimHitResult)
 	// FVector SpawnLocation = WeaponMesh->GetSocketLocation("MuzzleSocket");
 	// FRotator SpawnRotation = WeaponMesh->GetSocketRotation("MuzzleSocket");
 	
-	FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(AimHitResult.ImpactPoint, InstigatingPawn);
+	FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(AimHitResult.TraceEnd, InstigatingPawn);
 	FVector SpawnLocationOfSpawnedProjectile = GetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
 	
 	// Assigns spawn parameters and creates the projectile

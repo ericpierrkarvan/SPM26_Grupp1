@@ -101,8 +101,14 @@ void AMechanicCharacter::EquipWeapon()
 	}
 }
 
-FVector AMechanicCharacter::GetCurrentProjectileSpawnLocation() const
+FVector AMechanicCharacter::GetCurrentProjectileSpawnLocation()
 {
+	if (EquippedWeapon)
+	{
+		return EquippedWeapon->GetSpawnLocationOfSpawnedProjectile(this);
+	}
+
+	//default assumption
 	FVector SpawnLocation = GetActorLocation()
 		+ GetActorForwardVector() * 100.f // forward from player
 		+ FVector(0.f, 0.f, 0.f);
@@ -163,14 +169,12 @@ FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart,
 void AMechanicCharacter::UpdateADSTrace()
 {
 	if (!IsADSActive()) return;
+	PerformAimTrace(ADSResult);
 	
-	if (PerformAimTrace(ADSResult))
+	AActor* HitActor = ADSResult.GetActor();
+	if (HitActor)
 	{
-		AActor* HitActor = ADSResult.GetActor();
-		if (HitActor)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
-		}
+		//UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
 	}
 }
 
