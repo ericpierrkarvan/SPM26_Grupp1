@@ -163,14 +163,12 @@ FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart,
 void AMechanicCharacter::UpdateADSTrace()
 {
 	if (!IsADSActive()) return;
+	PerformAimTrace(ADSResult);
 	
-	if (PerformAimTrace(ADSResult))
+	AActor* HitActor = ADSResult.GetActor();
+	if (HitActor)
 	{
-		AActor* HitActor = ADSResult.GetActor();
-		if (HitActor)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
-		}
+		//UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
 	}
 }
 
