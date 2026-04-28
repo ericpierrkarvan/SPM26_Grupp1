@@ -56,6 +56,8 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	UPROPERTY(BlueprintAssignable, Category = "Camera|ADS")
 	FOnADS OnADS;
+
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
