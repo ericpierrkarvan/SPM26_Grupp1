@@ -44,6 +44,7 @@ protected:
 	void OnProjectileStopped(const FHitResult& ImpactResult);
 	
 	void AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation);
+	void AdjustAlignedMagneticFieldRotation(AActor* SpawnedActor, const FVector& Normal);
 	void AlignMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field);
 	void SetPositiveMagnetVFXLocation(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult,
 	                                  const AMagneticField_Cylinder* Field);

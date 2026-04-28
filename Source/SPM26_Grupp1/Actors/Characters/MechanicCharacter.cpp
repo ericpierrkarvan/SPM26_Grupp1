@@ -82,7 +82,7 @@ void AMechanicCharacter::MechanicDoubleJump()
 		//Launch the character upwards with the force of a normal jump multiplied a little bit to feel more consistent with the first jump
 		float JumpZVelocity = GetMechanicMovementComponent()->JumpZVelocity;
 		LaunchCharacter(FVector(0, 0,
-		                        JumpZVelocity * 1.4f), false, true);
+		                        JumpZVelocity * DoubleJumpVelocityMultiplier), false, true);
 
 		GetMechanicMovementComponent()->DoubleJumpEvent.Broadcast(JumpZVelocity);
 	}

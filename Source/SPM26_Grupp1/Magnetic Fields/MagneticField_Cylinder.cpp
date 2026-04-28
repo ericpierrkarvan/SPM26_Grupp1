@@ -208,8 +208,6 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const float D
 void AMagneticField_Cylinder::CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget)
 {
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
-	const FVector RawDiff = CurrentPlayerLocation - MagnetTarget;
-	UE_LOG(LogTemp, Warning, TEXT("RawDiff = %s, Size = %f"), *RawDiff.ToCompactString(), RawDiff.Size());
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
 	const FVector BlendedDirection = GenerateDynamicDirectionForRepel(RepelDirection);
 	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
