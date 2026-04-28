@@ -3,7 +3,6 @@
 
 #include "Proj_MagneticCylinder.h"
 
-#include "AssetDefinitionAssetInfo.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
