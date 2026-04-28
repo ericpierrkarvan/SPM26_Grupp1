@@ -5,12 +5,13 @@
 #include "CoreMinimal.h"
 #include "InputAction.h"
 #include "SPM26_Grupp1/Framework/SPMPlayerController.h"
-
 #include "GameFramework/Character.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
 
 
 #include "SPMCharacter.generated.h"
 
+class UFMODAudioComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 
@@ -18,6 +19,7 @@ class UInteractableComponent;
 class USPMCharacterMovementComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class APolarity;
 
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
@@ -34,12 +36,16 @@ public:
 	void SwitchPolarity();
 	virtual void SwitchPolarity_Implementation();
 
+	UFUNCTION(BlueprintNativeEvent, Category="Polarity")
+	void OnSwitchPolarity(EPolarity NewPolarity);
+	
 	bool CanSwitchPolarity() const;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	float GetPolaritySwitchCooldown() const;
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
 	FOnPolaritySwitched OnPolaritySwitched;
-	
+	UFUNCTION(BlueprintCallable, Category="Polarity")
+	virtual EPolarity GetPolarity() const;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	bool IsADSActive() const;
@@ -50,6 +56,8 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	UPROPERTY(BlueprintAssignable, Category = "Camera|ADS")
 	FOnADS OnADS;
+
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -106,6 +114,10 @@ protected:
 
 	virtual void Move(const FInputActionValue& Value);
 	virtual void Look(const FInputActionValue& Value);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Polarity|Audio")
+	UFMODAudioComponent* PolaritySwitchAudioComp;
+
 	
 private:
 

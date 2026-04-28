@@ -31,8 +31,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraSystem* MagnetVfxAsset;
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
-	// UNiagaraComponent* MagnetVfxComponent;
+	
+	int32 ProjectilePolarity;
+	EPolarity ProjPolarity = EPolarity::None;
 	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,

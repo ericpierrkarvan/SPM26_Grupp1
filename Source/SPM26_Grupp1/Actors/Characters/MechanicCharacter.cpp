@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "Kismet/GamePlayStatics.h"
+#include "SPM26_Grupp1/Material/SPMPhysicalMaterial.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializer)
@@ -123,8 +124,14 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	if (!PlayerController) return false;
 
 	// Ignores own character
-	FCollisionQueryParams CollisionParams;
+	FCollisionQueryParams CameraCollisionParams;
+	CameraCollisionParams.AddIgnoredActor(this);
+
+	
+	FCollisionQueryParams CollisionParams; 
 	CollisionParams.AddIgnoredActor(this);
+	//trace from gun to end, we need material
+	CollisionParams.bReturnPhysicalMaterial = true;
 
 	FVector CameraLocation;
 	FRotator CameraRotation;
@@ -135,7 +142,7 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	FVector TraceEnd = GetLineTraceEndPoint(CameraLocation, PlayerController);
 	FHitResult CameraHit;
 	//Todo: prob needs its own trace channel
-	GetWorld()->LineTraceSingleByChannel(CameraHit, CameraLocation, TraceEnd, ECC_Visibility, CollisionParams);
+	GetWorld()->LineTraceSingleByChannel(CameraHit, CameraLocation, TraceEnd, ECC_Visibility, CameraCollisionParams);
 
 	//we want to get the end location for the camera trace
 	FVector CameraHitLocation = CameraHit.bBlockingHit ? CameraHit.ImpactPoint : TraceEnd;
@@ -171,10 +178,18 @@ void AMechanicCharacter::UpdateADSTrace()
 	if (!IsADSActive()) return;
 	PerformAimTrace(ADSResult);
 	
-	AActor* HitActor = ADSResult.GetActor();
-	if (HitActor)
+	USPMPhysicalMaterial* PhysMat = Cast<USPMPhysicalMaterial>(ADSResult.PhysMaterial.Get());
+	
+	bool bShowMagneticSurface = true;
+
+	//we have a valid material and it cant spawn magnetic field
+	if (PhysMat && !PhysMat->bCanSpawnMagneticField) bShowMagneticSurface = false;
+
+	//if what we're seeing now is not the same what we saw previous, then we need to notify the change
+	if (bShowMagneticSurface != bLastShowMagneticSurface)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Aimed at: %s"), *HitActor->GetName());
+		bLastShowMagneticSurface = bShowMagneticSurface;
+		OnSurfaceCanSpawnMagneticField.Broadcast(bShowMagneticSurface);
 	}
 }
 
@@ -216,6 +231,18 @@ AWeaponBase* AMechanicCharacter::GetEquippedWeapon() const
 	return EquippedWeapon;
 }
 
+EPolarity AMechanicCharacter::GetPolarity() const
+{
+	if (EquippedWeapon)
+	{
+		if (AMagnetGun* MG = Cast<AMagnetGun>(EquippedWeapon))
+		{
+			return MG->GetPolarity();
+		}
+	}
+	return Super::GetPolarity();
+}
+
 // Switches the MagnetGun's polarity.
 void AMechanicCharacter::SwitchPolarity_Implementation() 
 {
@@ -228,6 +255,7 @@ void AMechanicCharacter::SwitchPolarity_Implementation()
 		MagnetGun->SwitchPolarity();
 		EPolarity NewPolarity = MagnetGun->GetPolarity();
 		OnPolaritySwitched.Broadcast(NewPolarity, PolaritySwitchCooldown);
+		OnSwitchPolarity(NewPolarity);
 		
 		NewPolarity == EPolarity::Positive ? PolarityColor = FColor::Blue : PolarityColor = FColor::Orange;
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, PolarityColor, TEXT("Switched Gun Polarity"));

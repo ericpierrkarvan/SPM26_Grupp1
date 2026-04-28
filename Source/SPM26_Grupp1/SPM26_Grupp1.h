@@ -4,3 +4,5 @@
 
 #include "CoreMinimal.h"
 
+
+#define ECC_PROJECTILE ECC_GameTraceChannel1

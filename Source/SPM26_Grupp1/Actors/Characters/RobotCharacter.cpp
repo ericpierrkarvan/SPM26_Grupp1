@@ -7,7 +7,6 @@
 #include "MechanicCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
@@ -113,6 +112,14 @@ FVector ARobotCharacter::GetLaunchForce() const
 	return TotalHorizontalForce + TotalVerticalForce;
 }
 
+void ARobotCharacter::SmoothRotationWhenDashing(float DeltaSeconds)
+{
+		const FRotator CurrentRotation = GetActorRotation();
+		const FRotator TargetRotation = DashDirection.Rotation();
+		const FRotator SmoothedRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, DashRotationSpeed);
+		SetActorRotation(SmoothedRotation);
+}
+
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -129,7 +136,10 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			OnLaunchStateChanged.Broadcast(0.f, true); //notify hud
 		}
 	}
+	
+	if (IsDashing()) SmoothRotationWhenDashing(DeltaSeconds);
 
+	
 	if (bLaunchIsCharging)
 	{
 		LaunchChargeTimer += DeltaSeconds;
@@ -216,7 +226,7 @@ void ARobotCharacter::PerformDash()
 	FRotator ControlRotation = GetController()->GetControlRotation();
 	FRotator YawRotation{0, ControlRotation.Yaw, 0};
 
-	FVector DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
 
 	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
@@ -414,9 +424,24 @@ bool ARobotCharacter::IsMagnetizable() const
 	return bIsMagnetizable;
 }
 
+void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity)
+{
+	bool bRepel = (ProjectilePolarity == Polarity); //same polaritys repell eachother
+
+	FVector ToCharacter = (GetActorLocation() - HitResult.ImpactPoint).GetSafeNormal();
+	FVector ForceDirection = bRepel ? ToCharacter : -ToCharacter;
+
+	GetCharacterMovement()->AddImpulse(ForceDirection * 1000.f, true);
+}
+
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
 	bIsWithinMagneticField = bNewValue;
+}
+
+bool ARobotCharacter::GetIsWithinMagneticField() const
+{
+	return bIsWithinMagneticField;
 }
 
 int32 ARobotCharacter::GetPolarityValue() const
@@ -436,7 +461,12 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
+	OnSwitchPolarity(Polarity);
+	ScreenDebugPolaritySwitchMessage();
+}
 
+void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const
+{
 	FColor Color;
 	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));

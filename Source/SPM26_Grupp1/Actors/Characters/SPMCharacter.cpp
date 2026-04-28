@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "FMODAudioComponent.h"
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -39,7 +40,14 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 		MoveComp->RotationRate = FRotator(0.f, 500.f, 0.f);
 	}
 
+	PolaritySwitchAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("PolaritySwitchAudioComp"));
+	PolaritySwitchAudioComp->SetupAttachment(RootComponent);
 
+}
+
+void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity)
+{
+	
 }
 
 // Called when the game starts or when spawned
@@ -289,6 +297,11 @@ void ASPMCharacter::Tick(float DeltaTime)
 	}
 }
 
+EPolarity ASPMCharacter::GetPolarity() const
+{
+	return EPolarity::None;
+}
+
 // Called to bind functionality to input
 void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -323,6 +336,11 @@ void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 
 void ASPMCharacter::SwitchPolarity_Implementation()
 {
+}
+
+void ASPMCharacter::OnSwitchPolarity_Implementation(EPolarity NewPolarity)
+{
+	
 }
 
 bool ASPMCharacter::CanSwitchPolarity() const
