@@ -84,6 +84,7 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 	ACharacter* NewCharacter;
 	FActorSpawnParameters Params;
 	Params.Owner = Controller;
+	
 	if (Cast<ARobotCharacter>(OldCharacter))
 	{
 		NewCharacter = GetWorld()->SpawnActor<ARobotCharacter>(RobotCharacterClass, RespawnTransform, Params);
