@@ -44,6 +44,8 @@ public:
 
 	bool IsDashing() const;
 	bool IsMagnetizable() const;
+
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity) override;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;

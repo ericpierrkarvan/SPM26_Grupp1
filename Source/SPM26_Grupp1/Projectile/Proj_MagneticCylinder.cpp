@@ -5,7 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Components/SphereComponent.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 #include "SPM26_Grupp1/Material/SPMPhysicalMaterial.h"
@@ -22,7 +22,9 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	// generates hit events
 	ProjectileMesh->SetNotifyRigidBodyCollision(true); 
 	// Enable collision events on mesh
-	ProjectileMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	ProjectileMesh->SetCollisionObjectType(ECC_PROJECTILE);
+	ProjectileMesh->SetCollisionResponseToChannel(ECC_PROJECTILE, ECR_Ignore);
+	ProjectileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	
@@ -50,6 +52,7 @@ void AProj_MagneticCylinder::BeginPlay()
 		ProjectileMesh->IgnoreActorWhenMoving(GetInstigator(),true);
 	}
 	ProjectilePolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
+	ProjPolarity = GetOwner<AMagnetGun>()->GetPolarity();
 	
 }
 
@@ -82,6 +85,16 @@ void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 // aligns the field and the VFX, and destroys projectile
 void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 {
+	if (ImpactResult.GetActor())
+	{
+		if (ASPMCharacter* Char = Cast<ASPMCharacter>(ImpactResult.GetActor()))
+		{
+			//we hit a character
+			Char->OnMagneticProjectileHit(ImpactResult, ProjPolarity);	
+			Destroy();
+			return;
+		}
+	}
 	
 	if (ImpactActorClass)
 	{
