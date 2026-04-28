@@ -3,6 +3,7 @@
 
 #include "Proj_MagneticCylinder.h"
 
+#include "AssetDefinitionAssetInfo.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
@@ -148,7 +149,7 @@ void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, con
 	float OffsetDistance = FMath::Abs(FVector::DotProduct(RotationMatrix.GetUnitAxis(EAxis::X), Normal)) * LocalExtent.X
 						 + FMath::Abs(FVector::DotProduct(RotationMatrix.GetUnitAxis(EAxis::Y), Normal)) * LocalExtent.Y
 						 + FMath::Abs(FVector::DotProduct(RotationMatrix.GetUnitAxis(EAxis::Z), Normal)) * LocalExtent.Z;
-		
+
 	SpawnedActor->SetActorLocation(SpawnLocation + Normal * OffsetDistance);
 	// AdjustAlignedMagneticFieldRotation(SpawnedActor, Normal);
 	
@@ -158,17 +159,15 @@ void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, con
 // Idea: 0-30 degree = 0 degree angle, >30-60 degree = 45 degree angle, >60-90 degree = 90 degree angle.
 void AProj_MagneticCylinder::AdjustAlignedMagneticFieldRotation(AActor* SpawnedActor, const FVector& Normal)
 {
-	const FVector UpVector = FVector::UpVector;
-	// Angle between surface normal and world Z-axis (straight up)
-	const float NormalAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(Normal, UpVector)));
+	const float AngleFromHorizontal = FMath::RadiansToDegrees(FMath::Asin(FMath::Abs(Normal.Z)));
 	
 	float SnappedTilt;
-	if (NormalAngle <= 30.f) SnappedTilt = 0.f;			// Flat surface/floor - stand upright
-	else if (NormalAngle <= 60.f) SnappedTilt = 45.f;	// Tilted surface -> 45 degrees
-	else SnappedTilt = 90.f;							// Vertical surface/wall -> lay flat
+	if (AngleFromHorizontal <= 30.f) SnappedTilt = 90.f;			// Vertical surface/wall -> lay flat
+	else if (AngleFromHorizontal <= 60.f) SnappedTilt = 45.f;		// Tilted surface -> 45 degrees
+	else SnappedTilt = 0.f;											// Flat surface/floor - stand upright
 	
-	const FRotator BaseRotation = Normal.Rotation();
-	const FRotator SnappedRotation = FRotator(SnappedTilt, BaseRotation.Yaw, BaseRotation.Roll);
+	const float NormalYaw = Normal.Rotation().Yaw;
+	const FRotator SnappedRotation = FRotator(SnappedTilt, NormalYaw, 0.f);
 	
 	SpawnedActor->SetActorRotation(SnappedRotation);
 	

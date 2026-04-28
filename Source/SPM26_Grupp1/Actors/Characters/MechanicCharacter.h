@@ -36,6 +36,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSurfaceCanSpawnMagneticField OnSurfaceCanSpawnMagneticField;
 protected:
+	UPROPERTY(EditAnywhere, Blueprintable, Category = "Character")
+	float DoubleJumpVelocityMultiplier = 1.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Shoot;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
