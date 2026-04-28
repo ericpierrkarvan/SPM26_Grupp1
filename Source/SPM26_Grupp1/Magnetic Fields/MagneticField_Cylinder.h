@@ -27,14 +27,15 @@ public:
 	void Activate();
 	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
 	void Disable();
+	UFUNCTION()
+	void OnPolarityChanged(EPolarity NewPolarity, float PolaritySwitchCooldown);
+	
 	void SetPolarity(const int32 NewPolarity);
-	void OnPolarityChanged();
-	UNiagaraComponent* GetVFXComponent() const;
-	UCapsuleComponent* GetCapsuleComponent() const;
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
+	UNiagaraComponent* GetVFXComponent() const;
+	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
-
 
 protected:
 	// Called when the game starts or when spawned
@@ -66,6 +67,8 @@ protected:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult);
+	void ListenToRobot(ACharacter* Character);
+	void StopListenToRobot(ACharacter* Character);
 	void SetAttractParameters(AActor* OtherActor, ACharacter* Character);
 	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
 	UFUNCTION()

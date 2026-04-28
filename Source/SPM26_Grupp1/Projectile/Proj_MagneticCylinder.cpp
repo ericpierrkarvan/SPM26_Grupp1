@@ -26,9 +26,6 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	
-	// MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
-	// MagnetVfxComponent->SetupAttachment(RootComponent);
-	
 	// OnProjectileStop instead of OnHit because bugging
 	if (ProjectileMovementComp)
 	{
@@ -38,7 +35,7 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 
 	//we need to get the material for when the projectile stops, ie it hits something
 	ProjectileMesh->bReturnMaterialOnMove = true;
-	
+
 }
 
 void AProj_MagneticCylinder::BeginPlay()
@@ -52,6 +49,8 @@ void AProj_MagneticCylinder::BeginPlay()
 		// Ignore MechanicCharacter collision with projectile
 		ProjectileMesh->IgnoreActorWhenMoving(GetInstigator(),true);
 	}
+	ProjectilePolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
+	
 }
 
 // Didn't get to work. Use OnProjectileStopped for collision for the moment.
@@ -107,11 +106,10 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 		
 			if (Field && Capsule)
 			{
-				const int32 GunPolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
-				Field->SetPolarity(GunPolarity);
+				Field->SetPolarity(ProjectilePolarity);
 				RegisterFieldInMechanicArray(SpawnedActor);
 				AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
-				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, GunPolarity, Field);
+				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, ProjectilePolarity, Field);
 			}
 		}
 	}
