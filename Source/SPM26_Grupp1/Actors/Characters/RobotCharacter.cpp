@@ -112,6 +112,14 @@ FVector ARobotCharacter::GetLaunchForce() const
 	return TotalHorizontalForce + TotalVerticalForce;
 }
 
+void ARobotCharacter::SmoothRotationWhenDashing(float DeltaSeconds)
+{
+		const FRotator CurrentRotation = GetActorRotation();
+		const FRotator TargetRotation = DashDirection.Rotation();
+		const FRotator SmoothedRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, DashRotationSpeed);
+		SetActorRotation(SmoothedRotation);
+}
+
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -128,7 +136,10 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			OnLaunchStateChanged.Broadcast(0.f, true); //notify hud
 		}
 	}
+	
+	if (IsDashing()) SmoothRotationWhenDashing(DeltaSeconds);
 
+	
 	if (bLaunchIsCharging)
 	{
 		LaunchChargeTimer += DeltaSeconds;
@@ -215,7 +226,7 @@ void ARobotCharacter::PerformDash()
 	FRotator ControlRotation = GetController()->GetControlRotation();
 	FRotator YawRotation{0, ControlRotation.Yaw, 0};
 
-	FVector DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
 
 	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
