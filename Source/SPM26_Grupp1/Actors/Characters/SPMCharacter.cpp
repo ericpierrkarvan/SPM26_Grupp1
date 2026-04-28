@@ -289,6 +289,11 @@ void ASPMCharacter::Tick(float DeltaTime)
 	}
 }
 
+EPolarity ASPMCharacter::GetPolarity() const
+{
+	return EPolarity::None;
+}
+
 // Called to bind functionality to input
 void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
