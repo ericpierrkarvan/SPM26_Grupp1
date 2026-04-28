@@ -41,13 +41,12 @@ public:
 	FOnLaunchStateChanged OnLaunchStateChanged;
 	
 	FVector GetLaunchForce() const;
-	
+
 	bool IsDashing() const;
 	bool IsMagnetizable() const;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
-	void NotifyOverlappingActorsOnPolarityChange() const;
 	void ScreenDebugPolaritySwitchMessage() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -122,6 +121,7 @@ private:
 
 	void PerformDash();
 	bool CanDash() const;
+	void SmoothRotationWhenDashing(float DeltaSeconds);
 	bool bIsDashing = false;
 	void ResetDashHandle(){ bIsDashing = false; }
 	float DashCooldown = 1.0f;
@@ -132,6 +132,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=10.f))
 	float DashDuration = 0.2f;
+	
+	UPROPERTY(EditAnywhere, Category = "Dash")
+	float DashRotationSpeed = 12.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsMagnetizable = true; // false for X seconds after dashing out of magnetic field.
@@ -165,6 +168,7 @@ private:
 	bool bLaunchIsCharging = false;
 	bool bHavePayload = false;
 	float PayloadOverlapTime = 0.f;
+	FVector DashDirection;
 
 	virtual void Move(const FInputActionValue& Value) override;
 	void StartMagnetizableImmunity(float Seconds);

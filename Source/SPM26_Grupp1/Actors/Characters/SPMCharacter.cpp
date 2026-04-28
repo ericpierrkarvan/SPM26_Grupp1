@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "FMODAudioComponent.h"
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -39,6 +40,8 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 		MoveComp->RotationRate = FRotator(0.f, 500.f, 0.f);
 	}
 
+	PolaritySwitchAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("PolaritySwitchAudioComp"));
+	PolaritySwitchAudioComp->SetupAttachment(RootComponent);
 
 }
 
@@ -328,6 +331,11 @@ void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 
 void ASPMCharacter::SwitchPolarity_Implementation()
 {
+}
+
+void ASPMCharacter::OnSwitchPolarity_Implementation(EPolarity NewPolarity)
+{
+	
 }
 
 bool ASPMCharacter::CanSwitchPolarity() const

@@ -21,17 +21,21 @@ class SPM26_GRUPP1_API AMagneticField_Cylinder : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AMagneticField_Cylinder();
+	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
 	void Activate();
 	UFUNCTION(BlueprintCallable, Category="AAA_Magnet")
 	void Disable();
+	UFUNCTION()
+	void OnPolarityChanged(EPolarity NewPolarity, float PolaritySwitchCooldown);
+	
 	void SetPolarity(const int32 NewPolarity);
-	UNiagaraComponent* GetVFXComponent() const;
-	UCapsuleComponent* GetCapsuleComponent() const;
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
+	UNiagaraComponent* GetVFXComponent() const;
+	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
-
 
 protected:
 	// Called when the game starts or when spawned
@@ -63,6 +67,8 @@ protected:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult);
+	void ListenToRobot(ACharacter* Character);
+	void StopListenToRobot(ACharacter* Character);
 	void SetAttractParameters(AActor* OtherActor, ACharacter* Character);
 	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
 	UFUNCTION()
@@ -85,15 +91,23 @@ protected:
 	UNiagaraSystem* NegativePolarityVFX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraComponent* MagnetVfxComponent;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	bool bIsActive = true;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	EPolarity Polarity = EPolarity::Positive;
+	UPROPERTY()
+	int32 PolarityValue;
 	
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
 	bool bCharacterInsideField = false;
 
 public:
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	void OnPolarityChanged();
+
+
+	
+private:	
+	
 	// Components
 	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* Capsule;
@@ -101,9 +115,7 @@ public:
 	class UStaticMeshComponent* Mesh;
 	
 	// Magnet settings
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrength;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float RepelStrength;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrengthMultiplier = 50.f;
@@ -123,13 +135,6 @@ public:
 	float MaxRepelForce = 20.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
-	
-	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
-	bool bIsActive = true;
-	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
-	EPolarity Polarity = EPolarity::Positive;
-	UPROPERTY()
-	int32 PolarityValue;
 	
 	// Used for crippling/restoring character movement
 	float OriginalSpeed = 600;
