@@ -255,6 +255,7 @@ void AMechanicCharacter::SwitchPolarity_Implementation()
 		MagnetGun->SwitchPolarity();
 		EPolarity NewPolarity = MagnetGun->GetPolarity();
 		OnPolaritySwitched.Broadcast(NewPolarity, PolaritySwitchCooldown);
+		OnSwitchPolarity(NewPolarity);
 		
 		NewPolarity == EPolarity::Positive ? PolarityColor = FColor::Blue : PolarityColor = FColor::Orange;
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, PolarityColor, TEXT("Switched Gun Polarity"));

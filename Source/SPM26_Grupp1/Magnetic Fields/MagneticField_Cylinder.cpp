@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
@@ -23,6 +24,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
 	MagnetVfxComponent->SetupAttachment(RootComponent);
 
+	Capsule->SetCollisionResponseToChannel(ECC_PROJECTILE, ECR_Ignore);
 }
 
 // Called when the game starts or when spawned
