@@ -440,7 +440,7 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
-
+	OnSwitchPolarity(Polarity);
 	ScreenDebugPolaritySwitchMessage();
 	NotifyOverlappingActorsOnPolarityChange();
 }
