@@ -15,6 +15,7 @@
 // Sets default values
 AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	PrimaryActorTick.bCanEverTick = true;
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
 	RootComponent = ProjectileMesh;
 	
@@ -57,6 +58,17 @@ void AProj_MagneticCylinder::BeginPlay()
 	
 }
 
+void AProj_MagneticCylinder::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+	FVector CurrentVelocity = GetVelocity();
+	if (!CurrentVelocity.IsNearlyZero())
+	{
+		LastVelocity = CurrentVelocity;
+	}
+}
+
 // Didn't get to work. Use OnProjectileStopped for collision for the moment.
 void AProj_MagneticCylinder::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
@@ -91,7 +103,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 		if (ASPMCharacter* Char = Cast<ASPMCharacter>(ImpactResult.GetActor()))
 		{
 			//we hit a character
-			Char->OnMagneticProjectileHit(ImpactResult, ProjPolarity);	
+			Char->OnMagneticProjectileHit(ImpactResult, ProjPolarity, GetImpactForce(), LastVelocity);	
 			Destroy();
 			return;
 		}
