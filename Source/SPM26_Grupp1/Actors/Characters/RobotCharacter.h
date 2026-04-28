@@ -30,6 +30,7 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
 
+	virtual void ForceSwitchPolarity();
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();
 	void SetIsWithinMagneticField(bool bNewValue);
@@ -45,7 +46,7 @@ public:
 	bool IsDashing() const;
 	bool IsMagnetizable() const;
 
-	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity) override;
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
