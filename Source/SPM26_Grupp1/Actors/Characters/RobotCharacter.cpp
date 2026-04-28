@@ -424,6 +424,16 @@ bool ARobotCharacter::IsMagnetizable() const
 	return bIsMagnetizable;
 }
 
+void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity)
+{
+	bool bRepel = (ProjectilePolarity == Polarity); //same polaritys repell eachother
+
+	FVector ToCharacter = (GetActorLocation() - HitResult.ImpactPoint).GetSafeNormal();
+	FVector ForceDirection = bRepel ? ToCharacter : -ToCharacter;
+
+	GetCharacterMovement()->AddImpulse(ForceDirection * 1000.f, true);
+}
+
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
 	bIsWithinMagneticField = bNewValue;

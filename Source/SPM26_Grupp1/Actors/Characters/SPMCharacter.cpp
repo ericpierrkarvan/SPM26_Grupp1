@@ -45,6 +45,11 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 
 }
 
+void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity)
+{
+	
+}
+
 // Called when the game starts or when spawned
 void ASPMCharacter::BeginPlay()
 {

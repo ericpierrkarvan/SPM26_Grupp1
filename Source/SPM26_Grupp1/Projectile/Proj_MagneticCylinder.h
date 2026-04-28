@@ -33,6 +33,7 @@ protected:
 	UNiagaraSystem* MagnetVfxAsset;
 	
 	int32 ProjectilePolarity;
+	EPolarity ProjPolarity = EPolarity::None;
 	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
