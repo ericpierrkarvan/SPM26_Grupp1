@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 // Sets default values
@@ -293,7 +294,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              const FHitResult& SweepResult)
 {
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	
+	ListenToRobot(Character);
 	if (!ValidateOverLapBegin(OtherActor, OtherComp, Character)) return;
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	
@@ -306,8 +307,27 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 		SetAttractParameters(OtherActor, Character);
 	}
 
-
+	
 }
+
+void AMagneticField_Cylinder::ListenToRobot(ACharacter* Character)
+{
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(Character);
+	if (!Robot) return;
+	if (Robot == TargetCharacter) return;
+	
+	Robot->OnPolaritySwitched.AddDynamic(this, &AMagneticField_Cylinder::OnPolarityChanged);
+	
+}
+
+void AMagneticField_Cylinder::StopListenToRobot(ACharacter* Character)
+{
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(Character);
+	if (!Robot) return;
+	
+	Robot->OnPolaritySwitched.RemoveDynamic(this, &AMagneticField_Cylinder::OnPolarityChanged);
+}
+
 void AMagneticField_Cylinder::SetAttractParameters(AActor* OtherActor, ACharacter* Character)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Field polarity: %s, Other polarity: %s, Should attract? %d"), *UEnum::GetValueAsString(Polarity), *UEnum::GetValueAsString(GetObjectPolarity(OtherActor)), ShouldAttract(Polarity, GetObjectPolarity(OtherActor)));
@@ -348,7 +368,7 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 		RestoreMovement(Character);
 		UE_LOG(LogTemp, Warning, TEXT("Restored movement of character: %s"), *Character->GetName());
 	}
-	
+	StopListenToRobot(Character);
 	bCharacterInsideField = false;
 	bHasCrippled = false;
 	TargetCharacter = nullptr;
@@ -426,7 +446,7 @@ bool AMagneticField_Cylinder::ShouldAttract(const EPolarity Field, const EPolari
 }
 
 // When polarity changes
-void AMagneticField_Cylinder::OnPolarityChanged()
+void AMagneticField_Cylinder::OnPolarityChanged(EPolarity NewPolarity, float PolaritySwitchCooldown)
 {
 	if (!bCharacterInsideField || !Cast<ARobotCharacter>(TargetCharacter)) return;
 	UE_LOG(LogTemp, Warning, TEXT("OnPolarityChanged(). TargetCharacter = %s"), *TargetCharacter->GetName());

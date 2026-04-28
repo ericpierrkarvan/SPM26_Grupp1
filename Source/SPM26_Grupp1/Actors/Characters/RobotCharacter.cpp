@@ -442,18 +442,6 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
 
 	ScreenDebugPolaritySwitchMessage();
-	NotifyOverlappingActorsOnPolarityChange();
-}
-
-void ARobotCharacter::NotifyOverlappingActorsOnPolarityChange() const
-{
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, AMagneticField_Cylinder::StaticClass());
-	
-	for (AActor* Actor : OverlappingActors)
-	{
-		Cast<AMagneticField_Cylinder>(Actor)->OnPolarityChanged();
-	}
 }
 
 void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const
