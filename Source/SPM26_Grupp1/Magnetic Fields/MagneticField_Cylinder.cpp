@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
@@ -23,6 +24,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
 	MagnetVfxComponent->SetupAttachment(RootComponent);
 
+	Capsule->SetCollisionResponseToChannel(ECC_PROJECTILE, ECR_Ignore);
 }
 
 // Called when the game starts or when spawned
@@ -206,8 +208,6 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const float D
 void AMagneticField_Cylinder::CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget)
 {
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
-	const FVector RawDiff = CurrentPlayerLocation - MagnetTarget;
-	UE_LOG(LogTemp, Warning, TEXT("RawDiff = %s, Size = %f"), *RawDiff.ToCompactString(), RawDiff.Size());
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
 	const FVector BlendedDirection = GenerateDynamicDirectionForRepel(RepelDirection);
 	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
