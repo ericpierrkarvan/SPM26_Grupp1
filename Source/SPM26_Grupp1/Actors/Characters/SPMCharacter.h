@@ -11,6 +11,7 @@
 
 #include "SPMCharacter.generated.h"
 
+class UFMODAudioComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 
@@ -35,6 +36,9 @@ public:
 	void SwitchPolarity();
 	virtual void SwitchPolarity_Implementation();
 
+	UFUNCTION(BlueprintNativeEvent, Category="Polarity")
+	void OnSwitchPolarity(EPolarity NewPolarity);
+	
 	bool CanSwitchPolarity() const;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	float GetPolaritySwitchCooldown() const;
@@ -108,6 +112,10 @@ protected:
 
 	virtual void Move(const FInputActionValue& Value);
 	virtual void Look(const FInputActionValue& Value);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Polarity|Audio")
+	UFMODAudioComponent* PolaritySwitchAudioComp;
+
 	
 private:
 
