@@ -4,9 +4,11 @@
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "FMODAudioComponent.h"
+#include "MechanicCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Actors/Checkpoint.h"
+#include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
@@ -247,9 +249,10 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              const FHitResult& SweepResult)
 {
 	if (OtherActor == this) return;
-	if (OtherActor == Cast<AMagneticField_Cylinder>(OtherActor)) return;
-
-	bHavePayload = true;
+	if (IsLaunchableObject(OtherActor))
+	{
+		bHavePayload = true;
+	}
 }
 
 void ARobotCharacter::OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -395,6 +398,16 @@ float ARobotCharacter::GetADSMovementMultiplier() const
 	return 1.f;
 }
 
+bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
+{
+	//todo check for some throwable comp
+	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Object))
+	{
+		return true;
+	}
+	return false;
+}
+
 bool ARobotCharacter::IsMagnetizable() const
 {
 	return bIsMagnetizable;
@@ -403,6 +416,11 @@ bool ARobotCharacter::IsMagnetizable() const
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
 	bIsWithinMagneticField = bNewValue;
+}
+
+bool ARobotCharacter::GetIsWithinMagneticField() const
+{
+	return bIsWithinMagneticField;
 }
 
 int32 ARobotCharacter::GetPolarityValue() const
@@ -423,6 +441,23 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
 
+	ScreenDebugPolaritySwitchMessage();
+	NotifyOverlappingActorsOnPolarityChange();
+}
+
+void ARobotCharacter::NotifyOverlappingActorsOnPolarityChange() const
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, AMagneticField_Cylinder::StaticClass());
+	
+	for (AActor* Actor : OverlappingActors)
+	{
+		Cast<AMagneticField_Cylinder>(Actor)->OnPolarityChanged();
+	}
+}
+
+void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const
+{
 	FColor Color;
 	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));

@@ -29,12 +29,13 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
-	
+
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage();
 	void SetIsWithinMagneticField(bool bNewValue);
+	bool GetIsWithinMagneticField() const;
 	int32 GetPolarityValue() const;
-	EPolarity GetPolarity() const;
+	virtual EPolarity GetPolarity() const override;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -43,10 +44,12 @@ public:
 	
 	bool IsDashing() const;
 	bool IsMagnetizable() const;
-	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
+	void NotifyOverlappingActorsOnPolarityChange() const;
+	void ScreenDebugPolaritySwitchMessage() const;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
 
@@ -167,4 +170,6 @@ private:
 	void StartMagnetizableImmunity(float Seconds);
 
 	virtual float GetADSMovementMultiplier() const override;
+
+	bool IsLaunchableObject(AActor* Object) const;
 };

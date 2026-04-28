@@ -12,7 +12,7 @@ ACheckpoint::ACheckpoint()
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = Trigger;
 	Trigger = CreateDefaultSubobject<UBoxComponent>("Trigger");
-	Trigger->SetCollisionProfileName("Trigger");
+	Trigger->SetCollisionProfileName("CheckpointTrigger");
 }
 
 // Called when the game starts or when spawned

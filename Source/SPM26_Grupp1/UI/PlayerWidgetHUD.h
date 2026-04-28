@@ -44,4 +44,7 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Polarity")
 	void OnPolaritySwitched(EPolarity NewPolarity, float PolaritySwitchCooldown);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void OnMagneticSurfaceChanged(bool bSurfaceCanSpawnMagneticField);
 };
