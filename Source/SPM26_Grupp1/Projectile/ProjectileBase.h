@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	AProjectileBase(const FObjectInitializer& ObjectInitializer);
 	virtual float GetProjectileMaxDistance() const;
-
+	float GetImpactForce() const;
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
 	class UProjectileMovementComponent* ProjectileMovementComp;
@@ -25,6 +25,7 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Projectile")
 	float ProjectileMaxDistance;
-	
 
+	UPROPERTY(EditDefaultsOnly, Category="Projectile|Impact")
+	float ImpactForce = 850.f;
 };

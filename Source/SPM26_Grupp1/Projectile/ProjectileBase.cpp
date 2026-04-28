@@ -24,3 +24,8 @@ float AProjectileBase::GetProjectileMaxDistance() const
 	return ProjectileMaxDistance;
 }
 
+float AProjectileBase::GetImpactForce() const
+{
+	return ImpactForce;
+}
+

@@ -16,7 +16,8 @@ class SPM26_GRUPP1_API AProj_MagneticCylinder : public AProjectileBase
 public:	
 	// Sets default values for this actor's properties
 	AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer);
-	void BeginPlay();
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 
@@ -34,7 +35,8 @@ protected:
 	
 	int32 ProjectilePolarity;
 	EPolarity ProjPolarity = EPolarity::None;
-	
+
+		
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse,
@@ -56,5 +58,7 @@ protected:
 	                                   const AMagneticField_Cylinder* Field) const;
 	AActor* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 	void RegisterFieldInMechanicArray(AActor* Field) const;
-	
+
+private:
+	FVector LastVelocity = FVector::ZeroVector;
 };
