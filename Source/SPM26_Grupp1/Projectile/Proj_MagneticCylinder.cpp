@@ -120,35 +120,64 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 // Align Magnetic Field based on normal.
 void AProj_MagneticCylinder::AlignSpawnedMagneticField(AActor* SpawnedActor, const FHitResult& ImpactResult, const FVector& SpawnLocation)
 {
-	if (SpawnedActor)
-	{
-		// Box size of the spawned actor
-		FVector Origin;
-		FVector BoxExtent;
-		SpawnedActor->GetActorBounds(false, Origin, BoxExtent);
+	if (!SpawnedActor) return;
+	
+	// Box size of the spawned actor
+	FVector Origin;
+	FVector BoxExtent;
+	SpawnedActor->GetActorBounds(false, Origin, BoxExtent);
 
-		// Offset along the surface normal by half the actor's size
-		// so it sits flush on the surface rather than clipping into it
-		FVector Normal = ImpactResult.ImpactNormal;
-			
-		// OffSet projects BoxExtent to surface normal
-		// Gives correct offset regardless of surface angle (floor, wall etc)
-		// DotProduct(...) measure how much of the bounding box extends in the direction of surface normal
-		// Ie floor normal(0,0,1) picks up BoxExtent.Z
-		// wall normal (1,0,0) picks up BoxExtent.X
-		// mixed angle blends the values
-		float OffSetDistance = FMath::Abs(FVector::DotProduct(BoxExtent, Normal));
-			
-		SpawnedActor->SetActorLocation(SpawnLocation + Normal * OffSetDistance);
-	}
+	// Offset along the surface normal by half the actor's size
+	// so it sits flush on the surface rather than clipping into it
+	const FVector Normal = ImpactResult.ImpactNormal;
+		
+	// OffSet projects BoxExtent to surface normal
+	// Gives correct offset regardless of surface angle (floor, wall etc)
+	// DotProduct(...) measure how much of the bounding box extends in the direction of surface normal
+	// Ie floor normal(0,0,1) picks up BoxExtent.Z
+	// wall normal (1,0,0) picks up BoxExtent.X
+	// mixed angle blends the values 
+	// float OffsetDistance = FMath::Abs(FVector::DotProduct(BoxExtent, Normal));
+	
+	// Use the primitive component's local (unrotated) extent instead of AABB
+	UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(SpawnedActor->GetRootComponent());
+	FVector LocalExtent = PrimComp->GetLocalBounds().BoxExtent;
+	FMatrix RotationMatrix = FRotationMatrix(SpawnedActor->GetActorRotation());
+
+	// Project each local axis contribution onto the world normal
+	float OffsetDistance = FMath::Abs(FVector::DotProduct(RotationMatrix.GetUnitAxis(EAxis::X), Normal)) * LocalExtent.X
+						 + FMath::Abs(FVector::DotProduct(RotationMatrix.GetUnitAxis(EAxis::Y), Normal)) * LocalExtent.Y
+						 + FMath::Abs(FVector::DotProduct(RotationMatrix.GetUnitAxis(EAxis::Z), Normal)) * LocalExtent.Z;
+		
+	SpawnedActor->SetActorLocation(SpawnLocation + Normal * OffsetDistance);
+	// AdjustAlignedMagneticFieldRotation(SpawnedActor, Normal);
+	
+}
+
+// Adjust the spawned field rotation based on angle of the projectile hit. 
+// Idea: 0-30 degree = 0 degree angle, >30-60 degree = 45 degree angle, >60-90 degree = 90 degree angle.
+void AProj_MagneticCylinder::AdjustAlignedMagneticFieldRotation(AActor* SpawnedActor, const FVector& Normal)
+{
+	const FVector UpVector = FVector::UpVector;
+	// Angle between surface normal and world Z-axis (straight up)
+	const float NormalAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(Normal, UpVector)));
+	
+	float SnappedTilt;
+	if (NormalAngle <= 30.f) SnappedTilt = 0.f;			// Flat surface/floor - stand upright
+	else if (NormalAngle <= 60.f) SnappedTilt = 45.f;	// Tilted surface -> 45 degrees
+	else SnappedTilt = 90.f;							// Vertical surface/wall -> lay flat
+	
+	const FRotator BaseRotation = Normal.Rotation();
+	const FRotator SnappedRotation = FRotator(SnappedTilt, BaseRotation.Yaw, BaseRotation.Roll);
+	
+	SpawnedActor->SetActorRotation(SnappedRotation);
+	
 }
 
 void AProj_MagneticCylinder::AlignMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field)
 {
 	Polarity == 1 ? AlignPositiveMagneticFieldVFX(CapsuleComp, ImpactResult, SpawnLocation, Polarity, Field) : AlignNegativeMagneticFieldVFX(ImpactResult, SpawnLocation, Polarity, Field);
 }
-
-
 
 void AProj_MagneticCylinder::AlignPositiveMagneticFieldVFX(const UCapsuleComponent* CapsuleComp, const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field)
 {
