@@ -69,6 +69,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="HeadLaunch", meta=(ClampMin=0.f, ClampMax=1.f))
 	float PayloadLandingConfirmTime = 0.1f; 
 
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Camera")
+	bool bInvertCameraPitch = false;
+	
 	//values equal or lower gets the max range
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
 	float PitchAtMaxRange = 20.f;

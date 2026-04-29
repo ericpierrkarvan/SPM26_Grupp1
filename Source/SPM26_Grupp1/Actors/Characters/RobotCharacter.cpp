@@ -87,10 +87,13 @@ FVector ARobotCharacter::GetLaunchForce() const
 	const float DegreesDown = FMath::Abs(FMath::Min(SignedPitch, 0.f));
 
 	//map how far through the interval we are between 0 and 1
-	const float PitchAlpha = FMath::Clamp((DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange), 0.f,
-	                                      1.f);
+	const float PitchAlpha = FMath::Clamp(
+	(DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange),
+	0.f, 1.f);
+
+	const float FinalAlpha = bInvertCameraPitch ? (1.f - PitchAlpha) : PitchAlpha;
 	//give us the launch pitch between our two min/max-angles
-	const float FinalPitch = FMath::Lerp(LaunchAngleMaxRange, LaunchAngleMinRange, PitchAlpha);
+	const float FinalPitch = FMath::Lerp(LaunchAngleMaxRange, LaunchAngleMinRange, FinalAlpha);
 
 	//we want to launch in the direction the robot is facing
 	FVector HorizontalDir = GetActorForwardVector();
@@ -98,15 +101,15 @@ FVector ARobotCharacter::GetLaunchForce() const
 	HorizontalDir.Normalize();
 
 	//multiplier for camera angle to reduce height at steep angles
-	const float AngleScale = FMath::Lerp(1.f, SteepAngleForceScale, PitchAlpha);
+	const float AngleScale = FMath::Lerp(1.f, SteepAngleForceScale, FinalAlpha);
 
 	//we have a base force we always apply, scaled by angle
 	const float BaseForce = LaunchMinForce * AngleScale;
 	//extra force from charge, also scaled by angle
 	const float ExtraForce = (FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio) - LaunchMinForce) * AngleScale;
 
-	const float ExtraVertical = ExtraForce * PitchAlpha;
-	const float ExtraHorizontal = ExtraForce * (1.f - PitchAlpha);
+	const float ExtraVertical = ExtraForce * FinalAlpha;
+	const float ExtraHorizontal = ExtraForce * (1.f - FinalAlpha);
 
 	//split the base force between horizontal and vertical angles.
 	//for example sin(45) = cos (45) so the power will be equal between the axis
