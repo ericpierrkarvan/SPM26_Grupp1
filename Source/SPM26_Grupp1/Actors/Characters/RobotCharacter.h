@@ -38,6 +38,7 @@ public:
 	int32 GetPolarityValue() const;
 	virtual EPolarity GetPolarity() const override;
 	void StartRepelImmunity();
+	void CancelDash() const;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
