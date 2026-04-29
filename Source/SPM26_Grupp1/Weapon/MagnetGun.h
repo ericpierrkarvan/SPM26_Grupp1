@@ -22,7 +22,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Polarity")
-	EPolarity Polarity = EPolarity::Positive;
+	EPolarity Polarity = EPolarity::Negative;
 
 public:	
 

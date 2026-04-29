@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MagneticField_Cylinder.generated.h"
 
@@ -50,9 +51,11 @@ protected:
 	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                        UCharacterMovementComponent* MovComp);
 	void CheckDistanceToTargetAndStopMovement(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
-	bool ShouldRepelRobot() const;
-	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget);
-	FVector GenerateDynamicDirectionForRepel(const FVector& RepelDirection) const;
+	bool ShouldRepelRobot(ARobotCharacter* Robot) const;
+	void RepelCharacterDynamic(const FVector& MagnetTarget);
+	void RepelCharacterSimple(const FVector& MagnetTarget);
+	FVector GenerateSimpleFVectorForRepel(const ARobotCharacter* Robot) const;
+	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
 	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
@@ -72,6 +75,7 @@ protected:
 	void StopListenToRobot(ACharacter* Character);
 	void SetAttractParameters(AActor* OtherActor, ACharacter* Character);
 	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
+	void IfRobotHandleDash(AActor* Actor);
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
@@ -122,6 +126,8 @@ private:
 	float PullStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float RepelStrengthMultiplier = 50.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float RepelXYMultiplier = 0.2f; // Limits XY movement when Robot is repelled
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float StopDistance = 15.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
