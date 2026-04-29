@@ -50,6 +50,7 @@ protected:
 	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                        UCharacterMovementComponent* MovComp);
 	void CheckDistanceToTargetAndStopMovement(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
+	bool ShouldRepelRobot() const;
 	void CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget);
 	FVector GenerateDynamicDirectionForRepel(const FVector& RepelDirection) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
@@ -82,7 +83,7 @@ protected:
 	UFUNCTION()
 	void RestoreMovement(const ACharacter* Character) const;
 	UFUNCTION()
-	void FreezeMovement(ACharacter* Character);
+	void FreezeMovement(ACharacter* Character) const;
 
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")

@@ -204,9 +204,21 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const float D
 	}
 }
 
+bool AMagneticField_Cylinder::ShouldRepelRobot() const
+{
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(TargetCharacter);
+	if (!Robot) return false;
+	if (!Robot->IsRepellable()) return false; 
+	
+	Robot->StartRepelImmunity();
+	return true;
+}
+
 // MagnetTarget is here the origin point of repulsion.
 void AMagneticField_Cylinder::CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget)
 {
+	if (!ShouldRepelRobot()) return;
+	
 	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
 	const FVector BlendedDirection = GenerateDynamicDirectionForRepel(RepelDirection);
@@ -414,7 +426,7 @@ void AMagneticField_Cylinder::RestoreMovement(const ACharacter* Character) const
 }
 
 // Freeze movement to be able to Rotate (work in progress)
-void AMagneticField_Cylinder::FreezeMovement(ACharacter* Character)
+void AMagneticField_Cylinder::FreezeMovement(ACharacter* Character) const
 {
 	// Lock position axes but allow rotation
 	TargetCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
