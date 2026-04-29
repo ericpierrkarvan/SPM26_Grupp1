@@ -330,6 +330,8 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 {
 	ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor);
 	if (!Robot) return;
+	Robot->CancelDash();
+	
 }
 
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
