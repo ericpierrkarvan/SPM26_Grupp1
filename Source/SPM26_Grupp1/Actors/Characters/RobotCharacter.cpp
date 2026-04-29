@@ -52,7 +52,7 @@ void ARobotCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(this->GetMovementComponent());
+	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
 	OriginalAirControl = MoveComp->AirControl;
 
 	if (PlatformDetectionSphere)
@@ -470,7 +470,7 @@ void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPola
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
-	UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(this->GetMovementComponent());
+	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
 	if (MoveComp->AirControl == OriginalAirControl) MoveComp->AirControl *= 0.5;
 	else MoveComp->AirControl = OriginalAirControl;
 
