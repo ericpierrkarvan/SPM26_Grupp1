@@ -97,10 +97,13 @@ FVector ARobotCharacter::GetLaunchForce() const
 	HorizontalDir.Z = 0.f;
 	HorizontalDir.Normalize();
 
-	//we have a base force we always apply
-	const float BaseForce = LaunchMinForce;
-	//and an extra force from holding down the launch key
-	const float ExtraForce = FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio) - BaseForce;
+	//multiplier for camera angle to reduce height at steep angles
+	const float AngleScale = FMath::Lerp(1.f, SteepAngleForceScale, PitchAlpha);
+
+	//we have a base force we always apply, scaled by angle
+	const float BaseForce = LaunchMinForce * AngleScale;
+	//extra force from charge, also scaled by angle
+	const float ExtraForce = (FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio) - LaunchMinForce) * AngleScale;
 
 	const float ExtraVertical = ExtraForce * PitchAlpha;
 	const float ExtraHorizontal = ExtraForce * (1.f - PitchAlpha);

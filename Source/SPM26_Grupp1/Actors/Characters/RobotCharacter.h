@@ -95,12 +95,10 @@ protected:
 	float LaunchMinForce = 1500.f;
 	virtual bool CanJumpInternal_Implementation() const override;
 
-	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
-	float LaunchForwardBias = 0.4f;
-
-	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
-	float LaunchUpBias = 1.0f;
-
+	//multiplier for force when trying to launch high arcs
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.1f, ClampMax=1.f))
+	float SteepAngleForceScale = 0.6f;
+	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=4.f))
 	float MaxLaunchChargeTime = 2.f;
 
