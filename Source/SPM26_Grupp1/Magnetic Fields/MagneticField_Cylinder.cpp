@@ -180,7 +180,8 @@ void AMagneticField_Cylinder::ApplyMagneticPull(const FVector& MagnetTarget, con
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(const FVector& MagnetTarget)
 {
-	CalculateDirectionAndRepelCharacter(MagnetTarget);
+	RepelCharacterSimple(MagnetTarget);
+	// RepelCharacterDynamic(MagnetTarget);
 }
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const FVector& MagnetTarget, const float DeltaTime, const float DistanceToTarget, UCharacterMovementComponent* MovComp)
@@ -191,10 +192,9 @@ void AMagneticField_Cylinder::ApplyMagneticForce(const FVector& MagnetTarget, co
 		OtherPolarity = GetObjectPolarity(ActorToAttractOrPull.Get());
 	}
 	ShouldAttract(this->Polarity, OtherPolarity) ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
-	// Polarity == EPolarity::Positive ? ApplyMagneticPull(MagnetTarget, DeltaTime, DistanceToTarget, MovComp) : ApplyMagneticRepulsion(MagnetTarget);
 }
 
-// Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, snap actor to location and disable movement.
+// Checks distance to MagnetTarget (where magnet pulls/repels from). If less than, stop movement.
 void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const
 {
 	if (DistanceToTarget <= StopDistance && IsValid(TargetCharacter))
@@ -204,9 +204,8 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const float D
 	}
 }
 
-bool AMagneticField_Cylinder::ShouldRepelRobot() const
+bool AMagneticField_Cylinder::ShouldRepelRobot(ARobotCharacter* Robot) const
 {
-	ARobotCharacter* Robot = Cast<ARobotCharacter>(TargetCharacter);
 	if (!Robot) return false;
 	if (!Robot->IsRepellable()) return false; 
 	
@@ -214,21 +213,50 @@ bool AMagneticField_Cylinder::ShouldRepelRobot() const
 	return true;
 }
 
-// MagnetTarget is here the origin point of repulsion.
-void AMagneticField_Cylinder::CalculateDirectionAndRepelCharacter(const FVector& MagnetTarget)
+// MagnetTarget is the origin point of repulsion.
+void AMagneticField_Cylinder::RepelCharacterDynamic(const FVector& MagnetTarget)
 {
-	if (!ShouldRepelRobot()) return;
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(TargetCharacter);
+	if (!ShouldRepelRobot(Robot)) return;
 	
-	FVector CurrentPlayerLocation = TargetCharacter->GetActorLocation();
+	FVector CurrentPlayerLocation = Robot->GetActorLocation();
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
-	const FVector BlendedDirection = GenerateDynamicDirectionForRepel(RepelDirection);
+	const FVector BlendedDirection = GenerateDynamicFVectorForRepel(RepelDirection);
 	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
 	
-	TargetCharacter->LaunchCharacter(BlendedDirection * RepelStrength * RepelStrengthMultiplier, false, false);
+	Robot->LaunchCharacter(BlendedDirection * RepelStrength * RepelStrengthMultiplier, false, true);
+}
+// MagnetTarget is here the origin point of repulsion.
+void AMagneticField_Cylinder::RepelCharacterSimple(const FVector& MagnetTarget)
+{
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(TargetCharacter);
+	if (!ShouldRepelRobot(Robot)) return;
+	
+	FVector CurrentPlayerLocation = Robot->GetActorLocation();
+	FVector LaunchVelocity = GenerateSimpleFVectorForRepel(Robot);
+	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
+	
+	Robot->LaunchCharacter(LaunchVelocity, true, true);
 }
 
+// Returns a simple FVector for Repel.
+FVector AMagneticField_Cylinder::GenerateSimpleFVectorForRepel(const ARobotCharacter* Robot) const
+{
+	if (!Robot) return FVector::ZeroVector;
+	FVector CurrentVelocity = Robot->GetMovementComponent()->Velocity;
+	CurrentVelocity.Z = 0;
+	
+	const float LaunchStrength = RepelStrength * RepelStrengthMultiplier;
+	const FVector XYVector = FVector(CurrentVelocity * RepelXYMultiplier);
+	const FVector ZVector = FVector(0,0,LaunchStrength);
+	const FVector LaunchVelocity = XYVector + ZVector;
+	
+	return LaunchVelocity;
+}
+
+// Returns a more complicated/dynamic FVector for Repel.
 // The higher the player speed, the more it impacts direction of repulsion
-FVector AMagneticField_Cylinder::GenerateDynamicDirectionForRepel(const FVector& RepelDirection) const
+FVector AMagneticField_Cylinder::GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const
 {
 	// Get the character's current velocity and normalize it
 	const FVector PlayerVelocity = TargetCharacter->GetVelocity();
@@ -298,6 +326,12 @@ FVector AMagneticField_Cylinder::LateralCorrection(const FVector& MagnetTarget) 
 	return LateralCorrection + LateralDamping;
 }
 
+void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
+{
+	ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor);
+	if (!Robot) return;
+}
+
 void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
                                              AActor* OtherActor,
                                              UPrimitiveComponent* OtherComp,
@@ -309,6 +343,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	ListenToRobot(Character);
 	if (!ValidateOverLapBegin(OtherActor, OtherComp, Character)) return;
 	IfRobotSetWithinMagneticField(true, OtherActor);
+	IfRobotHandleDash(OtherActor);
 	
 	ActorToAttractOrPull = OtherActor;
 	bCharacterInsideField = true;
@@ -361,6 +396,7 @@ bool AMagneticField_Cylinder::ValidateOverLapBegin(AActor* OtherActor, const UPr
 	return true;															// All checks ok.
 
 }
+
 
 void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
@@ -449,6 +485,8 @@ void AMagneticField_Cylinder::IfRobotSetWithinMagneticField(const bool bNewValue
 		Cast<ARobotCharacter>(OtherActor)->SetIsWithinMagneticField(bNewValue);
 	}
 }
+
+
 
 bool AMagneticField_Cylinder::ShouldAttract(const EPolarity Field, const EPolarity Other)
 {

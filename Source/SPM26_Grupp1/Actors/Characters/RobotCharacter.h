@@ -179,6 +179,10 @@ private:
 	bool bHavePayload = false;
 	float PayloadOverlapTime = 0.f;
 	FVector DashDirection;
+	
+	float OriginalAirControl;
+	UPROPERTY(EditAnywhere)
+	float LocalAirControlMultiplier = 0.5f;
 
 	virtual void Move(const FInputActionValue& Value) override;
 	void StartMagnetizableImmunity(float Seconds);
