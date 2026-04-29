@@ -233,10 +233,11 @@ void AMagneticField_Cylinder::RepelCharacterSimple(const FVector& MagnetTarget)
 	if (!ShouldRepelRobot(Robot)) return;
 	
 	FVector CurrentPlayerLocation = Robot->GetActorLocation();
-	FVector LaunchVelocity = GenerateSimpleFVectorForRepel(Robot);
+	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
 	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
+	FVector LaunchVelocity = GenerateSimpleFVectorForRepel(Robot);
 	
-	Robot->LaunchCharacter(LaunchVelocity, true, true);
+	Robot->LaunchCharacter(LaunchVelocity * RepelDirection, true, true);
 }
 
 // Returns a simple FVector for Repel.
@@ -247,8 +248,11 @@ FVector AMagneticField_Cylinder::GenerateSimpleFVectorForRepel(const ARobotChara
 	CurrentVelocity.Z = 0;
 	
 	const float LaunchStrength = RepelStrength * RepelStrengthMultiplier;
+	
+	const FVector LocalUp = -GetActorUpVector();
+	
 	const FVector XYVector = FVector(CurrentVelocity * RepelXYMultiplier);
-	const FVector ZVector = FVector(0,0,LaunchStrength);
+	const FVector ZVector = LocalUp * LaunchStrength;
 	const FVector LaunchVelocity = XYVector + ZVector;
 	
 	return LaunchVelocity;
