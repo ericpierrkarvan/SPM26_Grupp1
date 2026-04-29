@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
 UPickupComponent::UPickupComponent()
@@ -36,7 +37,13 @@ void UPickupComponent::OnPickedUp(AActor* ByActor)
 	bIsHeld = true;
 	HeldBy = ByActor;
 
-	if (UPrimitiveComponent* Prim = GetOwner()->FindComponentByClass<UPrimitiveComponent>())
+	if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
+	{
+		Char->GetCharacterMovement()->DisableMovement();
+		Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	}
+	// For physics objects — disable physics
+	else if (UPrimitiveComponent* Prim = GetOwner()->FindComponentByClass<UPrimitiveComponent>())
 	{
 		Prim->SetSimulatePhysics(false);
 		OriginalPawnResponse = Prim->GetCollisionResponseToChannel(ECC_Pawn);
@@ -50,7 +57,12 @@ void UPickupComponent::OnDropped()
 {
 	bIsHeld = false;
 
-	if (UPrimitiveComponent* Prim = GetOwner()->FindComponentByClass<UPrimitiveComponent>())
+	if (ACharacter* Char = Cast<ACharacter>(GetOwner()))
+	{
+		Char->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+		Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	}
+	else if (UPrimitiveComponent* Prim = GetOwner()->FindComponentByClass<UPrimitiveComponent>())
 	{
 		Prim->SetCollisionResponseToChannel(ECC_Pawn, OriginalPawnResponse);
 		Prim->SetSimulatePhysics(true);

@@ -158,11 +158,23 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 
 		if (PickupAlpha >= 1.f)
 		{
-			//lerp complete, so the object is ontop of our head
-			HeldActor->AttachToComponent(
-				PlatformDetectionSphere,
-				FAttachmentTransformRules::KeepWorldTransform
-			);
+			//if we held a character then we need to restore movementmode and collision
+			//at the time we finished lifting the character
+			if (ACharacter* Char = Cast<ACharacter>(HeldActor))
+			{
+				Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+				Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+			}
+			else
+			{
+				//lerp complete, so the object is ontop of our head
+				//not a character, so let's attach it
+				HeldActor->AttachToComponent(
+					PlatformDetectionSphere,
+					FAttachmentTransformRules::KeepWorldTransform
+				);
+			}
+			
 			bIsPickingUp = false;
 		}
 	}

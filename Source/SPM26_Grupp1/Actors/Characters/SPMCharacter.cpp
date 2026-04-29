@@ -9,6 +9,7 @@
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
@@ -145,7 +146,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		Start,
 		End,
 		GetActorQuat(),
-		ECC_Visibility,
+		ECC_INTERACT,
 		BoxShape,
 		Params
 	);
