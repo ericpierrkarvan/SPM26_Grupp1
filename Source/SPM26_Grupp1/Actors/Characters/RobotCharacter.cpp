@@ -43,7 +43,7 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
-float ARobotCharacter::GetLaunchTimePercentage()
+float ARobotCharacter::GetLaunchTimePercentage() const
 {
 	return LaunchChargeTimer / MaxLaunchChargeTime;
 }
@@ -396,6 +396,28 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 		},
 		Seconds,
 		false);
+}
+
+void ARobotCharacter::StartRepelImmunity()
+{
+	bIsRepellable = false;
+
+	GetWorldTimerManager().ClearTimer(RepelImmunityHandle);
+
+	GetWorldTimerManager().SetTimer(
+		RepelImmunityHandle,
+		[this]()
+		{
+			bIsRepellable = true;
+		},
+		RepelImmunityInSeconds,
+		false);
+}
+
+// Returns if robot is repellable by magnetic field. Used to limit Repel in AMagneticField_Cylinder::Tick().
+bool ARobotCharacter::IsRepellable() const
+{
+	return bIsRepellable;
 }
 
 float ARobotCharacter::GetADSMovementMultiplier() const
