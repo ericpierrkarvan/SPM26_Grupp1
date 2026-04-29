@@ -53,7 +53,7 @@ protected:
 	
 	// The current location where a projectile will be spawned.
 	FVector CurrentProjectileSpawnPoint;
-	FColor PolarityColor = FColor::Blue;
+	FColor PolarityColor = FColor::Orange;
 
 	UFUNCTION(BlueprintCallable, Category="Aim")
 	bool PerformAimTrace(FHitResult& OutHit);

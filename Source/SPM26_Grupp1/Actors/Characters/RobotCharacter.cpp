@@ -44,7 +44,7 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
-float ARobotCharacter::GetLaunchTimePercentage()
+float ARobotCharacter::GetLaunchTimePercentage() const
 {
 	return LaunchChargeTimer / MaxLaunchChargeTime;
 }
@@ -52,6 +52,9 @@ float ARobotCharacter::GetLaunchTimePercentage()
 void ARobotCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
+	OriginalAirControl = MoveComp->AirControl;
 
 	if (PlatformDetectionSphere)
 	{
@@ -485,6 +488,28 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 		false);
 }
 
+void ARobotCharacter::StartRepelImmunity()
+{
+	bIsRepellable = false;
+
+	GetWorldTimerManager().ClearTimer(RepelImmunityHandle);
+
+	GetWorldTimerManager().SetTimer(
+		RepelImmunityHandle,
+		[this]()
+		{
+			bIsRepellable = true;
+		},
+		RepelImmunityInSeconds,
+		false);
+}
+
+// Returns if robot is repellable by magnetic field. Used to limit Repel in AMagneticField_Cylinder::Tick().
+bool ARobotCharacter::IsRepellable() const
+{
+	return bIsRepellable;
+}
+
 float ARobotCharacter::GetADSMovementMultiplier() const
 {
 	if (bLaunchIsCharging) return 0; //if we are trying to eject something
@@ -535,6 +560,10 @@ void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPola
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
+	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
+	if (MoveComp->AirControl == OriginalAirControl) MoveComp->AirControl *= 0.5;
+	else MoveComp->AirControl = OriginalAirControl;
+
 	bIsWithinMagneticField = bNewValue;
 }
 
