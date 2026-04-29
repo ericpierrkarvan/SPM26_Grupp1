@@ -10,6 +10,7 @@
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
+#include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
@@ -120,6 +121,44 @@ void ARobotCharacter::SmoothRotationWhenDashing(float DeltaSeconds)
 		SetActorRotation(SmoothedRotation);
 }
 
+void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
+{
+	if (bIsPickingUp && HeldActor)
+	{
+		PickupAlpha = FMath::Clamp(PickupAlpha + DeltaSeconds * PickupSpeed, 0.f, 1.f);
+
+		//find offset for the grab location of the target
+		FVector GrabOffset = FVector::ZeroVector;
+		if (HeldPickupComponent.IsValid() && HeldActor)
+		{
+			GrabOffset = HeldPickupComponent->GetGrabLocation() - HeldActor->GetActorLocation();
+		}
+
+		//adjusted target location so the pickup actor gets centered ontop of the robot
+		const FVector TargetLocation = PlatformDetectionSphere->GetComponentLocation() - GrabOffset;
+		const FVector NewLocation = FMath::Lerp(PickupStartLocation, TargetLocation, PickupAlpha);
+
+		HeldActor->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+		const FQuat NewRotation = FQuat::Slerp(
+			FQuat(PickupStartRotation),
+			FQuat(PickupTargetRotation),
+			PickupAlpha
+		);
+		HeldActor->SetActorRotation(NewRotation, ETeleportType::TeleportPhysics);
+
+		if (PickupAlpha >= 1.f)
+		{
+			//lerp complete, so the object is ontop of our head
+			HeldActor->AttachToComponent(
+				PlatformDetectionSphere,
+				FAttachmentTransformRules::KeepWorldTransform
+			);
+			bIsPickingUp = false;
+		}
+	}
+}
+
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -182,6 +221,8 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
 
+	OnIsPickingUp(DeltaSeconds);
+
 #if WITH_EDITOR
 	if (PlatformDetectionSphere && bDrawLauncherSphere)
 	{
@@ -204,6 +245,33 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		);
 	}
 #endif
+}
+
+bool ARobotCharacter::FindPickup()
+{
+	if (!CurrentTargetPickup.IsValid()) return false;
+	AActor* PickupActor = CurrentTargetPickup->GetOwner();
+	if (!PickupActor) return false;
+	UPrimitiveComponent* Prim = PickupActor->FindComponentByClass<UPrimitiveComponent>();
+	if (!Prim) return false;
+
+	Prim->SetSimulatePhysics(false);
+
+	// Get bounds before changing collision
+	// In FindPickup
+	GrabPointOffset = CurrentTargetPickup->GetGrabLocation() - PickupActor->GetActorLocation();
+	PickupStartLocation = PickupActor->GetActorLocation();
+	PickupStartRotation = PickupActor->GetActorRotation();
+	PickupTargetRotation = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+
+	// Change collision after bounds are stored
+	CurrentTargetPickup->OnPickedUp(this);
+
+	HeldActor = PickupActor;
+	HeldPickupComponent = CurrentTargetPickup;
+	bIsPickingUp = true;
+	PickupAlpha = 0.f;
+	return true;
 }
 
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
@@ -339,10 +407,29 @@ void ARobotCharacter::Launch()
 		}
 		else if (UPrimitiveComponent* Other = Actor->FindComponentByClass<UPrimitiveComponent>())
 		{
-			if (Other->IsSimulatingPhysics())
+			//detach from robot
+			Actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+			//reapply physics
+			Other->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			Other->SetSimulatePhysics(true);
+
+			//notify pickupcomp
+			if (UPickupComponent* Pickup = Actor->FindComponentByClass<UPickupComponent>())
 			{
-				Other->AddImpulse(LaunchForce, NAME_None, true);
+				Pickup->OnDropped();
 			}
+
+			//clear references
+			if (HeldActor == Actor)
+			{
+				HeldActor = nullptr;
+				HeldPickupComponent = nullptr;
+				bIsPickingUp = false;
+				PickupAlpha = 0.f;
+			}
+
+			Other->AddImpulse(LaunchForce, NAME_None, true);
 		}
 	}
 
@@ -416,6 +503,9 @@ bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
 	{
 		return true;
 	}
+
+	//the object we picked up
+	if (HeldActor == Object) return true;
 	return false;
 }
 

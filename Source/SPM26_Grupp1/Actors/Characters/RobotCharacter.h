@@ -115,7 +115,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
-	
+
+	virtual bool FindPickup() override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
+	float PickupSpeed = 5;
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
@@ -125,6 +128,7 @@ private:
 	void PerformDash();
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
+	void OnIsPickingUp(float DeltaSeconds);
 	bool bIsDashing = false;
 	void ResetDashHandle(){ bIsDashing = false; }
 	float DashCooldown = 1.0f;
@@ -179,4 +183,17 @@ private:
 	virtual float GetADSMovementMultiplier() const override;
 
 	bool IsLaunchableObject(AActor* Object) const;
+
+	bool bIsPickingUp = false;
+	float PickupAlpha = 0.f;
+	FVector PickupTargetLocation;
+	FVector PickupStartLocation;
+	FRotator PickupStartRotation;
+	FRotator PickupTargetRotation;
+	FVector GrabPointOffset = FVector::ZeroVector;
+	
+	UPROPERTY()
+	AActor* HeldActor;
+	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
+	
 };
