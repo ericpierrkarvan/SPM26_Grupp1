@@ -43,7 +43,7 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
-float ARobotCharacter::GetLaunchTimePercentage()
+float ARobotCharacter::GetLaunchTimePercentage() const
 {
 	return LaunchChargeTimer / MaxLaunchChargeTime;
 }
@@ -398,6 +398,28 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 		false);
 }
 
+void ARobotCharacter::StartRepelImmunity()
+{
+	bIsRepellable = false;
+
+	GetWorldTimerManager().ClearTimer(RepelImmunityHandle);
+
+	GetWorldTimerManager().SetTimer(
+		RepelImmunityHandle,
+		[this]()
+		{
+			bIsRepellable = true;
+		},
+		RepelImmunityInSeconds,
+		false);
+}
+
+// Returns if robot is repellable by magnetic field. Used to limit Repel in AMagneticField_Cylinder::Tick().
+bool ARobotCharacter::IsRepellable() const
+{
+	return bIsRepellable;
+}
+
 float ARobotCharacter::GetADSMovementMultiplier() const
 {
 	if (bLaunchIsCharging) return 0; //if we are trying to eject something
@@ -424,14 +446,23 @@ bool ARobotCharacter::IsMagnetizable() const
 	return bIsMagnetizable;
 }
 
-void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity)
+void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
 {
 	bool bRepel = (ProjectilePolarity == Polarity); //same polaritys repell eachother
 
-	FVector ToCharacter = (GetActorLocation() - HitResult.ImpactPoint).GetSafeNormal();
-	FVector ForceDirection = bRepel ? ToCharacter : -ToCharacter;
+	//projectiles direction determines the force direction options
+	FVector ProjectileDirection = ProjectileVelocity.GetSafeNormal();
+	FVector ForceDirection = bRepel ? -ProjectileDirection : ProjectileDirection;
 
-	GetCharacterMovement()->AddImpulse(ForceDirection * 1000.f, true);
+	//horizontal so sideway impulses are predictable
+	FVector HorizontalDirection = FVector(ForceDirection.X, ForceDirection.Y, 0.f).GetSafeNormal();
+
+	float UpMultiplier = 0.25f;
+
+	GetCharacterMovement()->AddImpulse(HorizontalDirection * ImpactForce, true);
+	GetCharacterMovement()->AddImpulse(FVector::UpVector * ImpactForce * UpMultiplier, true);
+	
+	ForceSwitchPolarity();
 }
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
@@ -463,6 +494,14 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
 	OnSwitchPolarity(Polarity);
 	ScreenDebugPolaritySwitchMessage();
+}
+
+void ARobotCharacter::ForceSwitchPolarity()
+{
+	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+	SwitchPolarityTimer = PolaritySwitchCooldown;
+	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
+	OnSwitchPolarity(Polarity);
 }
 
 void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const

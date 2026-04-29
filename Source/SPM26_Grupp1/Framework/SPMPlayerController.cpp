@@ -32,7 +32,7 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 		ClassToUse = RobotHUDClass;
 	}
 	if (!ClassToUse) return;
-
+	
 	//if we have an old widget, lets remove it
 	if (PlayerHudWidget)
 	{
@@ -118,7 +118,6 @@ void ASPMPlayerController::OnPause()
 		{
 			PauseMenuWidget->AddToViewport();
 		}
-		
 		
 		bShowMouseCursor = true;
 	}

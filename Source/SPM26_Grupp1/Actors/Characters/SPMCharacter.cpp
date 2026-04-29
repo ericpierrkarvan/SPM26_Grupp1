@@ -45,7 +45,7 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 
 }
 
-void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity)
+void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
 {
 	
 }

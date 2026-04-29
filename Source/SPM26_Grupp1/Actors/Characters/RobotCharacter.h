@@ -30,12 +30,14 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
 
+	virtual void ForceSwitchPolarity();
 	UFUNCTION(BlueprintCallable)
-	float GetLaunchTimePercentage();
+	float GetLaunchTimePercentage() const;
 	void SetIsWithinMagneticField(bool bNewValue);
 	bool GetIsWithinMagneticField() const;
 	int32 GetPolarityValue() const;
 	virtual EPolarity GetPolarity() const override;
+	void StartRepelImmunity();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -44,8 +46,9 @@ public:
 
 	bool IsDashing() const;
 	bool IsMagnetizable() const;
+	bool IsRepellable() const;
 
-	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity) override;
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -119,6 +122,7 @@ private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
 	FTimerHandle MagnetizableCooldownHandle;
+	FTimerHandle RepelImmunityHandle;
 
 
 	void PerformDash();
@@ -141,9 +145,13 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsMagnetizable = true; // false for X seconds after dashing out of magnetic field.
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
+	bool bIsRepellable = true; // false for X seconds after being repelled by magnetic field.
+	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField = false;
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	float ImmunityInSeconds = 0.2f;
+	UPROPERTY(EditAnywhere, Category = "Magnet")
+	float RepelImmunityInSeconds = 0.7f;
 	
 	UPROPERTY(EditAnywhere, Category = "Polarity")
 	EPolarity Polarity = EPolarity::Negative;
@@ -174,7 +182,6 @@ private:
 
 	virtual void Move(const FInputActionValue& Value) override;
 	void StartMagnetizableImmunity(float Seconds);
-
 	virtual float GetADSMovementMultiplier() const override;
 
 	bool IsLaunchableObject(AActor* Object) const;
