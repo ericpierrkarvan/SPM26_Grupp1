@@ -322,6 +322,16 @@ void ARobotCharacter::PerformDash()
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }
 
+void ARobotCharacter::CancelDash() const
+{
+	if (!bIsDashing) return;
+	
+	if (GetRobotMovementComponent()->GetRootMotionSource(TEXT("Dash")))
+	{
+		GetRobotMovementComponent()->RemoveRootMotionSource(TEXT("Dash"));
+	}
+}
+
 bool ARobotCharacter::IsDashing() const
 {
 	return bIsDashing;
