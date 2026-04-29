@@ -38,6 +38,7 @@ public:
 	int32 GetPolarityValue() const;
 	virtual EPolarity GetPolarity() const override;
 	void StartRepelImmunity();
+	void CancelDash() const;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -69,6 +70,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="HeadLaunch", meta=(ClampMin=0.f, ClampMax=1.f))
 	float PayloadLandingConfirmTime = 0.1f; 
 
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Camera")
+	bool bInvertCameraPitch = false;
+	
 	//values equal or lower gets the max range
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
 	float PitchAtMaxRange = 20.f;
@@ -95,12 +99,10 @@ protected:
 	float LaunchMinForce = 1500.f;
 	virtual bool CanJumpInternal_Implementation() const override;
 
-	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
-	float LaunchForwardBias = 0.4f;
-
-	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=1.f))
-	float LaunchUpBias = 1.0f;
-
+	//multiplier for force when trying to launch high arcs
+	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.1f, ClampMax=1.f))
+	float SteepAngleForceScale = 0.6f;
+	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=4.f))
 	float MaxLaunchChargeTime = 2.f;
 
@@ -117,7 +119,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
-	
+
+	virtual bool FindPickup() override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
+	float PickupSpeed = 5;
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
@@ -128,6 +133,7 @@ private:
 	void PerformDash();
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
+	void OnIsPickingUp(float DeltaSeconds);
 	bool bIsDashing = false;
 	void ResetDashHandle(){ bIsDashing = false; }
 	float DashCooldown = 1.0f;
@@ -189,4 +195,17 @@ private:
 	virtual float GetADSMovementMultiplier() const override;
 
 	bool IsLaunchableObject(AActor* Object) const;
+
+	bool bIsPickingUp = false;
+	float PickupAlpha = 0.f;
+	FVector PickupTargetLocation;
+	FVector PickupStartLocation;
+	FRotator PickupStartRotation;
+	FRotator PickupTargetRotation;
+	FVector GrabPointOffset = FVector::ZeroVector;
+	
+	UPROPERTY()
+	AActor* HeldActor;
+	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
+	
 };

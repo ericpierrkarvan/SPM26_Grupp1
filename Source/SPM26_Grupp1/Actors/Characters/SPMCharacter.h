@@ -11,6 +11,7 @@
 
 #include "SPMCharacter.generated.h"
 
+class UPickupComponent;
 class UFMODAudioComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
@@ -118,6 +119,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Polarity|Audio")
 	UFMODAudioComponent* PolaritySwitchAudioComp;
 
+	UPROPERTY()
+	TWeakObjectPtr<UPickupComponent> CurrentTargetPickup;
+
+	virtual bool FindPickup();
 	
 private:
 

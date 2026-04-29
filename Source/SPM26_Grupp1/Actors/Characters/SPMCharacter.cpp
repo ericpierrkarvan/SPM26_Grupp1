@@ -9,7 +9,9 @@
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
+#include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 
@@ -111,8 +113,15 @@ void ASPMCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(Axis.Y);
 }
 
+bool ASPMCharacter::FindPickup()
+{
+	return false;
+}
+
 void ASPMCharacter::Interact(const FInputActionValue& Value)
 {
+	if (FindPickup()) return;
+	
 	if (CurrentTargetInteractableComp)
 	{
 		CurrentTargetInteractableComp->Interact(this);
@@ -137,7 +146,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		Start,
 		End,
 		GetActorQuat(),
-		ECC_Visibility,
+		ECC_INTERACT,
 		BoxShape,
 		Params
 	);
@@ -160,16 +169,23 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 
 	
 	UInteractableComponent* NewInteractable = nullptr;
-
+	CurrentTargetPickup = nullptr;
+	
 	if (bHit && HitResult.GetActor())
 	{
-		//if we hit an actor, lets see if it have a interactable component
-		NewInteractable = Cast<UInteractableComponent>(HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
-
-		if (NewInteractable && !NewInteractable->CanInteract(this))
+		CurrentTargetPickup = Cast<UPickupComponent>(HitResult.GetActor()->GetComponentByClass(UPickupComponent::StaticClass()));
+		
+		if (!CurrentTargetPickup.IsValid())
 		{
-			//we see the interactable, but we are not allowed to interact with it
-			NewInteractable = nullptr;
+		
+			//we havent seen a pickup actor, lets see if it have a interactable component
+			NewInteractable = Cast<UInteractableComponent>(HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
+
+			if (NewInteractable && !NewInteractable->CanInteract(this))
+			{
+				//we see the interactable, but we are not allowed to interact with it
+				NewInteractable = nullptr;
+			}
 		}
 	}
 

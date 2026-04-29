@@ -28,7 +28,7 @@ protected:
 	UStaticMeshComponent* ProjectileMesh;
 	
 	UPROPERTY(EditAnywhere, Category="Projectile")
-	float SpawnedMagneticFieldDuration;
+	float SpawnedMagneticFieldDuration = 10.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraSystem* MagnetVfxAsset;

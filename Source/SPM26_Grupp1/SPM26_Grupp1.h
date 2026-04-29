@@ -6,3 +6,4 @@
 
 
 #define ECC_PROJECTILE ECC_GameTraceChannel1
+#define ECC_INTERACT ECC_GameTraceChannel2
