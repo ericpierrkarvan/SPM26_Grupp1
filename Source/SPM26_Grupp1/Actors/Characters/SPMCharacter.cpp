@@ -105,10 +105,47 @@ void ASPMCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void ASPMCharacter::Look(const FInputActionValue& Value)
+void ASPMCharacter::ApplyAimAcceleration(FVector2D& Axis)
 {
+	//rawx will be between 0 and 1. If we take power of that value, a full stick direction is 1^ADSAimAccelerationPower = 1.
+	//when the stick is not full in a direction we get a smaller value, say 0.5^ADSAimAccelerationPower, which would
+	//shrink the actual sensitivity. The less we move the stick, the actual movement gets even less.
+	const float RawX = FMath::Abs(Axis.X); //we need a positive number since we dont know the power value
+	const float CurvedX  = FMath::Pow(RawX, ADSAimAccelerationPower); //apply the power
+	const float DirectionX = FMath::Sign(Axis.X); //direction
+	Axis.X = DirectionX * CurvedX; //apply the acceleration
+			
+	const float RawY = FMath::Abs(Axis.Y);
+	const float CurvedY = FMath::Pow(RawY, ADSAimAccelerationPower);
+	const float DirectionY = FMath::Sign(Axis.Y);
+	Axis.Y = DirectionY * CurvedY;
+}
+
+void ASPMCharacter::LookGamepad(const FInputActionValue& Value)
+{
+	//Consider updating LookMouse if you make changes here
+	
 	FVector2D Axis = Value.Get<FVector2D>();
 
+	if (IsADSActive())
+	{
+		if (bUseADSAimAcceleration)
+		{
+			ApplyAimAcceleration(Axis);
+		}
+		
+		Axis *= ADSLookSensitivityScale;
+	}
+	
+	AddControllerYawInput(Axis.X);
+	AddControllerPitchInput(Axis.Y);
+}
+
+void ASPMCharacter::LookMouse(const FInputActionValue& Value)
+{
+	//Consider updating Look if you make changes here
+	FVector2D Axis = Value.Get<FVector2D>();
+	
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
 }
@@ -234,7 +271,7 @@ float ASPMCharacter::GetADSMovementMultiplier() const
 void ASPMCharacter::StartADS()
 {
 	bIsADS = true;
-	ADSCurveDirection = 1.f;
+	SetCameraState(ECameraState::ADS);
 	
 	if (GetCharacterMovement())
 	{
@@ -248,7 +285,7 @@ void ASPMCharacter::StartADS()
 void ASPMCharacter::StopADS()
 {
 	bIsADS = false;
-	ADSCurveDirection = -1;
+	SetCameraState(ECameraState::Regular);
 	
 	if (GetCharacterMovement())
 	{
@@ -257,6 +294,45 @@ void ASPMCharacter::StopADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
 	OnADS.Broadcast(bIsADS);
+}
+
+float ASPMCharacter::GetArmLengthForState(ECameraState State) const
+{
+	switch (State)
+	{
+	case ECameraState::ADS:     return ADSCameraArmLength;
+	case ECameraState::Regular: return DefaultCameraArmLength;
+	default:                    return DefaultCameraArmLength;
+	}
+}
+
+FVector ASPMCharacter::GetOffsetForState(ECameraState State) const
+{
+	switch (State)
+	{
+	case ECameraState::ADS:     return ADSCameraOffset;
+	case ECameraState::Regular: return DefaultCameraOffset;
+	default:                    return DefaultCameraOffset;
+	}
+}
+
+float ASPMCharacter::GetFOVForState(ECameraState State) const
+{
+	switch (State)
+	{
+	case ECameraState::ADS:     return ADSFOV;
+	case ECameraState::Regular: return DefaultFOV;
+	default:                    return DefaultFOV;
+	}
+}
+
+void ASPMCharacter::SetCameraState(ECameraState NewState)
+{
+	if (CurrentState == NewState) return;
+	PreviousState = CurrentState;
+	CurrentState = NewState;
+	ADSCurveDirection = 1.f;
+	ADSCurveAlpha = 0.f;
 }
 
 void ASPMCharacter::UpdateCamera(float DeltaTime)
@@ -277,14 +353,14 @@ void ASPMCharacter::UpdateAimDownSight(float DeltaTime)
 		ADSCurveAlpha = FMath::Clamp(ADSCurveAlpha + (ADSCurveDirection * DeltaTime / ActiveTransitionTime),0.f, 1.f);
 
 		//pick which curve to use
-		const UCurveFloat* ActiveCurve = ADSCurveDirection > 0.f ? ADSCurveIn : ADSCurveOut;
+		const UCurveFloat* ActiveCurve = (CurrentState == ECameraState::ADS) ? ADSCurveIn : ADSCurveOut;
 
 		//get the alpha from our curves if we have them, otherwise just go with linear time
 		const float CurvedAlpha = ActiveCurve ? ActiveCurve->GetFloatValue(ADSCurveAlpha) : ADSCurveAlpha;
 		
-		const float NewArmLength = FMath::Lerp(DefaultCameraArmLength, ADSCameraArmLength, CurvedAlpha);
-		const FVector NewOffset = FMath::Lerp(DefaultCameraOffset, ADSCameraOffset, CurvedAlpha);
-		const float NewFOV = FMath::Lerp(DefaultFOV, ADSFOV, CurvedAlpha);
+		const float NewArmLength = FMath::Lerp(GetArmLengthForState(PreviousState), GetArmLengthForState(CurrentState), CurvedAlpha);
+		const FVector NewOffset = FMath::Lerp(GetOffsetForState(PreviousState), GetOffsetForState(CurrentState), CurvedAlpha);
+		const float NewFOV = FMath::Lerp(GetFOVForState(PreviousState), GetFOVForState(CurrentState), CurvedAlpha);
 
 		CameraBoom->TargetArmLength = NewArmLength;
 		CameraBoom->SocketOffset    = NewOffset;
@@ -326,7 +402,8 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ASPMCharacter::Move);
-		EIC->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ASPMCharacter::Look);
+		EIC->BindAction(IA_LookGamePad, ETriggerEvent::Triggered, this, &ASPMCharacter::LookGamepad);
+		EIC->BindAction(IA_LookMouse, ETriggerEvent::Triggered, this, &ASPMCharacter::LookMouse);
 		EIC->BindAction(IA_Interact, ETriggerEvent::Triggered, this, &ASPMCharacter::Interact);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);

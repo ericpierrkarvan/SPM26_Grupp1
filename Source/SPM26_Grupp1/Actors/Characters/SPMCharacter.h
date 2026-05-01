@@ -22,6 +22,14 @@ class USpringArmComponent;
 class UCameraComponent;
 class APolarity;
 
+UENUM(BlueprintType)
+enum class ECameraState : uint8
+{
+	Regular  UMETA(DisplayName = "Regular"),
+	ADS      UMETA(DisplayName = "ADS"),
+	Payload  UMETA(DisplayName = "Payload")
+};
+
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
 {
@@ -71,8 +79,11 @@ protected:
 	TObjectPtr<UInputAction> IA_Move;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> IA_Look;
+	TObjectPtr<UInputAction> IA_LookGamePad;
 
+	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> IA_LookMouse;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Interact;
 
@@ -84,6 +95,16 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_SwitchPolarity;
+
+	UPROPERTY(EditAnywhere, Category="Input|ADS")
+	float ADSLookSensitivityScale = 0.4f;
+
+	UPROPERTY(EditAnywhere, Category="Input|ADS")
+	float ADSAimAccelerationPower = 3.f;
+
+	UPROPERTY(EditAnywhere, Category="Input|ADS")
+	bool bUseADSAimAcceleration = true;
+
 	
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
@@ -113,9 +134,19 @@ protected:
 	virtual void StopADS();
 	bool bIsADS = false;
 
-	virtual void Move(const FInputActionValue& Value);
-	virtual void Look(const FInputActionValue& Value);
+	virtual float GetArmLengthForState(ECameraState State) const;
+	virtual FVector GetOffsetForState(ECameraState State) const;
+	virtual float GetFOVForState(ECameraState State) const;
 
+	void SetCameraState(ECameraState NewState);
+	ECameraState PreviousState = ECameraState::Regular;
+	ECameraState CurrentState  = ECameraState::Regular;
+
+	virtual void Move(const FInputActionValue& Value);
+	void ApplyAimAcceleration(FVector2D& Axis);
+	virtual void LookGamepad(const FInputActionValue& Value);
+	virtual void LookMouse(const FInputActionValue& Value);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Polarity|Audio")
 	UFMODAudioComponent* PolaritySwitchAudioComp;
 
@@ -123,6 +154,8 @@ protected:
 	TWeakObjectPtr<UPickupComponent> CurrentTargetPickup;
 
 	virtual bool FindPickup();
+
+	
 	
 private:
 

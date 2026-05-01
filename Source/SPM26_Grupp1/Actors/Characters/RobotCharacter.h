@@ -123,6 +123,25 @@ protected:
 	virtual bool FindPickup() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
 	float PickupSpeed = 5;
+
+	UPROPERTY(EditAnywhere, Category="Camera|Payload")
+	float PayloadCameraArmLength = 450.f;
+
+	UPROPERTY(EditAnywhere, Category="Camera|Payload")
+	FVector PayloadCameraOffset = FVector(0.f, 40.f, 210.f);
+
+	UPROPERTY(EditAnywhere, Category="Camera|Payload")
+	float PayloadFOV = 85.f;
+
+	virtual float GetArmLengthForState(ECameraState State) const override;
+	virtual FVector GetOffsetForState(ECameraState State) const override;
+	virtual float GetFOVForState(ECameraState State) const override;
+
+	virtual void LookGamepad(const FInputActionValue& Value) override;
+
+	UPROPERTY(EditAnywhere, Category="Input|Payload")
+	float PayloadLookSensitivityScale = 0.15f;
+	
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;

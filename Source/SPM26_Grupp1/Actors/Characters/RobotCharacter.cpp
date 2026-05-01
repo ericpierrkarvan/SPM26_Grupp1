@@ -295,6 +295,50 @@ bool ARobotCharacter::FindPickup()
 	return true;
 }
 
+float ARobotCharacter::GetArmLengthForState(ECameraState State) const
+{
+	if (State == ECameraState::Payload) return PayloadCameraArmLength;
+	return Super::GetArmLengthForState(State);
+}
+
+FVector ARobotCharacter::GetOffsetForState(ECameraState State) const
+{
+	if (State == ECameraState::Payload) return PayloadCameraOffset;
+	return Super::GetOffsetForState(State);
+}
+
+float ARobotCharacter::GetFOVForState(ECameraState State) const
+{
+	if (State == ECameraState::Payload) return PayloadFOV;
+	return Super::GetFOVForState(State);
+}
+
+void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
+{
+	FVector2D Axis = Value.Get<FVector2D>();
+	if (IsADSActive() && !bHavePayload)
+	{
+		if (bUseADSAimAcceleration)
+		{
+			ApplyAimAcceleration(Axis);
+		}
+		
+		Axis *= ADSLookSensitivityScale;	
+	}
+	else if (bHavePayload)
+	{
+		if (bUseADSAimAcceleration)
+		{
+			ApplyAimAcceleration(Axis);
+		}
+		
+		Axis *= PayloadLookSensitivityScale;
+	}
+	
+	AddControllerYawInput(Axis.X);
+	AddControllerPitchInput(Axis.Y);
+}
+
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 {
 	return Cast<URobotMovementComponent>(GetCharacterMovement());
@@ -362,6 +406,7 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (IsLaunchableObject(OtherActor))
 	{
 		bHavePayload = true;
+		SetCameraState(ECameraState::Payload);
 	}
 }
 
@@ -388,6 +433,7 @@ void ARobotCharacter::EnterLaunchMode()
 	if (bIsInLaunchMode) return;
 	bIsInLaunchMode = true;
 	StartADS();
+	if (bHavePayload) SetCameraState(ECameraState::Payload);
 	OnLaunchStateChanged.Broadcast(0.f, bHavePayload); //notify hud
 }
 
