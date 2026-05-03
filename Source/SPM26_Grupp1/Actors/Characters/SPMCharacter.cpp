@@ -225,22 +225,28 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			}
 		}
 	}
-
-	//if we found an interactable that is not our current one, then we need to update the hud.
-	//if we dont find an interactable, but we have a currentTargetInteractableComp, that means we need to hide the prompt in hud
-	if (NewInteractable != CurrentTargetInteractableComp)
+	
+	//decide which promptable should we display
+	//order: Pickup -> Interactable
+	IPromptable* NewPromptable = nullptr;
+	if (CurrentTargetPickup.IsValid())
 	{
-		CurrentTargetInteractableComp = NewInteractable;
+		NewPromptable = CurrentTargetPickup.Get();
+	}
+	else if (NewInteractable)
+	{
+		NewPromptable = NewInteractable;
+	}
 
-		//since we have the development "tab" to switch between players, we need to see which controller is currently viewing this character
-		//todo: maybe wrap in #if WITH_EDITOR and use normal getcontroller() - but i dont think the performance impact is big enough to bother
-		APlayerController* PC = GetViewingPlayerController();
-		if (PC)
+	CurrentTargetInteractableComp = NewInteractable;
+
+	//update HUD with the current promptable
+	APlayerController* PC = GetViewingPlayerController();
+	if (PC)
+	{
+		if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
 		{
-			if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
-			{
-				HUD->SetFocusedInteractable(CurrentTargetInteractableComp);
-			}
+			HUD->SetFocusedPromptable(NewPromptable);
 		}
 	}
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "SPM26_Grupp1/Interfaces/Promptable.h"
 #include "InteractableComponent.generated.h"
 
 class UWidgetComponent;
@@ -19,7 +20,7 @@ enum class EInteractionCharacters : uint8
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent
+class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent, public IPromptable
 {
 	GENERATED_BODY()
 
@@ -37,7 +38,7 @@ public:
 
 	// What should be shown if player looks at the interaction actor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
-	FText InteractPrompt = FText::FromString("Press E to Interact");
+	FText InteractPrompt = FText::FromString("Interact");
 	
 	// Fired when a player interacts
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
@@ -51,9 +52,9 @@ public:
 	bool bIsOn = false;
 	
 	UFUNCTION()
-	UUserWidget* GetPromptWidget(APlayerController* ForPlayer);
+	virtual UUserWidget* GetPromptWidget(APlayerController* ForPlayer) override;
 
-	FVector GetPromptWorldLocation() const;
+	virtual FVector GetPromptWorldLocation() const override;
 
 	bool CanInteract(AActor* Interactor);
 
