@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "FMODAudioComponent.h"
 #include "MechanicCharacter.h"
+#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
@@ -69,6 +70,15 @@ void ARobotCharacter::BeginPlay()
 
 		float DetectionRadius = GetCapsuleComponent() ? GetCapsuleComponent()->GetScaledCapsuleRadius() * 0.9f : 40.f;
 		PlatformDetectionSphere->SetSphereRadius(DetectionRadius);
+	}
+
+	if (CRTMaterial && FollowCamera)
+	{
+		//create a dynamic material instance for the crt effect
+		//start at 0 intensity
+		CRTMID = UMaterialInstanceDynamic::Create(CRTMaterial, this);
+		FollowCamera->PostProcessSettings.AddBlendable(CRTMID, 1.f);
+		CRTMID->SetScalarParameterValue(FName("Intensity"), 0.f);
 	}
 }
 
@@ -248,6 +258,14 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	}
 
 	OnIsPickingUp(DeltaSeconds);
+
+	if (CRTMID)
+	{
+		//fade in/out the crt effect depending on our payload state
+		const float TargetIntensity = (bIsInLaunchMode && bHavePayload) ? 1.f : 0.f;
+		CurrentCRTIntensity = FMath::FInterpTo(CurrentCRTIntensity, TargetIntensity, DeltaSeconds, CRTBlendSpeed);
+		CRTMID->SetScalarParameterValue(FName("Intensity"), CurrentCRTIntensity);
+	}
 
 #if WITH_EDITOR
 	if (PlatformDetectionSphere && bDrawLauncherSphere)

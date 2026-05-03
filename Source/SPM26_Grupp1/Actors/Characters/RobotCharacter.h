@@ -142,6 +142,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input|Payload")
 	float PayloadLookSensitivityScale = 0.15f;
+
+	UPROPERTY(EditAnywhere, Category="ADS|CRT")
+	UMaterialInterface* CRTMaterial;
+	
+	UPROPERTY(EditAnywhere, Category="ADS|CRT")
+	float CRTBlendSpeed = 5.f;
 	
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
@@ -232,5 +238,8 @@ private:
 	UPROPERTY()
 	AActor* HeldActor;
 	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
-	
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* CRTMID;
+	float CurrentCRTIntensity = 0.f;
 };
