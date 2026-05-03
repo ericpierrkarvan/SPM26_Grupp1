@@ -167,8 +167,23 @@ void ASPMCharacter::Interact(const FInputActionValue& Value)
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
-	FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
-	FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
+	// FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
+	// FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
+	
+	APlayerController* PC = GetViewingPlayerController();
+	if (!PC) return;
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	FVector ForwardDir = CameraRotation.Vector();
+	ForwardDir.Z = 0.f;
+	ForwardDir.Normalize();
+
+	const FQuat BoxRotation = ForwardDir.Rotation().Quaternion();
+	FVector Start = GetActorLocation() + (ForwardDir * InteractBoxStartOffset);
+	FVector End = Start + (ForwardDir * InteractBoxDistance);
 
 	FHitResult HitResult;
 	FCollisionShape BoxShape = FCollisionShape::MakeBox(InteractBoxSize);
@@ -177,12 +192,11 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	Params.AddIgnoredActor(this);
 	Params.bTraceComplex = false;
 
-	//todo: proper trace channel && trace visibility to the the interactable - so we cant interact with stuff through walls etc
 	bool bHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		Start,
 		End,
-		GetActorQuat(),
+		BoxRotation,
 		ECC_INTERACT,
 		BoxShape,
 		Params
@@ -198,7 +212,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			GetWorld(),
 			DrawLocation,
 			InteractBoxSize,
-			GetActorQuat(),
+			BoxRotation,
 			DrawColor,
 			false, -1.f 
 		);
@@ -247,13 +261,9 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	CurrentTargetInteractableComp = NewInteractable;
 
 	//update HUD with the current promptable
-	APlayerController* PC = GetViewingPlayerController();
-	if (PC)
+	if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
 	{
-		if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
-		{
-			HUD->SetFocusedPromptable(NewPromptable);
-		}
+		HUD->SetFocusedPromptable(NewPromptable);
 	}
 }
 
