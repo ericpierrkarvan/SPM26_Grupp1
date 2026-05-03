@@ -196,6 +196,8 @@ private:
 	bool bIsInLaunchMode = false;
 
 	void Launch();
+	void LaunchPlayerCharacter(ACharacter* Char, const FVector& LaunchForce);
+	void LaunchObject(AActor* Actor, const FVector& LaunchForce);
 
 	void OnLaunchPressed();
 	void OnLaunchReleased();
