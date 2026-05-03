@@ -41,6 +41,8 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &ARobotCharacter::OnLaunchPressed);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ARobotCharacter::OnLaunchReleased);
+		EIC->BindAction(IA_Shoot, ETriggerEvent::Started, this, &ARobotCharacter::OnShootPressed);
+		EIC->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &ARobotCharacter::OnShootReleased);
 	}
 }
 
@@ -529,8 +531,8 @@ void ARobotCharacter::OnLaunchPressed()
 		return;
 	}
 	//if we're already in launch mode, then we start the charge:
-	if (!bLaunchIsCharging) OnLaunchStart();
-	bLaunchIsCharging = true;
+	// if (!bLaunchIsCharging) OnLaunchStart();
+	// bLaunchIsCharging = true;
 }
 
 void ARobotCharacter::OnLaunchReleased()
@@ -539,6 +541,20 @@ void ARobotCharacter::OnLaunchReleased()
 
 	Launch();
 	ExitLaunchMode();
+}
+
+void ARobotCharacter::OnShootPressed()
+{
+	if (!bIsADS) return;
+	if (!bHavePayload) return;
+
+	if (!bLaunchIsCharging) OnLaunchStart();
+	bLaunchIsCharging = true;
+}
+
+void ARobotCharacter::OnShootReleased()
+{
+	OnLaunchReleased();
 }
 
 void ARobotCharacter::Move(const FInputActionValue& Value)

@@ -27,6 +27,7 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 	ARobotCharacter(const FObjectInitializer& ObjectInitializer);
 
 public:
+	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
 
@@ -198,6 +199,9 @@ private:
 
 	void OnLaunchPressed();
 	void OnLaunchReleased();
+
+	void OnShootPressed();
+	void OnShootReleased();
 
 	float LaunchChargeTimer = 0.f;
 	bool bLaunchIsCharging = false;

@@ -38,8 +38,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	float DoubleJumpVelocityMultiplier = 1.4f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> IA_Shoot;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_DestroyFields;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
