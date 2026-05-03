@@ -211,6 +211,12 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	if (bHit && HitResult.GetActor())
 	{
 		CurrentTargetPickup = Cast<UPickupComponent>(HitResult.GetActor()->GetComponentByClass(UPickupComponent::StaticClass()));
+
+		if (CurrentTargetPickup.IsValid() && !CurrentTargetPickup->CanInteract(this))
+		{
+			//if we cant interact with the pickup
+			CurrentTargetPickup = nullptr;
+		}
 		
 		if (!CurrentTargetPickup.IsValid())
 		{

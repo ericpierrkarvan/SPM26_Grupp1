@@ -87,7 +87,7 @@ FVector UInteractableComponent::GetPromptWorldLocation() const
 	return FVector(Origin.X, Origin.Y, Origin.Z + BoxExtent.Z) + PromptOffset;
 }
 
-bool UInteractableComponent::CanInteract(AActor* Interactor)
+bool UInteractableComponent::CanInteract(AActor* Interactor) const
 {
 	if (!bIsInteractable) return false;
 	if (AllowedCharacterType == EInteractionCharacters::Any) return true;

@@ -43,6 +43,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Pickup")
 	FOnDropped OnDroppedDelegate;
 
+	virtual bool CanInteract(AActor* Interactor) const override;
+	
 	UPROPERTY()
 	TWeakObjectPtr<AActor> HeldBy;
 
@@ -60,4 +62,6 @@ private:
 	UPROPERTY()
 	TMap<APlayerController*, UUserWidget*> PromptWidgets;
 
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;
 };

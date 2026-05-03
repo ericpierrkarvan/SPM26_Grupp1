@@ -7,6 +7,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/UI/PromptWidget.h"
 
 // Sets default values for this component's properties
@@ -117,6 +119,19 @@ void UPickupComponent::OnDropped()
 	if (HeldBy.IsValid()) HeldBy = nullptr;
 
 	OnDroppedDelegate.Broadcast();
+}
+
+bool UPickupComponent::CanInteract(AActor* Interactor) const
+{
+	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+
+	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
+	bool bIsRobot = Interactor->IsA(ARobotCharacter::StaticClass());
+
+	if (AllowedCharacterType == EInteractionCharacters::Mechanic) return bIsMechanic;
+	if (AllowedCharacterType == EInteractionCharacters::Robot) return bIsRobot;
+
+	return false;
 }
 
 FVector UPickupComponent::GetGrabLocation() const

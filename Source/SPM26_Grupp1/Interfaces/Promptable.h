@@ -14,6 +14,15 @@ enum class EPromptType : uint8
 	NPC      UMETA(DisplayName="NPC"),
 };
 
+UENUM(BlueprintType)
+enum class EInteractionCharacters : uint8
+{
+	Any         UMETA(DisplayName = "Any"),
+	Mechanic	UMETA(DisplayName = "Mechanic"),
+	Robot		UMETA(DisplayName = "Robot"),
+	None		UMETA(DisplayName = "No interaction allowed"),
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UPromptable : public UInterface
@@ -30,6 +39,7 @@ class SPM26_GRUPP1_API IPromptable
 public:
 	virtual UUserWidget* GetPromptWidget(APlayerController* PC) = 0;
 	virtual FVector GetPromptWorldLocation() const = 0;
+	virtual bool CanInteract(AActor* Interactor) const = 0;
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 };
