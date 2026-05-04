@@ -6,6 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/UI/PromptWidget.h"
 #include "UObject/ConstructorHelpers.h"
 
 
@@ -65,6 +66,11 @@ UUserWidget* UInteractableComponent::GetPromptWidget(APlayerController* ForPlaye
 	UUserWidget* NewWidget = CreateWidget<UUserWidget>(ForPlayer, PromptWidgetClass);
 	if (NewWidget)
 	{
+		if (UPromptWidget* PromptWidget = Cast<UPromptWidget>(NewWidget))
+		{
+			//set the text
+			PromptWidget->Init(InteractPrompt, EPromptType::Interact);
+		}
 		//and add it to the tmap so we can track it
 		PromptWidgets.Add(ForPlayer, NewWidget);
 	}
@@ -81,7 +87,7 @@ FVector UInteractableComponent::GetPromptWorldLocation() const
 	return FVector(Origin.X, Origin.Y, Origin.Z + BoxExtent.Z) + PromptOffset;
 }
 
-bool UInteractableComponent::CanInteract(AActor* Interactor)
+bool UInteractableComponent::CanInteract(AActor* Interactor) const
 {
 	if (!bIsInteractable) return false;
 	if (AllowedCharacterType == EInteractionCharacters::Any) return true;

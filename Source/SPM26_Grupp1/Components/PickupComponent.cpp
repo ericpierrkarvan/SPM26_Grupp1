@@ -3,14 +3,62 @@
 
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/UI/PromptWidget.h"
 
 // Sets default values for this component's properties
 UPickupComponent::UPickupComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(TEXT("/Game/UI/WBP_InteractionPrompt.WBP_InteractionPrompt_C"));
+	if (WidgetClassFinder.Succeeded() && WidgetClassFinder.Class)
+	{
+		PromptWidgetClass = WidgetClassFinder.Class;
+	}
+}
+
+UUserWidget* UPickupComponent::GetPromptWidget(APlayerController* ForPlayer)
+{
+	if (!PromptWidgetClass || !ForPlayer) return nullptr;
+
+	//if we have already created this promp widget, use that
+	if (UUserWidget** Existing = PromptWidgets.Find(ForPlayer))
+	{
+		return *Existing;
+	}
+
+	//create the promp widget
+	UUserWidget* NewWidget = CreateWidget<UUserWidget>(ForPlayer, PromptWidgetClass);
+	if (NewWidget)
+	{
+		if (UPromptWidget* PromptWidget = Cast<UPromptWidget>(NewWidget))
+		{
+			//set the text
+			PromptWidget->Init(PickupPromptText, EPromptType::Pickup);
+		}
+		
+		//and add it to the tmap so we can track it
+		PromptWidgets.Add(ForPlayer, NewWidget);
+	}
+	return NewWidget;
+}
+
+FVector UPickupComponent::GetPromptWorldLocation() const
+{
+	//since the prompts generally is above an object
+	//get a proximation of the object and offset it from the center top point
+	AActor* Owner = GetOwner();
+	if (!Owner) return FVector::ZeroVector;
+
+	FVector Origin, BoxExtent;
+	Owner->GetActorBounds(true, Origin, BoxExtent);
+	return FVector(Origin.X, Origin.Y, Origin.Z + BoxExtent.Z) + PromptOffset;
 }
 
 
@@ -71,6 +119,19 @@ void UPickupComponent::OnDropped()
 	if (HeldBy.IsValid()) HeldBy = nullptr;
 
 	OnDroppedDelegate.Broadcast();
+}
+
+bool UPickupComponent::CanInteract(AActor* Interactor) const
+{
+	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+
+	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
+	bool bIsRobot = Interactor->IsA(ARobotCharacter::StaticClass());
+
+	if (AllowedCharacterType == EInteractionCharacters::Mechanic) return bIsMechanic;
+	if (AllowedCharacterType == EInteractionCharacters::Robot) return bIsRobot;
+
+	return false;
 }
 
 FVector UPickupComponent::GetGrabLocation() const

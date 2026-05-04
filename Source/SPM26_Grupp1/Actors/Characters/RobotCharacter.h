@@ -27,6 +27,7 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 	ARobotCharacter(const FObjectInitializer& ObjectInitializer);
 
 public:
+	
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
 
@@ -141,6 +142,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input|Payload")
 	float PayloadLookSensitivityScale = 0.15f;
+
+	UPROPERTY(EditAnywhere, Category="ADS|CRT")
+	UMaterialInterface* CRTMaterial;
+	
+	UPROPERTY(EditAnywhere, Category="ADS|CRT")
+	float CRTBlendSpeed = 5.f;
 	
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
@@ -195,9 +202,14 @@ private:
 	bool bIsInLaunchMode = false;
 
 	void Launch();
+	void LaunchPlayerCharacter(ACharacter* Char, const FVector& LaunchForce);
+	void LaunchObject(AActor* Actor, const FVector& LaunchForce);
 
 	void OnLaunchPressed();
 	void OnLaunchReleased();
+
+	void OnShootPressed();
+	void OnShootReleased();
 
 	float LaunchChargeTimer = 0.f;
 	bool bLaunchIsCharging = false;
@@ -226,5 +238,8 @@ private:
 	UPROPERTY()
 	AActor* HeldActor;
 	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
-	
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* CRTMID;
+	float CurrentCRTIntensity = 0.f;
 };

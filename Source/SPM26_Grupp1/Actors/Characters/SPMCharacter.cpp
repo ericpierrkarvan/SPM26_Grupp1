@@ -167,8 +167,23 @@ void ASPMCharacter::Interact(const FInputActionValue& Value)
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
-	FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
-	FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
+	// FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
+	// FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
+	
+	APlayerController* PC = GetViewingPlayerController();
+	if (!PC) return;
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	FVector ForwardDir = CameraRotation.Vector();
+	ForwardDir.Z = 0.f;
+	ForwardDir.Normalize();
+
+	const FQuat BoxRotation = ForwardDir.Rotation().Quaternion();
+	FVector Start = GetActorLocation() + (ForwardDir * InteractBoxStartOffset);
+	FVector End = Start + (ForwardDir * InteractBoxDistance);
 
 	FHitResult HitResult;
 	FCollisionShape BoxShape = FCollisionShape::MakeBox(InteractBoxSize);
@@ -177,12 +192,11 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	Params.AddIgnoredActor(this);
 	Params.bTraceComplex = false;
 
-	//todo: proper trace channel && trace visibility to the the interactable - so we cant interact with stuff through walls etc
 	bool bHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		Start,
 		End,
-		GetActorQuat(),
+		BoxRotation,
 		ECC_INTERACT,
 		BoxShape,
 		Params
@@ -198,7 +212,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			GetWorld(),
 			DrawLocation,
 			InteractBoxSize,
-			GetActorQuat(),
+			BoxRotation,
 			DrawColor,
 			false, -1.f 
 		);
@@ -211,6 +225,12 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	if (bHit && HitResult.GetActor())
 	{
 		CurrentTargetPickup = Cast<UPickupComponent>(HitResult.GetActor()->GetComponentByClass(UPickupComponent::StaticClass()));
+
+		if (CurrentTargetPickup.IsValid() && !CurrentTargetPickup->CanInteract(this))
+		{
+			//if we cant interact with the pickup
+			CurrentTargetPickup = nullptr;
+		}
 		
 		if (!CurrentTargetPickup.IsValid())
 		{
@@ -225,23 +245,25 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			}
 		}
 	}
-
-	//if we found an interactable that is not our current one, then we need to update the hud.
-	//if we dont find an interactable, but we have a currentTargetInteractableComp, that means we need to hide the prompt in hud
-	if (NewInteractable != CurrentTargetInteractableComp)
+	
+	//decide which promptable should we display
+	//order: Pickup -> Interactable
+	IPromptable* NewPromptable = nullptr;
+	if (CurrentTargetPickup.IsValid())
 	{
-		CurrentTargetInteractableComp = NewInteractable;
+		NewPromptable = CurrentTargetPickup.Get();
+	}
+	else if (NewInteractable)
+	{
+		NewPromptable = NewInteractable;
+	}
 
-		//since we have the development "tab" to switch between players, we need to see which controller is currently viewing this character
-		//todo: maybe wrap in #if WITH_EDITOR and use normal getcontroller() - but i dont think the performance impact is big enough to bother
-		APlayerController* PC = GetViewingPlayerController();
-		if (PC)
-		{
-			if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
-			{
-				HUD->SetFocusedInteractable(CurrentTargetInteractableComp);
-			}
-		}
+	CurrentTargetInteractableComp = NewInteractable;
+
+	//update HUD with the current promptable
+	if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
+	{
+		HUD->SetFocusedPromptable(NewPromptable);
 	}
 }
 

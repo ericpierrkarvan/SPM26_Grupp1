@@ -3,34 +3,34 @@
 
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 
-#include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "SPM26_Grupp1/Interfaces/Promptable.h"
 
 
-void ASPMHUD::SetFocusedInteractable(UInteractableComponent* Interactable)
+void ASPMHUD::SetFocusedPromptable(IPromptable* Promptable)
 {
-    if (Interactable == FocusedInteractable) return; //we're already showing the widget
+    if (Promptable == FocusedPromptable) return; //we're already showing the widget
 
-    //hide the old widget
+    //remove old widget from view
     if (ActivePromptWidget)
     {
-        ActivePromptWidget->SetVisibility(ESlateVisibility::Hidden);
+        ActivePromptWidget->RemoveFromParent();
         ActivePromptWidget = nullptr;
     }
     //and set the new one
-    FocusedInteractable = Interactable;
+    FocusedPromptable = Promptable;
     UpdatePromptWidget();
 }
 
 void ASPMHUD::UpdatePromptWidget()
 {
-    if (!FocusedInteractable) return;
+    if (!FocusedPromptable) return;
 
     APlayerController* PC = GetOwningPlayerController();
     if (!PC) return;
 
-    UUserWidget* Widget = FocusedInteractable->GetPromptWidget(PC);
+    UUserWidget* Widget = FocusedPromptable->GetPromptWidget(PC);
     if (!Widget) return; //make sure the focusable have a interact widget it wants to show
 
     if (!Widget->IsInViewport())
@@ -52,12 +52,12 @@ void ASPMHUD::DrawHUD()
 
 void ASPMHUD::DrawInteractableWidget()
 {
-    if (!FocusedInteractable || !ActivePromptWidget) return;
+    if (!FocusedPromptable || !ActivePromptWidget) return;
 
     APlayerController* PC = GetOwningPlayerController();
     if (!PC) return;
 
-    FVector WorldLocation = FocusedInteractable->GetPromptWorldLocation(); //get the location of the prompt
+    FVector WorldLocation = FocusedPromptable->GetPromptWorldLocation(); //get the location of the prompt
     FVector2D ScreenPos;
 
     //try and project the interactable location on the screen

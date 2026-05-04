@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "FMODAudioComponent.h"
 #include "MechanicCharacter.h"
+#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
@@ -41,6 +42,8 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &ARobotCharacter::OnLaunchPressed);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ARobotCharacter::OnLaunchReleased);
+		EIC->BindAction(IA_Shoot, ETriggerEvent::Started, this, &ARobotCharacter::OnShootPressed);
+		EIC->BindAction(IA_Shoot, ETriggerEvent::Completed, this, &ARobotCharacter::OnShootReleased);
 	}
 }
 
@@ -67,6 +70,15 @@ void ARobotCharacter::BeginPlay()
 
 		float DetectionRadius = GetCapsuleComponent() ? GetCapsuleComponent()->GetScaledCapsuleRadius() * 0.9f : 40.f;
 		PlatformDetectionSphere->SetSphereRadius(DetectionRadius);
+	}
+
+	if (CRTMaterial && FollowCamera)
+	{
+		//create a dynamic material instance for the crt effect
+		//start at 0 intensity
+		CRTMID = UMaterialInstanceDynamic::Create(CRTMaterial, this);
+		FollowCamera->PostProcessSettings.AddBlendable(CRTMID, 1.f);
+		CRTMID->SetScalarParameterValue(FName("Intensity"), 0.f);
 	}
 }
 
@@ -173,6 +185,9 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 					PlatformDetectionSphere,
 					FAttachmentTransformRules::KeepWorldTransform
 				);
+				//the overlap check might miss that we have an object on our head
+				//and since we know we have an object on our head, lets force the bool
+				bHavePayload = true; 
 			}
 			
 			bIsPickingUp = false;
@@ -243,6 +258,14 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	}
 
 	OnIsPickingUp(DeltaSeconds);
+
+	if (CRTMID)
+	{
+		//fade in/out the crt effect depending on our payload state
+		const float TargetIntensity = (bIsInLaunchMode && bHavePayload) ? 1.f : 0.f;
+		CurrentCRTIntensity = FMath::FInterpTo(CurrentCRTIntensity, TargetIntensity, DeltaSeconds, CRTBlendSpeed);
+		CRTMID->SetScalarParameterValue(FName("Intensity"), CurrentCRTIntensity);
+	}
 
 #if WITH_EDITOR
 	if (PlatformDetectionSphere && bDrawLauncherSphere)
@@ -414,6 +437,10 @@ void ARobotCharacter::OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, 
                                            UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor == this) return;
+	//if we are picking up the object that currently triggered the overlap end
+	//then we dont want to anything since it'll end up on begin overlap eventually anyways
+	//might cause bugs if we dont do this
+	if (bIsPickingUp && HeldActor == OtherActor) return;
 
 	//do we have more than w/e is leaving us?
 	TArray<AActor*> OverlappingActors;
@@ -456,61 +483,90 @@ void ARobotCharacter::Launch()
 
 	TArray<AActor*> OverlappingActors;
 	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
+	AActor* LocalHeldActor = HeldActor;
+	
+	//if we have a actor that we are holding, we launch that first and then check any overlapping actors
+	if (HeldActor && HeldPickupComponent.IsValid())
+	{
+		HeldActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		HeldPickupComponent->OnDropped();
 
+		if (ACharacter* Char = Cast<ACharacter>(HeldActor))
+		{
+			LaunchPlayerCharacter(Char, LaunchForce);
+		}
+		else
+		{
+			LaunchObject(HeldActor, LaunchForce);
+		}
+
+		//reset pickup
+		HeldActor = nullptr;
+		HeldPickupComponent = nullptr;
+		bIsPickingUp = false;
+		PickupAlpha = 0.f;
+	}
+	
 	//launch each overlapping actor
 	for (AActor* Actor : OverlappingActors)
 	{
 		if (Actor == this) continue;
+		if (LocalHeldActor == Actor) continue; //we already launched the held actor
 
 		if (ACharacter* Char = Cast<ACharacter>(Actor))
 		{
-			if (!Char->GetMovementComponent()) return;
-			//Char->LaunchCharacter(LaunchForce, true, true);
-			const float CachedAirControl = Char->GetCharacterMovement()->AirControl;
-
-			Char->GetCharacterMovement()->Velocity = LaunchForce;
-			Char->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-			Char->GetCharacterMovement()->AirControl = 0.f;
-
-			//disable air control initially to enhance the "launch" effect
-			FTimerHandle AirControlTimer;
-			GetWorldTimerManager().SetTimer(AirControlTimer, [Char, CachedAirControl]()
-			{
-				if (IsValid(Char) && Char->GetCharacterMovement())
-				{
-					Char->GetCharacterMovement()->AirControl = CachedAirControl;
-				}
-			}, 0.5f, false);
+			LaunchPlayerCharacter(Char, LaunchForce);
 		}
 		else if (UPrimitiveComponent* Other = Actor->FindComponentByClass<UPrimitiveComponent>())
 		{
 			//detach from robot
 			Actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-			//reapply physics
-			Other->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			Other->SetSimulatePhysics(true);
-
+			
 			//notify pickupcomp
 			if (UPickupComponent* Pickup = Actor->FindComponentByClass<UPickupComponent>())
 			{
 				Pickup->OnDropped();
 			}
-
-			//clear references
-			if (HeldActor == Actor)
-			{
-				HeldActor = nullptr;
-				HeldPickupComponent = nullptr;
-				bIsPickingUp = false;
-				PickupAlpha = 0.f;
-			}
-
-			Other->AddImpulse(LaunchForce, NAME_None, true);
+			
+			LaunchObject(Actor, LaunchForce);
 		}
 	}
 
 	OnLaunchEnd();
+}
+
+void ARobotCharacter::LaunchPlayerCharacter(ACharacter* Char, const FVector& LaunchForce)
+{
+	if (!Char || !Char->GetMovementComponent()) return;
+	const float CachedAirControl = Char->GetCharacterMovement()->AirControl;
+
+	Char->GetCharacterMovement()->Velocity = LaunchForce;
+	Char->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+	Char->GetCharacterMovement()->AirControl = 0.f;
+
+	//disable air control initially to enhance the "launch" effect
+	FTimerHandle AirControlTimer;
+	GetWorldTimerManager().SetTimer(AirControlTimer, [Char, CachedAirControl]()
+	{
+		if (IsValid(Char) && Char->GetCharacterMovement())
+		{
+			Char->GetCharacterMovement()->AirControl = CachedAirControl;
+		}
+	}, 0.5f, false);
+}
+
+void ARobotCharacter::LaunchObject(AActor* Actor, const FVector& LaunchForce)
+{
+	if (!Actor) return;
+
+	UPrimitiveComponent* Prim = Actor->FindComponentByClass<UPrimitiveComponent>();
+	if (!Prim) return;
+	
+	//reapply physics
+	Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Prim->SetSimulatePhysics(true);
+	
+	Prim->AddImpulse(LaunchForce, NAME_None, true);
 }
 
 void ARobotCharacter::OnLaunchPressed()
@@ -529,8 +585,8 @@ void ARobotCharacter::OnLaunchPressed()
 		return;
 	}
 	//if we're already in launch mode, then we start the charge:
-	if (!bLaunchIsCharging) OnLaunchStart();
-	bLaunchIsCharging = true;
+	// if (!bLaunchIsCharging) OnLaunchStart();
+	// bLaunchIsCharging = true;
 }
 
 void ARobotCharacter::OnLaunchReleased()
@@ -539,6 +595,20 @@ void ARobotCharacter::OnLaunchReleased()
 
 	Launch();
 	ExitLaunchMode();
+}
+
+void ARobotCharacter::OnShootPressed()
+{
+	if (!bIsADS) return;
+	if (!bHavePayload) return;
+
+	if (!bLaunchIsCharging) OnLaunchStart();
+	bLaunchIsCharging = true;
+}
+
+void ARobotCharacter::OnShootReleased()
+{
+	OnLaunchReleased();
 }
 
 void ARobotCharacter::Move(const FInputActionValue& Value)

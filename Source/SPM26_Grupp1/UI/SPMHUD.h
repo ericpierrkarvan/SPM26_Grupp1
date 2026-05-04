@@ -6,7 +6,8 @@
 #include "GameFramework/HUD.h"
 #include "SPMHUD.generated.h"
 
-class UInteractableComponent;
+class IPromptable;
+
 /**
  * 
  */
@@ -16,15 +17,14 @@ class SPM26_GRUPP1_API ASPMHUD : public AHUD
 	GENERATED_BODY()
 	
 public:
-	void SetFocusedInteractable(UInteractableComponent* Interactable);
+	void SetFocusedPromptable(IPromptable* Promptable);
 	void UpdatePromptWidget();
 
 protected:
 	virtual void DrawHUD() override;
 
 private:
-	UPROPERTY()
-	UInteractableComponent* FocusedInteractable;
+	IPromptable* FocusedPromptable;
 
 	UPROPERTY()
 	UUserWidget* ActivePromptWidget;

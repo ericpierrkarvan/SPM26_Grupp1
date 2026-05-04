@@ -4,22 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "SPM26_Grupp1/Interfaces/Promptable.h"
 #include "InteractableComponent.generated.h"
 
 class UWidgetComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteract, AActor*, Interactor, bool, IsOn);
 
-UENUM(BlueprintType)
-enum class EInteractionCharacters : uint8
-{
-	Any         UMETA(DisplayName = "Any"),
-	Mechanic	UMETA(DisplayName = "Mechanic"),
-	Robot		UMETA(DisplayName = "Robot"),
-	None		UMETA(DisplayName = "No interaction allowed"),
-};
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent
+class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent, public IPromptable
 {
 	GENERATED_BODY()
 
@@ -37,7 +29,7 @@ public:
 
 	// What should be shown if player looks at the interaction actor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
-	FText InteractPrompt = FText::FromString("Press E to Interact");
+	FText InteractPrompt = FText::FromString("Interact");
 	
 	// Fired when a player interacts
 	UPROPERTY(BlueprintAssignable, Category="Interaction")
@@ -51,11 +43,11 @@ public:
 	bool bIsOn = false;
 	
 	UFUNCTION()
-	UUserWidget* GetPromptWidget(APlayerController* ForPlayer);
+	virtual UUserWidget* GetPromptWidget(APlayerController* ForPlayer) override;
 
-	FVector GetPromptWorldLocation() const;
+	virtual FVector GetPromptWorldLocation() const override;
 
-	bool CanInteract(AActor* Interactor);
+	virtual bool CanInteract(AActor* Interactor) const override;
 
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	void SetIsInteractable(bool NewInteractableState);
