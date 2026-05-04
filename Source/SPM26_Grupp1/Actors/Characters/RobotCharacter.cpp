@@ -382,7 +382,7 @@ void ARobotCharacter::PerformDash()
 	FRotator ControlRotation = GetController()->GetControlRotation();
 	FRotator YawRotation{0, ControlRotation.Yaw, 0};
 
-	DashDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	DashDirection = GetActorForwardVector();//FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
 
 	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
