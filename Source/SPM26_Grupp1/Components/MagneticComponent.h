@@ -27,9 +27,6 @@ private:
 	EPolarity Polarity;
 	
 	UPROPERTY(EditAnywhere, Category="MagneticComponent")
-	bool bIsActive;
-	
-	UPROPERTY(EditAnywhere, Category="MagneticComponent")
 	bool bCanBeAffected;
 	
 	// Resistance to being moved by magnetic fields

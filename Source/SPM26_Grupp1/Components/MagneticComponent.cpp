@@ -4,7 +4,6 @@
 UMagneticComponent::UMagneticComponent()
 {
 	Polarity = EPolarity::Positive;
-	bIsActive = true;	
 	bCanBeAffected = true;
 	ResistanceFactor = 1.0f;
 }
@@ -30,17 +29,17 @@ float UMagneticComponent::GetResistanceFactor() const
 	return ResistanceFactor;
 }
 
-void UMagneticComponent::SetPolarity(const EPolarity Polarity)
+void UMagneticComponent::SetPolarity(const EPolarity NewPolarity)
 {
-	this->Polarity = Polarity;
+	this->Polarity = NewPolarity;
 }
 
-void UMagneticComponent::SetCanBeAffected(const bool bCanBeAffected)
+void UMagneticComponent::SetCanBeAffected(const bool NewCanBeAffected)
 {
-	this->bCanBeAffected = bCanBeAffected;
+	this->bCanBeAffected = NewCanBeAffected;
 }
 
-void UMagneticComponent::SetResistanceFactor(const float ResistanceFactor)
+void UMagneticComponent::SetResistanceFactor(const float NewResistanceFactor)
 {
-	this->ResistanceFactor = ResistanceFactor;
+	this->ResistanceFactor = NewResistanceFactor;
 }
