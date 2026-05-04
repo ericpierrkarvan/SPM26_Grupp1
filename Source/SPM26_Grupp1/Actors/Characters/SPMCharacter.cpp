@@ -9,6 +9,7 @@
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
@@ -160,7 +161,28 @@ void ASPMCharacter::LookMouse(const FInputActionValue& Value)
 
 bool ASPMCharacter::FindPickup()
 {
-	return false;
+	if (!CurrentTargetPickup.IsValid()) return false;
+	AActor* PickupActor = CurrentTargetPickup->GetOwner();
+	if (!PickupActor) return false;
+	UPrimitiveComponent* Prim = PickupActor->FindComponentByClass<UPrimitiveComponent>();
+	if (!Prim) return false;
+
+	Prim->SetSimulatePhysics(false);
+
+	// Get bounds before changing collision
+	GrabPointOffset = CurrentTargetPickup->GetGrabLocation() - PickupActor->GetActorLocation();
+	PickupStartLocation = PickupActor->GetActorLocation();
+	PickupStartRotation = PickupActor->GetActorRotation();
+	PickupTargetRotation = FRotator(0.f, GetActorRotation().Yaw, 0.f);
+
+	// Change collision after bounds are stored
+	CurrentTargetPickup->OnPickedUp(this);
+
+	HeldActor = PickupActor;
+	HeldPickupComponent = CurrentTargetPickup;
+	bIsPickingUp = true;
+	PickupAlpha = 0.f;
+	return true;
 }
 
 void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
@@ -173,6 +195,45 @@ void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
 	if (UProgressSubsystem* Progress = UGameplayStatics::GetGameInstance(this)->GetSubsystem<UProgressSubsystem>())
 	{
 		ApplyProgress(Progress);
+	}
+}
+
+void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
+{
+	if (bIsPickingUp && HeldActor)
+	{
+		PickupAlpha = FMath::Clamp(PickupAlpha + DeltaSeconds * PickupSpeed, 0.f, 1.f);
+
+		//find offset for the grab location of the target
+		FVector GrabOffset = FVector::ZeroVector;
+		if (HeldPickupComponent.IsValid() && HeldActor)
+		{
+			GrabOffset = HeldPickupComponent->GetGrabLocation() - HeldActor->GetActorLocation();
+		}
+
+		//adjusted target location so the pickup actor gets centered ontop of the robot
+		const FVector TargetLocation = GetActorLocation() + FVector(0.f, 0.f, GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() + 30.f) - GrabOffset;
+		const FVector NewLocation = FMath::Lerp(PickupStartLocation, TargetLocation, PickupAlpha);
+
+		HeldActor->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+		const FQuat NewRotation = FQuat::Slerp(
+			FQuat(PickupStartRotation),
+			FQuat(PickupTargetRotation),
+			PickupAlpha
+		);
+		HeldActor->SetActorRotation(NewRotation, ETeleportType::TeleportPhysics);
+
+		if (PickupAlpha >= 1.f)
+		{
+
+			HeldActor->AttachToComponent(
+				GetRootComponent(),
+				FAttachmentTransformRules::KeepWorldTransform
+			);
+			
+			bIsPickingUp = false;
+		}
 	}
 }
 
@@ -421,7 +482,8 @@ void ASPMCharacter::Tick(float DeltaTime)
 
 	LookForInteractables(DeltaTime);
 	UpdateCamera(DeltaTime);
-
+	OnIsPickingUp(DeltaTime);
+	
 	if (SwitchPolarityTimer > 0)
 	{
 		SwitchPolarityTimer -= DeltaTime;

@@ -170,6 +170,22 @@ protected:
 
 	UFUNCTION()
 	virtual void HandleFlagUnlocked(EProgressFlag Flag);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
+	float PickupSpeed = 5;
+
+	virtual void OnIsPickingUp(float DeltaTime);
+	bool bIsPickingUp = false;
+	float PickupAlpha = 0.f;
+	FVector PickupTargetLocation;
+	FVector PickupStartLocation;
+	FRotator PickupStartRotation;
+	FRotator PickupTargetRotation;
+	FVector GrabPointOffset = FVector::ZeroVector;
+	
+	UPROPERTY()
+	AActor* HeldActor;
+	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
 	
 private:
 

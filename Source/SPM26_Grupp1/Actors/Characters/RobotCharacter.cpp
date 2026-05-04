@@ -257,9 +257,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	{
 		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
-
-	OnIsPickingUp(DeltaSeconds);
-
+	
 	if (CRTMID)
 	{
 		//fade in/out the crt effect depending on our payload state
@@ -303,7 +301,6 @@ bool ARobotCharacter::FindPickup()
 	Prim->SetSimulatePhysics(false);
 
 	// Get bounds before changing collision
-	// In FindPickup
 	GrabPointOffset = CurrentTargetPickup->GetGrabLocation() - PickupActor->GetActorLocation();
 	PickupStartLocation = PickupActor->GetActorLocation();
 	PickupStartRotation = PickupActor->GetActorRotation();

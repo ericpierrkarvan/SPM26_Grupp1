@@ -124,9 +124,7 @@ protected:
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
 
 	virtual bool FindPickup() override;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
-	float PickupSpeed = 5;
-
+	
 	UPROPERTY(EditAnywhere, Category="Camera|Payload")
 	float PayloadCameraArmLength = 450.f;
 
@@ -230,19 +228,7 @@ private:
 	virtual float GetADSMovementMultiplier() const override;
 
 	bool IsLaunchableObject(AActor* Object) const;
-
-	bool bIsPickingUp = false;
-	float PickupAlpha = 0.f;
-	FVector PickupTargetLocation;
-	FVector PickupStartLocation;
-	FRotator PickupStartRotation;
-	FRotator PickupTargetRotation;
-	FVector GrabPointOffset = FVector::ZeroVector;
 	
-	UPROPERTY()
-	AActor* HeldActor;
-	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
-
 	UPROPERTY()
 	UMaterialInstanceDynamic* CRTMID;
 	float CurrentCRTIntensity = 0.f;
