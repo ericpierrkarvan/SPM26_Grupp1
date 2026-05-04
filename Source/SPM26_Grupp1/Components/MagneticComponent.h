@@ -1,9 +1,13 @@
 #pragma once
+
 #include "SPM26_Grupp1/Enum/Polarity.h"
+#include "MagneticComponent.generated.h"
 
 UCLASS()
 class UMagneticComponent : public UActorComponent
 {
+	GENERATED_BODY()
+	
 public:
 	UMagneticComponent();
 	

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Components/MagneticComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "RobotCharacter.generated.h"
 
@@ -58,7 +59,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Magnet")
+	UMagneticComponent* MagneticComponent;
+	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	USphereComponent* PlatformDetectionSphere;
 	UPROPERTY(VisibleAnywhere, Category="HeadLaunch")

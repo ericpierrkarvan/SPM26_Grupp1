@@ -25,6 +25,9 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
 	LaunchArcComponent = CreateDefaultSubobject<ULaunchArcComponent>(TEXT("LaunchArcComponent"));
+	
+	MagneticComponent = CreateDefaultSubobject<UMagneticComponent>(TEXT("MagneticComponent"));
+	MagneticComponent->SetPolarity(EPolarity::Negative);
 
 	HeadLaunchStartAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchStartAudioComp"));
 	HeadLaunchStartAudioComp->SetupAttachment(RootComponent);
@@ -733,7 +736,7 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
-	OnSwitchPolarity(Polarity);
+	//OnSwitchPolarity(Polarity);
 	ScreenDebugPolaritySwitchMessage();
 }
 
@@ -742,7 +745,7 @@ void ARobotCharacter::ForceSwitchPolarity()
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	SwitchPolarityTimer = PolaritySwitchCooldown;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
-	OnSwitchPolarity(Polarity);
+	// OnSwitchPolarity(Polarity);
 }
 
 void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const

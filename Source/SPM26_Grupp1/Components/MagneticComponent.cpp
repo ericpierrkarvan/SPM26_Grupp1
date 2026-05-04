@@ -1,5 +1,5 @@
-#include "MagneticComponent.h"
 
+#include "MagneticComponent.h"
 
 UMagneticComponent::UMagneticComponent()
 {
