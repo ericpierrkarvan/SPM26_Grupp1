@@ -13,6 +13,7 @@
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
@@ -362,6 +363,22 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 	AddControllerPitchInput(Axis.Y);
 }
 
+bool ARobotCharacter::CanSwitchPolarity() const
+{
+	return bCanEverSwitchPolarity && Super::CanSwitchPolarity();
+}
+
+void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
+{
+	Super::ApplyProgress(Progress);
+
+	if (Progress)
+	{
+		bCanEverSwitchPolarity = Progress->HasFlag(EProgressFlag::RobotCanSwitchPolarity);
+	}
+	
+}
+
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 {
 	return Cast<URobotMovementComponent>(GetCharacterMovement());
@@ -700,6 +717,11 @@ void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPola
 	GetCharacterMovement()->AddImpulse(FVector::UpVector * ImpactForce * UpMultiplier, true);
 	
 	ForceSwitchPolarity();
+}
+
+void ARobotCharacter::ProgressEnablePolaritySwitch()
+{
+	bCanEverSwitchPolarity = true;
 }
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)

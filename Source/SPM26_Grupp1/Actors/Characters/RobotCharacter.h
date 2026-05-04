@@ -51,6 +51,8 @@ public:
 	bool IsRepellable() const;
 
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
+
+	void ProgressEnablePolaritySwitch();
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -148,7 +150,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	float CRTBlendSpeed = 5.f;
-	
+
+	virtual bool CanSwitchPolarity() const override;
+	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
@@ -242,4 +246,7 @@ private:
 	UPROPERTY()
 	UMaterialInstanceDynamic* CRTMID;
 	float CurrentCRTIntensity = 0.f;
+
+	//progress:
+	bool bCanEverSwitchPolarity = false;
 };

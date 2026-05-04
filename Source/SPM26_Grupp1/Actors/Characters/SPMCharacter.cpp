@@ -9,11 +9,13 @@
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/UI/SPMHUD.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
@@ -69,6 +71,12 @@ void ASPMCharacter::BeginPlay()
 	}
 	CurrentCameraOffset = DefaultCameraOffset;
 
+	//apply progress
+	if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
+	{
+		ApplyProgress(Progress);
+		Progress->OnFlagUnlocked.AddDynamic(this, &ASPMCharacter::HandleFlagUnlocked);
+	}
 }
 
 void ASPMCharacter::PossessedBy(AController* NewController)
@@ -153,6 +161,19 @@ void ASPMCharacter::LookMouse(const FInputActionValue& Value)
 bool ASPMCharacter::FindPickup()
 {
 	return false;
+}
+
+void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
+{
+	
+}
+
+void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
+{
+	if (UProgressSubsystem* Progress = UGameplayStatics::GetGameInstance(this)->GetSubsystem<UProgressSubsystem>())
+	{
+		ApplyProgress(Progress);
+	}
 }
 
 void ASPMCharacter::Interact(const FInputActionValue& Value)

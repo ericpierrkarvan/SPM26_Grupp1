@@ -11,8 +11,9 @@
 
 #include "SPMCharacter.generated.h"
 
-class UPickupComponent;
-class UFMODAudioComponent;
+enum class EProgressFlag : uint8;
+struct FPlayerProgress;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 
@@ -21,6 +22,9 @@ class USPMCharacterMovementComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class APolarity;
+class UPickupComponent;
+class UFMODAudioComponent;
+class UProgressSubsystem;
 
 UENUM(BlueprintType)
 enum class ECameraState : uint8
@@ -48,7 +52,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category="Polarity")
 	void OnSwitchPolarity(EPolarity NewPolarity);
 	
-	bool CanSwitchPolarity() const;
+	virtual bool CanSwitchPolarity() const;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	float GetPolaritySwitchCooldown() const;
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
@@ -162,7 +166,10 @@ protected:
 	TObjectPtr<UCameraComponent> FollowCamera;
 
 	
+	virtual void ApplyProgress(UProgressSubsystem* Progress);
 
+	UFUNCTION()
+	virtual void HandleFlagUnlocked(EProgressFlag Flag);
 	
 private:
 
