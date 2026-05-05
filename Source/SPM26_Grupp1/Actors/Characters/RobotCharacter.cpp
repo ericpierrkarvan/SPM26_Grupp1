@@ -13,6 +13,7 @@
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
@@ -187,7 +188,10 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				);
 				//the overlap check might miss that we have an object on our head
 				//and since we know we have an object on our head, lets force the bool
-				bHavePayload = true; 
+				if (IsLaunchableObject(HeldActor))
+				{
+					bHavePayload = true; 
+				}
 			}
 			
 			bIsPickingUp = false;
@@ -256,9 +260,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	{
 		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
-
-	OnIsPickingUp(DeltaSeconds);
-
+	
 	if (CRTMID)
 	{
 		//fade in/out the crt effect depending on our payload state
@@ -302,7 +304,6 @@ bool ARobotCharacter::FindPickup()
 	Prim->SetSimulatePhysics(false);
 
 	// Get bounds before changing collision
-	// In FindPickup
 	GrabPointOffset = CurrentTargetPickup->GetGrabLocation() - PickupActor->GetActorLocation();
 	PickupStartLocation = PickupActor->GetActorLocation();
 	PickupStartRotation = PickupActor->GetActorRotation();
@@ -360,6 +361,22 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 	
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
+}
+
+bool ARobotCharacter::CanSwitchPolarity() const
+{
+	return bCanEverSwitchPolarity && Super::CanSwitchPolarity();
+}
+
+void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
+{
+	Super::ApplyProgress(Progress);
+
+	if (Progress)
+	{
+		bCanEverSwitchPolarity = Progress->HasFlag(EProgressFlag::RobotCanSwitchPolarity);
+	}
+	
 }
 
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
@@ -486,7 +503,7 @@ void ARobotCharacter::Launch()
 	AActor* LocalHeldActor = HeldActor;
 	
 	//if we have a actor that we are holding, we launch that first and then check any overlapping actors
-	if (HeldActor && HeldPickupComponent.IsValid())
+	if (HeldActor && HeldPickupComponent.IsValid() && HeldPickupComponent->GetIsLaunchable())
 	{
 		HeldActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		HeldPickupComponent->OnDropped();
@@ -517,18 +534,17 @@ void ARobotCharacter::Launch()
 		{
 			LaunchPlayerCharacter(Char, LaunchForce);
 		}
-		else if (UPrimitiveComponent* Other = Actor->FindComponentByClass<UPrimitiveComponent>())
+		else if (UPickupComponent* Pickup = Actor->FindComponentByClass<UPickupComponent>())
 		{
-			//detach from robot
-			Actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			
-			//notify pickupcomp
-			if (UPickupComponent* Pickup = Actor->FindComponentByClass<UPickupComponent>())
+			if (Pickup->GetIsLaunchable())
 			{
-				Pickup->OnDropped();
-			}
+				//detach from robot
+				Actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 			
-			LaunchObject(Actor, LaunchForce);
+				Pickup->OnDropped();
+			
+				LaunchObject(Actor, LaunchForce);
+			}
 		}
 	}
 
@@ -667,14 +683,18 @@ float ARobotCharacter::GetADSMovementMultiplier() const
 
 bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
 {
-	//todo check for some throwable comp
-	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Object))
+	if (!Object) return false;
+
+	if (const UPickupComponent* LaunchPickup = Object->FindComponentByClass<UPickupComponent>())
+	{
+		return LaunchPickup->GetIsLaunchable();
+	}
+
+	if (HeldActor == Object)
 	{
 		return true;
 	}
 
-	//the object we picked up
-	if (HeldActor == Object) return true;
 	return false;
 }
 
@@ -700,6 +720,11 @@ void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPola
 	GetCharacterMovement()->AddImpulse(FVector::UpVector * ImpactForce * UpMultiplier, true);
 	
 	ForceSwitchPolarity();
+}
+
+void ARobotCharacter::ProgressEnablePolaritySwitch()
+{
+	bCanEverSwitchPolarity = true;
 }
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)

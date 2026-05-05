@@ -3,6 +3,8 @@
 
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
 
+#include "Components/Image.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
@@ -15,13 +17,15 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		RobotCharacter->OnLaunchStateChanged.RemoveDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
 		RobotCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
 		RobotCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
+		RobotCharacter->OnPictureTaken.RemoveDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 	}
 	if (MechanicCharacter)
 	{
 		MechanicCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
 		MechanicCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		MechanicCharacter->OnSurfaceCanSpawnMagneticField.RemoveDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
-
+		MechanicCharacter->OnPictureTaken.RemoveDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
+		
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
@@ -37,6 +41,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		RobotCharacter->OnLaunchStateChanged.AddDynamic(this, &UPlayerWidgetHUD::UpdateRobotLaunchBar);
 		RobotCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
 		RobotCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
+		RobotCharacter->OnPictureTaken.AddDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 
 	}
 	else if (MechanicCharacter)
@@ -44,6 +49,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		MechanicCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
 		MechanicCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		MechanicCharacter->OnSurfaceCanSpawnMagneticField.AddDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
+		MechanicCharacter->OnPictureTaken.AddDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 		
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
@@ -51,6 +57,11 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 			MechanicCharacter->GetEquippedWeapon()->OnWeaponFired.AddDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
 		}
 	}
+}
+
+bool UPlayerWidgetHUD::IsPromptVisible()
+{
+	return bHavePrompt;
 }
 
 void UPlayerWidgetHUD::UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility)
@@ -61,4 +72,25 @@ void UPlayerWidgetHUD::UpdateRobotLaunchBarInternal(float NewPercentage, bool Ne
 void UPlayerWidgetHUD::OnAmmoChanged(int32 CurrentAmmo, int32 MaxAmmo, bool bAmmoIncreased)
 {
 	UpdateAmmo(CurrentAmmo, MaxAmmo, bAmmoIncreased);
+}
+
+void UPlayerWidgetHUD::OnProgressPickup(UTextureRenderTarget2D* RenderTarget)
+{
+	if (!DynPhotoMaterial)
+	{
+		DynPhotoMaterial = UMaterialInstanceDynamic::Create(PhotoMaterial, this);
+		//PhotoImage->SetBrushFromMaterial(DynPhotoMaterial);
+	}
+
+	DynPhotoMaterial->SetTextureParameterValue("PhotoTexture", RenderTarget);
+	
+	//PhotoImage->SetBrushFromMaterial(nullptr);
+	//PhotoImage->SetBrushFromMaterial(DynPhotoMaterial);
+	
+	OnProgressPickup_BP(DynPhotoMaterial);
+}
+
+void UPlayerWidgetHUD::OnClosePrompt()
+{
+	OnPromptEnd.Broadcast();
 }
