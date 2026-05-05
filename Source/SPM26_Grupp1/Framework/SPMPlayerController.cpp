@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ProgressSubsystem.h"
 #include "SPMGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
@@ -229,4 +230,25 @@ void ASPMPlayerController::OnRespawn()
 		GM->RespawnPlayer(this);
 	}
 	
+}
+
+void ASPMPlayerController::EricGiveth()
+{
+#if !UE_BUILD_SHIPPING
+	if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
+	{
+		Progress->DevGiveAllProgress();
+	}
+#endif
+}
+
+void ASPMPlayerController::EricTaketh()
+{
+#if !UE_BUILD_SHIPPING
+	if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
+	{
+		Progress->DevRemoveAllProgress();
+	}
+#endif
+
 }

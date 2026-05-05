@@ -7,7 +7,7 @@
 #include "ProgressSubsystem.generated.h"
 
 UENUM(BlueprintType)
-enum class EProgressFlag : uint8
+enum class EProgressFlag : uint8 //add flag to DevGiveAllProgress if you add/remove
 {
 	MagneticGunUnlocked UMETA(DisplayName = "Mechanic Has Magnetic Gun"),
 	MagneticGunCanSwitchPolarity UMETA(DisplayName = "Magnetic Gun Can Switch Polarity"),
@@ -55,6 +55,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClearFlag(EProgressFlag Flag);
 
+	UFUNCTION(BlueprintCallable, Category="Dev")
+	void DevGiveAllProgress();
+
+	UFUNCTION(BlueprintCallable, Category="Dev")
+	void DevRemoveAllProgress();
+
+	
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FPlayerProgress Progress;

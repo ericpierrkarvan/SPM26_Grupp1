@@ -8,6 +8,11 @@ void UProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	UE_LOG(LogTemp, Warning, TEXT("ProgressSubsystem initialized"));
+
+#if WITH_EDITOR
+	//force all progress in development
+	DevGiveAllProgress();
+#endif
 }
 
 void UProgressSubsystem::SaveProgress()
@@ -39,4 +44,23 @@ bool UProgressSubsystem::HasFlag(EProgressFlag Flag) const
 void UProgressSubsystem::ClearFlag(EProgressFlag Flag)
 {
 	Progress.UnlockedFlags.Remove(Flag);
+	OnFlagUnlocked.Broadcast(Flag);
+}
+
+void UProgressSubsystem::DevGiveAllProgress()
+{
+	//update DevRemoveAllProgress()
+	SetFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
+	SetFlag(EProgressFlag::MagneticGunUnlocked);
+	SetFlag(EProgressFlag::RobotCanHeadLaunch);
+	SetFlag(EProgressFlag::RobotCanSwitchPolarity);
+}
+
+void UProgressSubsystem::DevRemoveAllProgress()
+{
+	//update DevGiveAllProgress()
+	ClearFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
+	ClearFlag(EProgressFlag::MagneticGunUnlocked);
+	ClearFlag(EProgressFlag::RobotCanHeadLaunch);
+	ClearFlag(EProgressFlag::RobotCanSwitchPolarity);
 }

@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "Kismet/GamePlayStatics.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "SPM26_Grupp1/Material/SPMPhysicalMaterial.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
@@ -56,6 +57,25 @@ void AMechanicCharacter::StopADS()
 	}
 }
 
+void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
+{
+	Super::ApplyProgress(Progress);
+
+	if (Progress)
+	{
+		if (Progress->HasFlag(EProgressFlag::MagneticGunUnlocked) && !bHaveMagneticGun)
+		{
+			EquipWeapon(); 
+		}
+		bCanEverChangeMagneticGunPolartiy = Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
+	}
+}
+
+bool AMechanicCharacter::CanSwitchPolarity() const
+{
+	return bCanEverChangeMagneticGunPolartiy && Super::CanSwitchPolarity();
+}
+
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
 {
 	return Cast<UMechanicMovementComponent>(GetCharacterMovement());
@@ -64,9 +84,7 @@ UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() c
 void AMechanicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Equips magnetgun and attaches it to mechanic
-	EquipWeapon();
+	
 }
 
 void AMechanicCharacter::MechanicDoubleJump()
@@ -99,6 +117,9 @@ void AMechanicCharacter::EquipWeapon()
 		EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
 		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
 		                                  TEXT("hand_r"));
+		bHaveMagneticGun = true;
+
+		OnEquipWeapon.Broadcast(bHaveMagneticGun, EquippedWeapon);
 	}
 }
 
@@ -148,7 +169,8 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	FVector CameraHitLocation = CameraHit.bBlockingHit ? CameraHit.ImpactPoint : TraceEnd;
 	
 	FVector GunTraceStart = GetCurrentProjectileSpawnLocation();
-	FVector GunToTarget = (CameraHitLocation - GunTraceStart).GetSafeNormal() * EquippedWeapon->GetMaxShootRange();
+	float MaxRange = GetEquippedWeapon() ? GetEquippedWeapon()->GetMaxShootRange() : 1000.f;
+	FVector GunToTarget = (CameraHitLocation - GunTraceStart).GetSafeNormal() * MaxRange;
 	FVector GunTraceEnd = GunTraceStart + GunToTarget;
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, GunTraceStart, GunTraceEnd, ECC_Visibility, CollisionParams);
@@ -162,7 +184,7 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 FVector AMechanicCharacter::GetLineTraceEndPoint(const FVector& TraceStart,
                                                  const APlayerController* PlayerController) const
 {
-	float ProjMaxDist = EquippedWeapon->GetMaxShootRange();
+	float ProjMaxDist = EquippedWeapon ? EquippedWeapon->GetMaxShootRange() : 1000.f;
 
 	FVector CameraLocation;
 	FRotator CameraRotation;
