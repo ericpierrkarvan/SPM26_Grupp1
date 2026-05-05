@@ -99,6 +99,13 @@ void ASPMPlayerController::SetupInputComponent()
 }
 
 #if WITH_EDITOR
+void ASPMPlayerController::OnSwitchPlayer()
+{
+	if (ASPMGameModeBase* GM = Cast<ASPMGameModeBase>(GetWorld()->GetAuthGameMode()))
+		GM->SwitchKeyboardToPlayer();
+}
+#endif
+
 void ASPMPlayerController::OnInteract(const FInputActionValue& Value)
 {
 	if (PlayerHudWidget && PlayerHudWidget->IsPromptVisible())
@@ -129,13 +136,6 @@ void ASPMPlayerController::OnPromptEnd()
 		Char->ConsumePickup();
 	}
 }
-
-void ASPMPlayerController::OnSwitchPlayer()
-{
-	if (ASPMGameModeBase* GM = Cast<ASPMGameModeBase>(GetWorld()->GetAuthGameMode()))
-		GM->SwitchKeyboardToPlayer();
-}
-#endif
 
 void ASPMPlayerController::OnPause()
 {

@@ -146,3 +146,8 @@ FVector UPickupComponent::GetGrabLocation() const
 	//otherwise use actor location
 	return GetOwner()->GetActorLocation();
 }
+
+bool UPickupComponent::GetIsLaunchable() const
+{
+	return bLaunchable;
+}
