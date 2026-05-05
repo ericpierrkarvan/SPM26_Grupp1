@@ -9,6 +9,38 @@ UMagneticComponent::UMagneticComponent()
 	bCanSwitchPolarity = true;
 }
 
+void UMagneticComponent::StartRepelImmunity()
+{
+	bCanBeRepelled = false;
+
+	GetOwner()->GetWorldTimerManager().ClearTimer(RepelImmunityHandle);
+
+	GetOwner()->GetWorldTimerManager().SetTimer(
+		RepelImmunityHandle,
+		[this]()
+		{
+			bCanBeRepelled = true;
+		},
+		RepelImmunityInSeconds,
+		false);
+}
+
+void UMagneticComponent::StartAttractImmunity(float Seconds)
+{
+	bCanBeAffected = false;
+
+	GetOwner()->GetWorldTimerManager().ClearTimer(CanBeAffectedCooldownHandle);
+
+	GetOwner()->GetWorldTimerManager().SetTimer(
+		CanBeAffectedCooldownHandle,
+		[this]()
+		{
+			bCanBeAffected = true;
+		},
+		Seconds,
+		false);
+}
+
 void UMagneticComponent::SwitchPolarity()
 {
 	if (bCanSwitchPolarity)

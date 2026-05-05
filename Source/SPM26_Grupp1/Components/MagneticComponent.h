@@ -11,6 +11,8 @@ class UMagneticComponent : public UActorComponent
 public:
 	UMagneticComponent();
 	
+	void StartRepelImmunity();
+	void StartAttractImmunity(float Seconds);
 	void SwitchPolarity();
 
 	// Getters & Setters
@@ -37,6 +39,12 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category="MagneticComponent")
 	bool bCanSwitchPolarity;
+	
+	UPROPERTY(EditAnywhere, Category="MagneticComponent")
+	float RepelImmunityInSeconds = 1.8f;
+	
+	FTimerHandle RepelImmunityHandle;
+	FTimerHandle CanBeAffectedCooldownHandle;
 	
 	// Resistance to being moved by magnetic fields
 	// float ResistanceFactor;

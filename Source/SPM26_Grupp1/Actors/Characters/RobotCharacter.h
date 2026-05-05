@@ -48,8 +48,8 @@ public:
 	FVector GetLaunchForce() const;
 
 	bool IsDashing() const;
-	bool IsMagnetizable() const;
-	bool IsRepellable() const;
+	bool CanBeAffectedByMagneticField() const;
+	bool CanBeRepelled() const;
 
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
 protected:

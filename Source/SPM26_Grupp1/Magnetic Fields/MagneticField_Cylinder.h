@@ -47,14 +47,19 @@ protected:
 	FVector CalculateMagnetCenterPoint();
 	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                       UCharacterMovementComponent* MovComp);
-	void ApplyMagneticRepulsion(const FVector& MagnetTarget);
+	void ApplyMagneticRepulsion(const FVector& MagnetTarget, AActor* Actor);
+	void ApplyMagneticForceOld(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
+	                           UCharacterMovementComponent* MovComp);
 	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
 	                        UCharacterMovementComponent* MovComp);
 	void CheckDistanceToTargetAndStopMovement(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
 	bool ShouldRepelRobot(ARobotCharacter* Robot) const;
+	bool ShouldRepel(const AActor* Actor) const;
+	void Repel(const FVector& MagnetTarget, AActor* Actor);
 	void RepelCharacterDynamic(const FVector& MagnetTarget);
-	void RepelCharacterSimple(const FVector& MagnetTarget);
-	FVector GenerateSimpleFVectorForRepel(const ARobotCharacter* Robot) const;
+	void RepelCharacter(const FVector& MagnetTarget);
+	void RepelActor(const FVector& MagnetTarget, const AActor* Actor);
+	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
 	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
 	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
@@ -86,9 +91,6 @@ protected:
 	void CrippleMovement(ACharacter* Character);
 	UFUNCTION()
 	void RestoreMovement(const ACharacter* Character) const;
-	UFUNCTION()
-	void FreezeMovement(ACharacter* Character) const;
-
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraSystem* PositivePolarityVFX;
@@ -104,12 +106,8 @@ protected:
 	int32 PolarityValue;
 	
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
+	TArray<TWeakObjectPtr<AActor>> ActorsInField;
 	bool bCharacterInsideField = false;
-
-public:
-
-
-
 	
 private:	
 	
@@ -147,6 +145,11 @@ private:
 	float OriginalSpeed = 600;
 	float OriginalMaxAcceleration = 2048;
 	float OriginalBrakingDecelerationWalking = 4096;
+	float CripplingModifier = 0.13f;
+	float CrippledSpeed = OriginalSpeed * CripplingModifier;
+	float CrippledMaxAcceleration = OriginalMaxAcceleration * CripplingModifier;
+	float CrippledBrakingDecelerationWalking = OriginalBrakingDecelerationWalking * 5.0f;
+	
 	float CapsuleHeight;
 	float CapsuleHalfHeight;
 	

@@ -379,7 +379,8 @@ void ARobotCharacter::PerformDash()
 
 	if (bIsWithinMagneticField)
 	{
-		StartMagnetizableImmunity(ImmunityInSeconds);
+		MagneticComponent->StartAttractImmunity(ImmunityInSeconds);
+		//StartMagnetizableImmunity(ImmunityInSeconds);
 	}
 	bIsDashing = true;
 
@@ -653,7 +654,7 @@ void ARobotCharacter::StartRepelImmunity()
 }
 
 // Returns if robot is repellable by magnetic field. Used to limit Repel in AMagneticField_Cylinder::Tick().
-bool ARobotCharacter::IsRepellable() const
+bool ARobotCharacter::CanBeRepelled() const
 {
 	return MagneticComponent->CanBeRepelled();
 }
@@ -682,10 +683,9 @@ bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
 	return false;
 }
 
-bool ARobotCharacter::IsMagnetizable() const
+bool ARobotCharacter::CanBeAffectedByMagneticField() const
 {
 	return MagneticComponent->CanBeAffected();
-	// return bIsMagnetizable;
 }
 
 void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
