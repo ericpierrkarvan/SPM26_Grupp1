@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Projectile")
 	TSubclassOf<AActor> ImpactActorClass;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Projectile")
+	TSubclassOf<AMagneticField_Cylinder> MagneticFieldClass;
+	
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	UStaticMeshComponent* ProjectileMesh;
 	
@@ -57,7 +60,7 @@ protected:
 	                                             int32 Polarity, const AMagneticField_Cylinder* Field) const;
 	void AlignNegativeMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation, int32 Polarity,
 	                                   const AMagneticField_Cylinder* Field) const;
-	AActor* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
+	AMagneticField_Cylinder* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 	void RegisterFieldInMechanicArray(AActor* Field) const;
 
 private:

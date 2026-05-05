@@ -47,14 +47,10 @@ protected:
 	FVector CalculateMagnetCenterPoint(AActor* Actor);
 	void ApplyMagneticPull(float DeltaTime, AActor* Actor);
 	void ApplyMagneticRepulsion(AActor* Actor);
-	void ApplyMagneticForceOld(const FVector& MagnetCenterPoint, float DeltaTime, float DistanceToTarget,
-	                           UCharacterMovementComponent* MovComp);
 	void ApplyMagneticForce(float DeltaTime);
 	void CheckDistanceToTargetAndStopMovement(const FVector& MagnetCenterPoint, AActor* Actor) const;
-	bool ShouldRepelRobot(ARobotCharacter* Robot) const;
 	bool ShouldRepel(const AActor* Actor) const;
 	void Repel(const FVector& MagnetTarget, AActor* Actor);
-	void RepelCharacterDynamic(const FVector& MagnetTarget);
 	void RepelCharacter(const FVector& MagnetTarget, ACharacter* Character);
 	void RepelActor(const FVector& MagnetTarget, const AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
@@ -103,7 +99,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
-	EPolarity Polarity = EPolarity::Positive;
+	EPolarity Polarity;
 	UPROPERTY()
 	int32 PolarityValue;
 	
