@@ -13,6 +13,7 @@
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
@@ -256,9 +257,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	{
 		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
-
-	OnIsPickingUp(DeltaSeconds);
-
+	
 	if (CRTMID)
 	{
 		//fade in/out the crt effect depending on our payload state
@@ -302,7 +301,6 @@ bool ARobotCharacter::FindPickup()
 	Prim->SetSimulatePhysics(false);
 
 	// Get bounds before changing collision
-	// In FindPickup
 	GrabPointOffset = CurrentTargetPickup->GetGrabLocation() - PickupActor->GetActorLocation();
 	PickupStartLocation = PickupActor->GetActorLocation();
 	PickupStartRotation = PickupActor->GetActorRotation();
@@ -360,6 +358,22 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 	
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
+}
+
+bool ARobotCharacter::CanSwitchPolarity() const
+{
+	return bCanEverSwitchPolarity && Super::CanSwitchPolarity();
+}
+
+void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
+{
+	Super::ApplyProgress(Progress);
+
+	if (Progress)
+	{
+		bCanEverSwitchPolarity = Progress->HasFlag(EProgressFlag::RobotCanSwitchPolarity);
+	}
+	
 }
 
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
@@ -700,6 +714,11 @@ void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPola
 	GetCharacterMovement()->AddImpulse(FVector::UpVector * ImpactForce * UpMultiplier, true);
 	
 	ForceSwitchPolarity();
+}
+
+void ARobotCharacter::ProgressEnablePolaritySwitch()
+{
+	bCanEverSwitchPolarity = true;
 }
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)

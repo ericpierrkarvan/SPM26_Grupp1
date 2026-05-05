@@ -51,6 +51,8 @@ public:
 	bool IsRepellable() const;
 
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
+
+	void ProgressEnablePolaritySwitch();
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -122,9 +124,7 @@ protected:
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
 
 	virtual bool FindPickup() override;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
-	float PickupSpeed = 5;
-
+	
 	UPROPERTY(EditAnywhere, Category="Camera|Payload")
 	float PayloadCameraArmLength = 450.f;
 
@@ -148,7 +148,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	float CRTBlendSpeed = 5.f;
-	
+
+	virtual bool CanSwitchPolarity() const override;
+	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle TimerHandle;
@@ -226,20 +228,11 @@ private:
 	virtual float GetADSMovementMultiplier() const override;
 
 	bool IsLaunchableObject(AActor* Object) const;
-
-	bool bIsPickingUp = false;
-	float PickupAlpha = 0.f;
-	FVector PickupTargetLocation;
-	FVector PickupStartLocation;
-	FRotator PickupStartRotation;
-	FRotator PickupTargetRotation;
-	FVector GrabPointOffset = FVector::ZeroVector;
 	
-	UPROPERTY()
-	AActor* HeldActor;
-	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
-
 	UPROPERTY()
 	UMaterialInstanceDynamic* CRTMID;
 	float CurrentCRTIntensity = 0.f;
+
+	//progress:
+	bool bCanEverSwitchPolarity = false;
 };
