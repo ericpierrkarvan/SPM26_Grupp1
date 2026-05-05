@@ -36,6 +36,8 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 	//if we have an old widget, lets remove it
 	if (PlayerHudWidget)
 	{
+		PlayerHudWidget->OnPromptEnd.RemoveDynamic(this, &ASPMPlayerController::OnPromptEnd);
+		
 		PlayerHudWidget->RemoveFromParent();
 		PlayerHudWidget = nullptr;
 	}
@@ -43,6 +45,7 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 	PlayerHudWidget = CreateWidget<UPlayerWidgetHUD>(this, ClassToUse);
 	if (PlayerHudWidget)
 	{
+		PlayerHudWidget->OnPromptEnd.AddDynamic(this, &ASPMPlayerController::OnPromptEnd);
 		PlayerHudWidget->AddToPlayerScreen();
 		PlayerHudWidget->SetOwningCharacter(P); //the playerhud wants updated character references
 	}
@@ -76,6 +79,9 @@ void ASPMPlayerController::SetupInputComponent()
 			EIC->BindAction(PauseAction, ETriggerEvent::Started,
 							this, &ASPMPlayerController::OnPause);
 		}
+
+		EIC->BindAction(IA_Interact, ETriggerEvent::Started, this, &ASPMPlayerController::OnInteract);
+		EIC->BindAction(IA_Interact, ETriggerEvent::Completed, this, &ASPMPlayerController::OnEndInteract);
 	}
 
 #if WITH_EDITOR
@@ -93,6 +99,37 @@ void ASPMPlayerController::SetupInputComponent()
 }
 
 #if WITH_EDITOR
+void ASPMPlayerController::OnInteract(const FInputActionValue& Value)
+{
+	if (PlayerHudWidget && PlayerHudWidget->IsPromptVisible())
+	{
+		PlayerHudWidget->OnInteractPressed();
+		return; //consider the interact consumed since we have a prompt
+	}
+
+	
+	if (ASPMCharacter* Char = Cast<ASPMCharacter>(GetPawn()))
+	{
+		Char->Interact(Value);
+	}
+}
+
+void ASPMPlayerController::OnEndInteract(const FInputActionValue& Value)
+{
+	if (PlayerHudWidget && PlayerHudWidget->IsPromptVisible())
+	{
+		PlayerHudWidget->OnInteractReleased();
+	}
+}
+
+void ASPMPlayerController::OnPromptEnd()
+{
+	if (ASPMCharacter* Char = Cast<ASPMCharacter>(GetPawn()))
+	{
+		Char->ConsumePickup();
+	}
+}
+
 void ASPMPlayerController::OnSwitchPlayer()
 {
 	if (ASPMGameModeBase* GM = Cast<ASPMGameModeBase>(GetWorld()->GetAuthGameMode()))

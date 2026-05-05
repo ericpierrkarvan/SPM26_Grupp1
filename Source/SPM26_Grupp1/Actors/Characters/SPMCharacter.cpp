@@ -10,10 +10,13 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
+#include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
@@ -48,6 +51,11 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	PolaritySwitchAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("PolaritySwitchAudioComp"));
 	PolaritySwitchAudioComp->SetupAttachment(RootComponent);
 
+	PickupCaptureComp = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("PickupCaptureComp"));
+	PickupCaptureComp->SetupAttachment(RootComponent);
+	PickupCaptureComp->bCaptureEveryFrame = false;
+	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+	
 }
 
 void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
@@ -231,7 +239,8 @@ void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
 				GetRootComponent(),
 				FAttachmentTransformRules::KeepWorldTransform
 			);
-			
+
+			TakePicture(); //take a picture, it'll last longer
 			bIsPickingUp = false;
 		}
 	}
@@ -244,6 +253,36 @@ void ASPMCharacter::Interact(const FInputActionValue& Value)
 	if (CurrentTargetInteractableComp)
 	{
 		CurrentTargetInteractableComp->Interact(this);
+	}
+}
+
+void ASPMCharacter::ConsumePickup()
+{
+	if (!HeldActor) return;
+
+	//give progress if possible
+	if (UProgressGrantingComponent* ProgressComp = 
+		HeldActor->FindComponentByClass<UProgressGrantingComponent>())
+	{
+		ProgressComp->GiveProgress();
+	}
+	
+	// if (HeldPickupComponent.IsValid())
+	// {
+	// 	HeldPickupComponent->OnDropped();
+	// }
+	
+	HeldActor->Destroy();
+	
+	HeldActor = nullptr;
+	HeldPickupComponent = nullptr;
+	bIsPickingUp = false;
+	PickupAlpha = 0.f;
+	
+	if (PickupCaptureComp)
+	{
+		PickupCaptureComp->bCaptureEveryFrame = false;
+		PickupCaptureComp->ShowOnlyComponents.Empty();
 	}
 }
 
@@ -439,6 +478,37 @@ void ASPMCharacter::SetCameraState(ECameraState NewState)
 	ADSCurveAlpha = 0.f;
 }
 
+void ASPMCharacter::TakePicture()
+{
+	if (!HeldActor || !PickupCaptureComp || !PickupRenderTarget) return;
+
+	PickupCaptureComp->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+	PickupCaptureComp->ShowOnlyComponents.Empty();
+
+	// Add only the mesh components of the held actor
+	TArray<UMeshComponent*> Meshes;
+	HeldActor->GetComponents<UMeshComponent>(Meshes);
+	for (UMeshComponent* MeshComp : Meshes)
+	{
+		PickupCaptureComp->ShowOnlyComponents.Add(MeshComp);
+	}
+
+	// Disable sky and atmosphere via show flags
+	PickupCaptureComp->ShowFlags.SetAtmosphere(false);
+	PickupCaptureComp->ShowFlags.SetFog(false);
+
+	const FVector CapturePosition = HeldActor->GetActorLocation() + FVector(-50.f, 0.f, -5.f);
+	PickupCaptureComp->SetWorldLocation(CapturePosition);
+	PickupCaptureComp->SetWorldRotation(
+		(HeldActor->GetActorLocation() - CapturePosition).Rotation());
+
+	PickupCaptureComp->TextureTarget = PickupRenderTarget;
+	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+	PickupCaptureComp->bCaptureEveryFrame = true;
+
+	OnPictureTaken.Broadcast(PickupRenderTarget);
+}
+
 void ASPMCharacter::UpdateCamera(float DeltaTime)
 {
 	UpdateAimDownSight(DeltaTime);
@@ -509,7 +579,7 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ASPMCharacter::Move);
 		EIC->BindAction(IA_LookGamePad, ETriggerEvent::Triggered, this, &ASPMCharacter::LookGamepad);
 		EIC->BindAction(IA_LookMouse, ETriggerEvent::Triggered, this, &ASPMCharacter::LookMouse);
-		EIC->BindAction(IA_Interact, ETriggerEvent::Triggered, this, &ASPMCharacter::Interact);
+		
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);
 		EIC->BindAction(IA_SwitchPolarity, ETriggerEvent::Triggered, this, &ASPMCharacter::SwitchPolarity);

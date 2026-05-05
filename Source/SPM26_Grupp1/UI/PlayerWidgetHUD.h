@@ -7,22 +7,40 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "PlayerWidgetHUD.generated.h"
 
+class UImage;
 class AMechanicCharacter;
 class ARobotCharacter;
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPromptEnd);
+
 UCLASS()
 class SPM26_GRUPP1_API UPlayerWidgetHUD : public UUserWidget
 {
 	GENERATED_BODY()
 public:
 	void SetOwningCharacter(AActor* NewCharacter);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnInteractPressed();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnInteractReleased();
 	UPROPERTY(BlueprintReadOnly)
 	ARobotCharacter* RobotCharacter;
 	UPROPERTY(BlueprintReadOnly)
 	AMechanicCharacter* MechanicCharacter;
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UImage* PhotoImage;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsPromptVisible();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnPromptEnd OnPromptEnd;
+	
 protected:
 	UFUNCTION()
 	void UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility);
@@ -47,4 +65,22 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
 	void OnMagneticSurfaceChanged(bool bSurfaceCanSpawnMagneticField);
+
+	UFUNCTION(Category = "Progress")
+	void OnProgressPickup(UTextureRenderTarget2D* RenderTarget);
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Progress")
+	void OnProgressPickup_BP(UMaterialInstanceDynamic* RenderTargetMaterialInstance);
+	
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* PhotoMaterial;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* DynPhotoMaterial;
+
+	UPROPERTY(BlueprintReadWrite, Category="Prompt")
+	bool bHavePrompt = false;
+
+	UFUNCTION(BlueprintCallable, Category="Prompt")
+	void OnClosePrompt();
 };

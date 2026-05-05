@@ -16,6 +16,7 @@ struct FPlayerProgress;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget);
 
 class UInteractableComponent;
 class USPMCharacterMovementComponent;
@@ -55,6 +56,7 @@ public:
 	virtual bool CanSwitchPolarity() const;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	float GetPolaritySwitchCooldown() const;
+	
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
 	FOnPolaritySwitched OnPolaritySwitched;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
@@ -70,7 +72,14 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Camera|ADS")
 	FOnADS OnADS;
 
+	UPROPERTY(BlueprintAssignable, Category = "Progress")
+	FOnPictureTaken OnPictureTaken;
+	
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity);
+
+	virtual void Interact(const FInputActionValue& Value);
+
+	virtual void ConsumePickup();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -88,9 +97,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> IA_LookMouse;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> IA_Interact;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Jump;
 
@@ -123,6 +129,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
 
+	
+	
 	//ADS
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveIn;
@@ -182,11 +190,18 @@ protected:
 	FRotator PickupStartRotation;
 	FRotator PickupTargetRotation;
 	FVector GrabPointOffset = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, Category="Pickup")
+	USceneCaptureComponent2D* PickupCaptureComp;
+
+	UPROPERTY(EditAnywhere, Category="Pickup")
+	UTextureRenderTarget2D* PickupRenderTarget;
 	
 	UPROPERTY()
 	AActor* HeldActor;
 	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
-	
+
+	virtual void TakePicture();
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -195,7 +210,7 @@ private:
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
-	virtual void Interact(const FInputActionValue& Value);
+	
 	void UpdateJumpCount(const FInputActionInstance& Instance);
 
 	void LookForInteractables(float DeltaTime);

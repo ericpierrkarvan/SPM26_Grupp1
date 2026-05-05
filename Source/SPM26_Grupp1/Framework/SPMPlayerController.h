@@ -58,9 +58,18 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	void OnPause();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Interact;
+
 private:
 	UPROPERTY()
 	TObjectPtr<ACheckpoint> LastCheckpoint;
+
+	void OnInteract(const FInputActionValue& Value);
+	void OnEndInteract(const FInputActionValue& Value);
+	UFUNCTION()
+	void OnPromptEnd();
 #if WITH_EDITOR
 	void OnSwitchPlayer();
 #endif
