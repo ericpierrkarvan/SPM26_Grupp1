@@ -12,6 +12,7 @@
 #include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
+#include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
@@ -191,6 +192,14 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				if (IsLaunchableObject(HeldActor))
 				{
 					bHavePayload = true; 
+				}
+			}
+
+			if (HeldActor)
+			{
+				if (UProgressGrantingComponent* ProgComp = HeldActor->GetComponentByClass<UProgressGrantingComponent>())
+				{
+					TakePicture();
 				}
 			}
 			

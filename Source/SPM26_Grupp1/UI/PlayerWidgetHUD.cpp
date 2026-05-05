@@ -3,10 +3,10 @@
 
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
 
-#include "Components/Image.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 
 
 void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
@@ -62,6 +62,13 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 bool UPlayerWidgetHUD::IsPromptVisible()
 {
 	return bHavePrompt;
+}
+
+ASPMCharacter* UPlayerWidgetHUD::GetCurrentCharacter() const
+{
+	if (RobotCharacter) return RobotCharacter;
+	if (MechanicCharacter) return MechanicCharacter;
+	return nullptr;
 }
 
 void UPlayerWidgetHUD::UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility)

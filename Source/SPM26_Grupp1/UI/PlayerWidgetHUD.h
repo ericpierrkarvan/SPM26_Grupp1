@@ -7,6 +7,7 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "PlayerWidgetHUD.generated.h"
 
+class ASPMCharacter;
 class UImage;
 class AMechanicCharacter;
 class ARobotCharacter;
@@ -31,16 +32,14 @@ public:
 	ARobotCharacter* RobotCharacter;
 	UPROPERTY(BlueprintReadOnly)
 	AMechanicCharacter* MechanicCharacter;
-
-	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UImage* PhotoImage;
-
+	
 	UFUNCTION(BlueprintCallable)
 	bool IsPromptVisible();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnPromptEnd OnPromptEnd;
-	
+
+	ASPMCharacter* GetCurrentCharacter() const;
 protected:
 	UFUNCTION()
 	void UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility);

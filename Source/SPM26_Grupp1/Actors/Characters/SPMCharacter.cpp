@@ -506,6 +506,7 @@ void ASPMCharacter::TakePicture()
 	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	PickupCaptureComp->bCaptureEveryFrame = true;
 
+	
 	OnPictureTaken.Broadcast(PickupRenderTarget);
 }
 
