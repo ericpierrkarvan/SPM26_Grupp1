@@ -43,6 +43,13 @@ public:
 	FTransform GetCheckpointTransform() const;
 	
 	void OnRespawn();
+
+
+	UFUNCTION(BlueprintCallable, Exec, Category="Dev")
+	void EricGiveth();
+	UFUNCTION(BlueprintCallable, Exec, Category="Dev")
+	void EricTaketh();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<UPlayerWidgetHUD> MechanicHUDClass;

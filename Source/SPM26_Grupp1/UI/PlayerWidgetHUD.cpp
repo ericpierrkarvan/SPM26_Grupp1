@@ -25,11 +25,13 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		MechanicCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		MechanicCharacter->OnSurfaceCanSpawnMagneticField.RemoveDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
 		MechanicCharacter->OnPictureTaken.RemoveDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
+		MechanicCharacter->OnEquipWeapon.RemoveDynamic(this, &UPlayerWidgetHUD::OnEquippedWeapon);
 		
-		if (MechanicCharacter->GetEquippedWeapon())
+		if (EquippedMagneticWeapon.IsValid())
 		{
-			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
-			MechanicCharacter->GetEquippedWeapon()->OnWeaponFired.RemoveDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
+			EquippedMagneticWeapon->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+			EquippedMagneticWeapon->OnWeaponFired.RemoveDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
+			EquippedMagneticWeapon = nullptr;
 		}
 	}
 	
@@ -50,9 +52,11 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		MechanicCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		MechanicCharacter->OnSurfaceCanSpawnMagneticField.AddDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
 		MechanicCharacter->OnPictureTaken.AddDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
+		MechanicCharacter->OnEquipWeapon.AddDynamic(this, &UPlayerWidgetHUD::OnEquippedWeapon);
 		
 		if (MechanicCharacter->GetEquippedWeapon())
 		{
+			EquippedMagneticWeapon = MechanicCharacter->GetEquippedWeapon();
 			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.AddDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
 			MechanicCharacter->GetEquippedWeapon()->OnWeaponFired.AddDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
 		}
@@ -69,6 +73,29 @@ ASPMCharacter* UPlayerWidgetHUD::GetCurrentCharacter() const
 	if (RobotCharacter) return RobotCharacter;
 	if (MechanicCharacter) return MechanicCharacter;
 	return nullptr;
+}
+
+void UPlayerWidgetHUD::OnEquippedWeapon(bool IsEquipped, AWeaponBase* Weapon)
+{
+	if (IsEquipped)
+	{
+		if (MechanicCharacter && Weapon)
+		{
+			EquippedMagneticWeapon = Weapon;
+			MechanicCharacter->GetEquippedWeapon()->OnAmmoChanged.AddDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+			MechanicCharacter->GetEquippedWeapon()->OnWeaponFired.AddDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
+		}
+	}else
+	{
+		if (EquippedMagneticWeapon.IsValid())
+		{
+			EquippedMagneticWeapon->OnAmmoChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnAmmoChanged);
+			EquippedMagneticWeapon->OnWeaponFired.RemoveDynamic(this, &UPlayerWidgetHUD::OnWeaponFired);
+			EquippedMagneticWeapon = nullptr;
+		}
+	}
+
+	OnEquippedWeapon_BP(IsEquipped, Weapon);
 }
 
 void UPlayerWidgetHUD::UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility)

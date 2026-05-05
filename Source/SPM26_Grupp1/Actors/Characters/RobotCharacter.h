@@ -231,4 +231,5 @@ private:
 
 	//progress:
 	bool bCanEverSwitchPolarity = false;
+	bool bCanEverHeadLaunch = false;
 };
