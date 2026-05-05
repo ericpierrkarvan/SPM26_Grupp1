@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Components/MagneticComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "RobotCharacter.generated.h"
 
@@ -47,8 +48,8 @@ public:
 	FVector GetLaunchForce() const;
 
 	bool IsDashing() const;
-	bool IsMagnetizable() const;
-	bool IsRepellable() const;
+	bool CanBeAffectedByMagneticField() const;
+	bool CanBeRepelled() const;
 
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
 
@@ -60,7 +61,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Magnet")
+	UMagneticComponent* MagneticComponent;
+	
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	USphereComponent* PlatformDetectionSphere;
 	UPROPERTY(VisibleAnywhere, Category="HeadLaunch")
@@ -157,7 +161,6 @@ private:
 	FTimerHandle MagnetizableCooldownHandle;
 	FTimerHandle RepelImmunityHandle;
 
-
 	void PerformDash();
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
@@ -175,11 +178,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashRotationSpeed = 12.f;
-
-	UPROPERTY(VisibleAnywhere, Category = "Magnet")
-	bool bIsMagnetizable = true; // false for X seconds after dashing out of magnetic field.
-	UPROPERTY(VisibleAnywhere, Category = "Magnet")
-	bool bIsRepellable = true; // false for X seconds after being repelled by magnetic field.
+	
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField = false;
 	UPROPERTY(EditAnywhere, Category = "Magnet")
@@ -187,9 +186,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	float RepelImmunityInSeconds = 0.7f;
 	
-	UPROPERTY(EditAnywhere, Category = "Polarity")
-	EPolarity Polarity = EPolarity::Negative;
-
 	UFUNCTION()
 	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	                            int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
