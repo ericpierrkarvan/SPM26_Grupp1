@@ -24,6 +24,4 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Polarity")
 	EPolarity Polarity = EPolarity::Negative;
 
-public:	
-
 };

@@ -37,6 +37,7 @@ void AMagneticField_Cylinder::BeginPlay()
 	CapsuleHeight = CapsuleHalfHeight * 2;
 	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
 	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
+
 }
 
 void AMagneticField_Cylinder::Activate()
@@ -150,9 +151,10 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 	
 	// Calculate offset from MagnetTarget. Extra if Repel to place repelling force outside of capsule for better collision
 	constexpr float RepelExtraOffset = 100.0f;
+	constexpr float AttractExtraOffset = 50.0f;
 	const bool bShouldAttract = ShouldAttract(Polarity, GetObjectPolarity(Actor)); 
 	const float MagnetCenterPointZOffSet = bShouldAttract 
-	? CapsuleHalfHeight - (ActorHalfHeight * 0.75f)
+	? CapsuleHalfHeight - (ActorHalfHeight) - AttractExtraOffset
 	: CapsuleHalfHeight + ActorHalfHeight + RepelExtraOffset;
 	
 	FVector MagnetCenterPoint;
@@ -167,7 +169,6 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ApplyMagneticForce(): start"))
 	for (TWeakObjectPtr<AActor>& WeakActor : ActorsInField)
 	{
 		if (!WeakActor.IsValid()) continue;
@@ -281,7 +282,6 @@ bool AMagneticField_Cylinder::ShouldRepel(const AActor* Actor) const
 
 void AMagneticField_Cylinder::Repel(const FVector& MagnetTarget, AActor* Actor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Repel(): Start"))
 	if (!ShouldRepel(Actor)) return;
 	
 	ACharacter* Character = Cast<ACharacter>(Actor);
@@ -293,11 +293,7 @@ void AMagneticField_Cylinder::Repel(const FVector& MagnetTarget, AActor* Actor)
 // Repel a Character using LaunchCharacter.
 void AMagneticField_Cylinder::RepelCharacter(const FVector& MagnetTarget, ACharacter* Character)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Entered RepelCharacter()"))
-	//ACharacter* Character = Cast<ACharacter>(TargetCharacter);
 	if (!Character) return;
-	// if (!ShouldRepel(Character)) return;
-	UE_LOG(LogTemp, Warning, TEXT("Should repel passed. Repelling character."))
 	
 	FVector CurrentPlayerLocation = Character->GetActorLocation();
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
@@ -495,10 +491,11 @@ void AMagneticField_Cylinder::SetCharacterAttractParameters(ACharacter* Characte
 		*UEnum::GetValueAsString(GetObjectPolarity(Character)), 
 		ShouldAttract(Polarity, GetObjectPolarity(Character)));
 	
-		// Gravity = 0 in magnet field while pulling
-		Character->GetCharacterMovement()->GravityScale = 0;
-		bHasCrippled = true;
-		CrippleMovement(Character);
+	// Gravity = 0 in magnet field while pulling
+	Character->GetCharacterMovement()->GravityScale = 0;
+	UE_LOG(LogTemp, Warning, TEXT("SetCharacterAttractParameters(): Setting Character's gravityscale to 0."));
+	bHasCrippled = true;
+	CrippleMovement(Character);
 }
 
 void AMagneticField_Cylinder::SetActorAttractParameters(AActor* Actor)

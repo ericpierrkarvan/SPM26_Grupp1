@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
@@ -132,9 +133,12 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 			if (Field && Capsule)
 			{
 				Field->SetPolarity(ProjectilePolarity);
-				RegisterFieldInMechanicArray(SpawnedActor);
-				AlignSpawnedMagneticField(SpawnedActor, ImpactResult, SpawnLocation);
+				UE_LOG(LogTemp, Warning, TEXT("Field Polarity when Spawned: %hhd"), ProjectilePolarity)
+				RegisterFieldInMechanicArray(Field);
+				AlignSpawnedMagneticField(Field, ImpactResult, SpawnLocation);
 				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, ProjectilePolarity, Field);
+				
+				UGameplayStatics::FinishSpawningActor(Field, FTransform(SpawnRotation, SpawnLocation)); // BeginPlay fires here
 			}
 		}
 	}
@@ -336,16 +340,17 @@ void AProj_MagneticCylinder::SetPositiveMagnetVFXRotation(const FHitResult& Impa
 }
 
 // Spawns Magnetic Field after projectile collision.
-AActor* AProj_MagneticCylinder::SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const
+AMagneticField_Cylinder* AProj_MagneticCylinder::SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const
 {
 	FActorSpawnParameters Params;
-	Params.Owner = GetOwner();
-	Params.Instigator = GetInstigator();
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.bDeferConstruction = true;
 
-	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ImpactActorClass, SpawnLocation, SpawnRotation, Params);
-	SpawnedActor->SetLifeSpan(SpawnedMagneticFieldDuration);
-	
-	return SpawnedActor;
+	AMagneticField_Cylinder* Field = GetWorld()->SpawnActorDeferred<AMagneticField_Cylinder>(MagneticFieldClass,
+		FTransform(SpawnRotation, SpawnLocation));
+	Field->SetLifeSpan(SpawnedMagneticFieldDuration);
+	return Field;
+
 }
 
 // Registers field in Mechanic's ActiveMagneticFields. Used f.ex. for destroying fields.
