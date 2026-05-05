@@ -226,6 +226,7 @@ void AMagneticField_Cylinder::RepelCharacterDynamic(const FVector& MagnetTarget)
 	
 	Robot->LaunchCharacter(BlendedDirection * RepelStrength * RepelStrengthMultiplier, false, true);
 }
+
 // MagnetTarget is here the origin point of repulsion.
 void AMagneticField_Cylinder::RepelCharacterSimple(const FVector& MagnetTarget)
 {

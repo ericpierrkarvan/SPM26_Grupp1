@@ -28,6 +28,7 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	MagneticComponent = CreateDefaultSubobject<UMagneticComponent>(TEXT("MagneticComponent"));
 	MagneticComponent->SetPolarity(EPolarity::Negative);
+	MagneticComponent->SetCanSwitchPolarity(false);
 
 	HeadLaunchStartAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchStartAudioComp"));
 	HeadLaunchStartAudioComp->SetupAttachment(RootComponent);

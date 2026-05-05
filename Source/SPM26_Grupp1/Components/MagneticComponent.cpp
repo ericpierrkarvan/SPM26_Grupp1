@@ -6,12 +6,15 @@ UMagneticComponent::UMagneticComponent()
 	Polarity = EPolarity::Positive;
 	bCanBeAffected = true;
 	bCanBeRepelled = true;
-	ResistanceFactor = 1.0f;
+	bCanSwitchPolarity = true;
 }
 
 void UMagneticComponent::SwitchPolarity()
 {
-	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+	if (bCanSwitchPolarity)
+	{
+		Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+	}
 }
 
 EPolarity UMagneticComponent::GetPolarity() const
@@ -24,15 +27,20 @@ int32 UMagneticComponent::GetPolarityValue() const
 	return Polarity == EPolarity::Positive ? 1 : -1;
 }
 
+bool UMagneticComponent::CanSwitchPolarity() const
+{
+	return bCanSwitchPolarity;
+}
+
+bool UMagneticComponent::CanBeRepelled() const
+{
+	return bCanBeRepelled;
+}
+
 // Returns if the magnetic component can be affected by magnetism.
 bool UMagneticComponent::CanBeAffected() const
 {
 	return bCanBeAffected;
-}
-
-float UMagneticComponent::GetResistanceFactor() const
-{
-	return ResistanceFactor;
 }
 
 void UMagneticComponent::SetPolarity(const EPolarity NewPolarity)
@@ -40,19 +48,14 @@ void UMagneticComponent::SetPolarity(const EPolarity NewPolarity)
 	this->Polarity = NewPolarity;
 }
 
-void UMagneticComponent::SetCanBeAffected(const bool NewCanBeAffected)
+void UMagneticComponent::SetCanSwitchPolarity(const bool bNewCanSwitchPolarity)
 {
-	this->bCanBeAffected = NewCanBeAffected;
+	this->bCanSwitchPolarity = bNewCanSwitchPolarity;
 }
 
-void UMagneticComponent::SetResistanceFactor(const float NewResistanceFactor)
+void UMagneticComponent::SetCanBeAffected(const bool bNewCanBeAffected)
 {
-	this->ResistanceFactor = NewResistanceFactor;
-}
-
-bool UMagneticComponent::CanBeRepelled() const
-{
-	return bCanBeRepelled;
+	this->bCanBeAffected = bNewCanBeAffected;
 }
 
 void UMagneticComponent::SetCanBeRepelled(const bool bNewCanBeRepelled)

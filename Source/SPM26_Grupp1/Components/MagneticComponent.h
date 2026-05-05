@@ -16,13 +16,13 @@ public:
 	// Getters & Setters
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
-	float GetResistanceFactor() const;
+	bool CanSwitchPolarity() const;
 	bool CanBeAffected() const;
 	bool CanBeRepelled() const;
 	
 	void SetPolarity(EPolarity Polarity);
+	void SetCanSwitchPolarity(bool bNewCanSwitchPolarity);
 	void SetCanBeAffected(bool bCanBeAffected);
-	void SetResistanceFactor(float ResistanceFactor);
 	void SetCanBeRepelled(bool bNewCanBeRepelled);
 
 private:
@@ -35,8 +35,11 @@ private:
 	UPROPERTY(EditAnywhere, Category="MagneticComponent")
 	bool bCanBeRepelled;
 	
+	UPROPERTY(EditAnywhere, Category="MagneticComponent")
+	bool bCanSwitchPolarity;
+	
 	// Resistance to being moved by magnetic fields
-	float ResistanceFactor;
+	// float ResistanceFactor;
 	
 
 };
