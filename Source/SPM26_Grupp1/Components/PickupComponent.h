@@ -51,6 +51,7 @@ public:
 	ECollisionResponse OriginalPawnResponse;
 	
 	FVector GetGrabLocation() const;
+	bool GetIsLaunchable() const;
 
 private:
 	UPROPERTY(EditAnywhere, Category="Interaction")
@@ -64,4 +65,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Interaction")
 	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;
+
+	UPROPERTY(EditAnywhere, Category="Interaction")
+	bool bLaunchable = true;
 };
