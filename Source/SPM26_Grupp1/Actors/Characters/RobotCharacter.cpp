@@ -27,6 +27,10 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
 	LaunchArcComponent = CreateDefaultSubobject<ULaunchArcComponent>(TEXT("LaunchArcComponent"));
+	
+	MagneticComponent = CreateDefaultSubobject<UMagneticComponent>(TEXT("MagneticComponent"));
+	MagneticComponent->SetPolarity(EPolarity::Negative);
+	MagneticComponent->SetCanSwitchPolarity(false);
 
 	HeadLaunchStartAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchStartAudioComp"));
 	HeadLaunchStartAudioComp->SetupAttachment(RootComponent);
@@ -60,7 +64,7 @@ void ARobotCharacter::BeginPlay()
 	
 	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
 	OriginalAirControl = MoveComp->AirControl;
-
+	
 	if (PlatformDetectionSphere)
 	{
 		const float CapsuleHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
@@ -398,7 +402,8 @@ void ARobotCharacter::PerformDash()
 
 	if (bIsWithinMagneticField)
 	{
-		StartMagnetizableImmunity(ImmunityInSeconds);
+		MagneticComponent->StartAttractImmunity(ImmunityInSeconds);
+		//StartMagnetizableImmunity(ImmunityInSeconds);
 	}
 	bIsDashing = true;
 
@@ -640,7 +645,7 @@ void ARobotCharacter::Move(const FInputActionValue& Value)
 
 void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 {
-	bIsMagnetizable = false;
+	MagneticComponent->SetCanBeAffected(false);
 
 	GetWorldTimerManager().ClearTimer(MagnetizableCooldownHandle);
 
@@ -648,7 +653,7 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 		MagnetizableCooldownHandle,
 		[this]()
 		{
-			bIsMagnetizable = true;
+			MagneticComponent->SetCanBeAffected(true);
 		},
 		Seconds,
 		false);
@@ -656,7 +661,7 @@ void ARobotCharacter::StartMagnetizableImmunity(float Seconds)
 
 void ARobotCharacter::StartRepelImmunity()
 {
-	bIsRepellable = false;
+	MagneticComponent->SetCanBeRepelled(false);
 
 	GetWorldTimerManager().ClearTimer(RepelImmunityHandle);
 
@@ -664,16 +669,16 @@ void ARobotCharacter::StartRepelImmunity()
 		RepelImmunityHandle,
 		[this]()
 		{
-			bIsRepellable = true;
+			MagneticComponent->SetCanBeRepelled(true);
 		},
 		RepelImmunityInSeconds,
 		false);
 }
 
 // Returns if robot is repellable by magnetic field. Used to limit Repel in AMagneticField_Cylinder::Tick().
-bool ARobotCharacter::IsRepellable() const
+bool ARobotCharacter::CanBeRepelled() const
 {
-	return bIsRepellable;
+	return MagneticComponent->CanBeRepelled();
 }
 
 float ARobotCharacter::GetADSMovementMultiplier() const
@@ -704,13 +709,14 @@ bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
 	return false;
 }
 
-bool ARobotCharacter::IsMagnetizable() const
+bool ARobotCharacter::CanBeAffectedByMagneticField() const
 {
-	return bIsMagnetizable;
+	return MagneticComponent->CanBeAffected();
 }
 
 void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
 {
+	const EPolarity Polarity = MagneticComponent->GetPolarity();
 	bool bRepel = (ProjectilePolarity == Polarity); //same polaritys repell eachother
 
 	//projectiles direction determines the force direction options
@@ -749,36 +755,35 @@ bool ARobotCharacter::GetIsWithinMagneticField() const
 
 int32 ARobotCharacter::GetPolarityValue() const
 {
-	return Polarity == EPolarity::Positive ? 1 : -1;
+	return MagneticComponent->GetPolarityValue();
 }
 
 EPolarity ARobotCharacter::GetPolarity() const
 {
-	return Polarity;
+	return MagneticComponent->GetPolarity();
 }
 
 void ARobotCharacter::SwitchPolarity_Implementation()
 {
 	if (!CanSwitchPolarity()) return;
+	
 	SwitchPolarityTimer = PolaritySwitchCooldown;
+	MagneticComponent->SwitchPolarity();
+	OnPolaritySwitched.Broadcast(MagneticComponent->GetPolarity(), PolaritySwitchCooldown);
 
-	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
-	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
-	OnSwitchPolarity(Polarity);
 	ScreenDebugPolaritySwitchMessage();
 }
 
 void ARobotCharacter::ForceSwitchPolarity()
 {
-	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
+	MagneticComponent->SwitchPolarity();	
 	SwitchPolarityTimer = PolaritySwitchCooldown;
-	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);
-	OnSwitchPolarity(Polarity);
+	OnPolaritySwitched.Broadcast(MagneticComponent->GetPolarity(), PolaritySwitchCooldown);
 }
 
 void ARobotCharacter::ScreenDebugPolaritySwitchMessage() const
 {
 	FColor Color;
-	Polarity == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
+	MagneticComponent->GetPolarity() == EPolarity::Positive ? Color = FColor::Blue : Color = FColor::Orange;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, TEXT("Switched Robot Polarity"));
 }
