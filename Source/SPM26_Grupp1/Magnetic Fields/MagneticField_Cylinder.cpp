@@ -492,8 +492,6 @@ void AMagneticField_Cylinder::IfRobotSetWithinMagneticField(const bool bNewValue
 	}
 }
 
-
-
 bool AMagneticField_Cylinder::ShouldAttract(const EPolarity Field, const EPolarity Other)
 {
 	if (Field == EPolarity::Positive && Other == EPolarity::None) return true;

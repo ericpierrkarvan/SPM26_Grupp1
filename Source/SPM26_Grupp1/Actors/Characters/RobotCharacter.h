@@ -159,7 +159,6 @@ private:
 	FTimerHandle MagnetizableCooldownHandle;
 	FTimerHandle RepelImmunityHandle;
 
-
 	void PerformDash();
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
@@ -177,11 +176,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashRotationSpeed = 12.f;
-
-	UPROPERTY(VisibleAnywhere, Category = "Magnet")
-	bool bIsMagnetizable = true; // false for X seconds after dashing out of magnetic field.
-	UPROPERTY(VisibleAnywhere, Category = "Magnet")
-	bool bIsRepellable = true; // false for X seconds after being repelled by magnetic field.
+	
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField = false;
 	UPROPERTY(EditAnywhere, Category = "Magnet")
@@ -189,9 +184,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	float RepelImmunityInSeconds = 0.7f;
 	
-	UPROPERTY(EditAnywhere, Category = "Polarity")
-	EPolarity Polarity = EPolarity::Negative;
-
 	UFUNCTION()
 	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	                            int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

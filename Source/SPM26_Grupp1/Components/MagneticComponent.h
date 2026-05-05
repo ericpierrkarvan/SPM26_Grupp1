@@ -7,7 +7,7 @@ UCLASS()
 class UMagneticComponent : public UActorComponent
 {
 	GENERATED_BODY()
-	
+
 public:
 	UMagneticComponent();
 	
@@ -15,12 +15,15 @@ public:
 
 	// Getters & Setters
 	EPolarity GetPolarity() const;
+	int32 GetPolarityValue() const;
 	float GetResistanceFactor() const;
+	bool CanBeAffected() const;
+	bool CanBeRepelled() const;
+	
 	void SetPolarity(EPolarity Polarity);
 	void SetCanBeAffected(bool bCanBeAffected);
 	void SetResistanceFactor(float ResistanceFactor);
-	
-	bool CanBeAffected() const;
+	void SetCanBeRepelled(bool bNewCanBeRepelled);
 
 private:
 	UPROPERTY(EditAnywhere, Category="MagneticComponent")
@@ -28,6 +31,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category="MagneticComponent")
 	bool bCanBeAffected;
+	
+	UPROPERTY(EditAnywhere, Category="MagneticComponent")
+	bool bCanBeRepelled;
 	
 	// Resistance to being moved by magnetic fields
 	float ResistanceFactor;
