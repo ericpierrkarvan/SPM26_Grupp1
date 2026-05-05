@@ -43,28 +43,29 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	
-	FVector LateralCorrection(const FVector& MagnetTarget) const; 
-	FVector CalculateMagnetCenterPoint();
-	void ApplyMagneticPull(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
-	                       UCharacterMovementComponent* MovComp);
-	void ApplyMagneticRepulsion(const FVector& MagnetTarget, AActor* Actor);
-	void ApplyMagneticForceOld(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
+	FVector LateralCorrection(const FVector& MagnetCenterPoint, AActor* Actor) const; 
+	FVector CalculateMagnetCenterPoint(AActor* Actor);
+	void ApplyMagneticPull(float DeltaTime, AActor* Actor);
+	void ApplyMagneticRepulsion(AActor* Actor);
+	void ApplyMagneticForceOld(const FVector& MagnetCenterPoint, float DeltaTime, float DistanceToTarget,
 	                           UCharacterMovementComponent* MovComp);
-	void ApplyMagneticForce(const FVector& MagnetTarget, float DeltaTime, float DistanceToTarget,
-	                        UCharacterMovementComponent* MovComp);
-	void CheckDistanceToTargetAndStopMovement(float DistanceToTarget, const FVector& MagnetTarget, UCharacterMovementComponent* MovComp) const;
+	void ApplyMagneticForce(float DeltaTime);
+	void CheckDistanceToTargetAndStopMovement(const FVector& MagnetCenterPoint, AActor* Actor) const;
 	bool ShouldRepelRobot(ARobotCharacter* Robot) const;
 	bool ShouldRepel(const AActor* Actor) const;
 	void Repel(const FVector& MagnetTarget, AActor* Actor);
 	void RepelCharacterDynamic(const FVector& MagnetTarget);
-	void RepelCharacter(const FVector& MagnetTarget);
+	void RepelCharacter(const FVector& MagnetTarget, ACharacter* Character);
 	void RepelActor(const FVector& MagnetTarget, const AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
 	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
-	void CalculateDirectionAndPullCharacter(const FVector& MagnetTarget, const float DeltaTime);
+	void CalculateDirectionAndPull(const FVector& MagnetCenterPoint, float DeltaTime, AActor* Actor);
+	void PullCharacter(const ACharacter* Character, const FVector& LatCorrection, const FVector& PullDirection,
+	                   float DeltaTime);
+	void PullActor(const AActor* Actor, const FVector& PullDirection, const FVector& LatCorrection, float DeltaTime) const;
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
-	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
-	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetTarget);
+	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetCenterPoint);
+	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetCenterPoint);
 	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
 
@@ -78,7 +79,8 @@ protected:
 		const FHitResult& SweepResult);
 	void ListenToRobot(ACharacter* Character);
 	void StopListenToRobot(ACharacter* Character);
-	void SetAttractParameters(AActor* OtherActor, ACharacter* Character);
+	void SetCharacterAttractParameters(ACharacter* Character);
+	void SetActorAttractParameters(AActor* Actor);
 	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
 	void IfRobotHandleDash(AActor* Actor);
 	UFUNCTION()
@@ -88,7 +90,7 @@ protected:
 		int32 OtherBodyIndex);
 	
 	UFUNCTION()
-	void CrippleMovement(ACharacter* Character);
+	void CrippleMovement(const ACharacter* Character) const;
 	UFUNCTION()
 	void RestoreMovement(const ACharacter* Character) const;
 	
@@ -123,9 +125,13 @@ private:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float PullStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float ActorPullStrengthMultiplier = 500.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float RepelStrengthMultiplier = 50.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float RepelXYMultiplier = 0.2f; // Limits XY movement when Robot is repelled
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	float ActorAttractVelocityMultiplier = 0.05f; // Limit Actor movement when being attracted
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float StopDistance = 15.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")

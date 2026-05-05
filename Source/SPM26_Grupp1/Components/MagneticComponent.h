@@ -3,7 +3,7 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MagneticComponent.generated.h"
 
-UCLASS()
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UMagneticComponent : public UActorComponent
 {
 	GENERATED_BODY()
