@@ -195,12 +195,9 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				}
 			}
 
-			if (HeldActor)
+			if (UProgressGrantingComponent* ProgComp = HeldActor->GetComponentByClass<UProgressGrantingComponent>())
 			{
-				if (UProgressGrantingComponent* ProgComp = HeldActor->GetComponentByClass<UProgressGrantingComponent>())
-				{
-					TakePicture();
-				}
+				TakePicture();
 			}
 			
 			bIsPickingUp = false;
