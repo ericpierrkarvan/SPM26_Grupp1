@@ -480,7 +480,8 @@ void ASPMCharacter::SetCameraState(ECameraState NewState)
 
 void ASPMCharacter::TakePicture()
 {
-	if (!HeldActor || !PickupCaptureComp || !PickupRenderTarget) return;
+	
+	if (!HeldActor || !PickupCaptureComp || !PickupRenderTarget || !GetViewingPlayerController()) return;
 
 	PickupCaptureComp->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 	PickupCaptureComp->ShowOnlyComponents.Empty();
@@ -506,6 +507,7 @@ void ASPMCharacter::TakePicture()
 	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	PickupCaptureComp->bCaptureEveryFrame = true;
 
+	
 	OnPictureTaken.Broadcast(PickupRenderTarget);
 }
 

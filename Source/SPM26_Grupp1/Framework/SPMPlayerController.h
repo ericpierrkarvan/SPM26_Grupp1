@@ -72,5 +72,12 @@ private:
 	void OnPromptEnd();
 #if WITH_EDITOR
 	void OnSwitchPlayer();
+
 #endif
+
+	UPROPERTY()
+	UPlayerWidgetHUD* MechanicHudWidgetRef;
+
+	UPROPERTY()
+	UPlayerWidgetHUD* RobotHudWidgetRef;
 };
