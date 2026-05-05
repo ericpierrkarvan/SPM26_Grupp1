@@ -132,11 +132,6 @@ void ASPMPlayerController::OnSwitchPlayer()
 
 void ASPMPlayerController::OnInteract(const FInputActionValue& Value)
 {
-
-	UE_LOG(LogTemp, Warning, TEXT("OnInteract - Widget valid: %d, Prompt visible: %d"),
-	PlayerHudWidget != nullptr,
-	PlayerHudWidget ? PlayerHudWidget->IsPromptVisible() : -1);
-	
 	if (PlayerHudWidget && PlayerHudWidget->IsPromptVisible())
 	{
 		PlayerHudWidget->OnInteractPressed();
