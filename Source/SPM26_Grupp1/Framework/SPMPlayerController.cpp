@@ -17,7 +17,27 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 {
 	Super::AcknowledgePossession(P);
 #if WITH_EDITOR
-	if (bIsSwitchingPlayer) return; //dev only: if we are switching player then we dont want to recreate widgets
+	if (bIsSwitchingPlayer)
+	{
+		//had problem with pointing to correct widget when dev switching
+		//so we want to figure out which widget to find and then update to correct reference
+		TSubclassOf<UPlayerWidgetHUD> ClassToFind = Cast<AMechanicCharacter>(P) ? MechanicHUDClass : RobotHUDClass;
+		
+		for (TObjectIterator<UPlayerWidgetHUD> It; It; ++It)
+		{
+			if (It->GetClass() == ClassToFind && It->IsInViewport())
+			{
+				PlayerHudWidget = *It;
+				PlayerHudWidget->SetOwningCharacter(P);
+
+				// need to reassign the binds too
+				PlayerHudWidget->OnPromptEnd.RemoveDynamic(this, &ASPMPlayerController::OnPromptEnd);
+				PlayerHudWidget->OnPromptEnd.AddDynamic(this, &ASPMPlayerController::OnPromptEnd);
+				return;
+			}
+		}
+		return;
+	} 
 #endif
 	if (!IsLocalController()) return;
 
@@ -36,6 +56,8 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 	//if we have an old widget, lets remove it
 	if (PlayerHudWidget)
 	{
+		PlayerHudWidget->OnPromptEnd.RemoveDynamic(this, &ASPMPlayerController::OnPromptEnd);
+		
 		PlayerHudWidget->RemoveFromParent();
 		PlayerHudWidget = nullptr;
 	}
@@ -43,6 +65,10 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 	PlayerHudWidget = CreateWidget<UPlayerWidgetHUD>(this, ClassToUse);
 	if (PlayerHudWidget)
 	{
+		if (Cast<AMechanicCharacter>(P)) MechanicHudWidgetRef = PlayerHudWidget;
+		else if (Cast<ARobotCharacter>(P)) RobotHudWidgetRef = PlayerHudWidget;
+
+		PlayerHudWidget->OnPromptEnd.AddDynamic(this, &ASPMPlayerController::OnPromptEnd);
 		PlayerHudWidget->AddToPlayerScreen();
 		PlayerHudWidget->SetOwningCharacter(P); //the playerhud wants updated character references
 	}
@@ -76,6 +102,9 @@ void ASPMPlayerController::SetupInputComponent()
 			EIC->BindAction(PauseAction, ETriggerEvent::Started,
 							this, &ASPMPlayerController::OnPause);
 		}
+
+		EIC->BindAction(IA_Interact, ETriggerEvent::Started, this, &ASPMPlayerController::OnInteract);
+		EIC->BindAction(IA_Interact, ETriggerEvent::Completed, this, &ASPMPlayerController::OnEndInteract);
 	}
 
 #if WITH_EDITOR
@@ -99,6 +128,50 @@ void ASPMPlayerController::OnSwitchPlayer()
 		GM->SwitchKeyboardToPlayer();
 }
 #endif
+
+void ASPMPlayerController::OnInteract(const FInputActionValue& Value)
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("OnInteract - Widget valid: %d, Prompt visible: %d"),
+	PlayerHudWidget != nullptr,
+	PlayerHudWidget ? PlayerHudWidget->IsPromptVisible() : -1);
+	
+	if (PlayerHudWidget && PlayerHudWidget->IsPromptVisible())
+	{
+		PlayerHudWidget->OnInteractPressed();
+		
+		return; //consider the interact consumed since we have a prompt
+	}
+	
+	if (ASPMCharacter* Char = Cast<ASPMCharacter>(GetPawn()))
+	{
+		Char->Interact(Value);
+	}
+}
+
+void ASPMPlayerController::OnEndInteract(const FInputActionValue& Value)
+{
+	if (PlayerHudWidget && PlayerHudWidget->IsPromptVisible())
+	{
+		PlayerHudWidget->OnInteractReleased();
+	}
+}
+
+void ASPMPlayerController::OnPromptEnd()
+{
+	ASPMCharacter* Char = PlayerHudWidget 
+		 ? PlayerHudWidget->GetCurrentCharacter() 
+		 : Cast<ASPMCharacter>(GetPawn());
+
+	UE_LOG(LogTemp, Warning, TEXT("OnPromptEnd - Using: %s"), *GetNameSafe(Char));
+
+	if (Char)
+	{
+		Char->ConsumePickup();
+	}
+}
+
+
 
 void ASPMPlayerController::OnPause()
 {
