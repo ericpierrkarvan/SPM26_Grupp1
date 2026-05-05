@@ -7,6 +7,7 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "PlayerWidgetHUD.generated.h"
 
+class AWeaponBase;
 class ASPMCharacter;
 class UImage;
 class AMechanicCharacter;
@@ -40,6 +41,12 @@ public:
 	FOnPromptEnd OnPromptEnd;
 
 	ASPMCharacter* GetCurrentCharacter() const;
+
+	UFUNCTION()
+	void OnEquippedWeapon(bool IsEquipped, AWeaponBase* Weapon);
+	UFUNCTION(BlueprintImplementableEvent, Category="Progress")
+	void OnEquippedWeapon_BP(bool IsEquipped, AWeaponBase* Weapon);
+	
 protected:
 	UFUNCTION()
 	void UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility);
@@ -82,4 +89,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category="Prompt")
 	void OnClosePrompt();
+	
+	TWeakObjectPtr<AWeaponBase> EquippedMagneticWeapon;
 };

@@ -183,13 +183,37 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 			{
 				//lerp complete, so the object is ontop of our head
 				//not a character, so let's attach it
-				HeldActor->AttachToComponent(
+
+				UProgressGrantingComponent* ProgComp = HeldActor->FindComponentByClass<UProgressGrantingComponent>();
+				
+				if (ProgComp || bCanEverHeadLaunch)
+				{
+					HeldActor->AttachToComponent(
 					PlatformDetectionSphere,
 					FAttachmentTransformRules::KeepWorldTransform
-				);
+					);
+				}
+				else
+				{
+					//we havent unlocked launchable, so we just lift something and thats it
+					if (HeldPickupComponent.IsValid())
+					{
+						HeldPickupComponent->OnDropped();
+					}
+					
+					LaunchObject(HeldActor, FVector(0,0, 200));
+
+					//reset pickup:
+					HeldActor = nullptr;
+					HeldPickupComponent = nullptr;
+					bIsPickingUp = false;
+					PickupAlpha = 0.f;
+					return;
+				}
+				
 				//the overlap check might miss that we have an object on our head
 				//and since we know we have an object on our head, lets force the bool
-				if (IsLaunchableObject(HeldActor))
+				if (bCanEverHeadLaunch && IsLaunchableObject(HeldActor))
 				{
 					bHavePayload = true; 
 				}
@@ -381,6 +405,13 @@ void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
 	if (Progress)
 	{
 		bCanEverSwitchPolarity = Progress->HasFlag(EProgressFlag::RobotCanSwitchPolarity);
+		bCanEverHeadLaunch = Progress->HasFlag(EProgressFlag::RobotCanHeadLaunch);
+
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			const ECanBeCharacterBase NewBase = bCanEverHeadLaunch ? ECanBeCharacterBase::ECB_Yes : ECanBeCharacterBase::ECB_No;
+			Capsule->CanCharacterStepUpOn = NewBase;
+		}
 	}
 	
 }
@@ -449,7 +480,7 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
                                              const FHitResult& SweepResult)
 {
 	if (OtherActor == this) return;
-	if (IsLaunchableObject(OtherActor))
+	if (bCanEverHeadLaunch && IsLaunchableObject(OtherActor))
 	{
 		bHavePayload = true;
 		SetCameraState(ECameraState::Payload);
@@ -770,6 +801,7 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 
 void ARobotCharacter::ForceSwitchPolarity()
 {
+	if (!bCanEverSwitchPolarity) return;
 	Polarity == EPolarity::Positive ? Polarity = EPolarity::Negative : Polarity = EPolarity::Positive;
 	SwitchPolarityTimer = PolaritySwitchCooldown;
 	OnPolaritySwitched.Broadcast(Polarity, PolaritySwitchCooldown);

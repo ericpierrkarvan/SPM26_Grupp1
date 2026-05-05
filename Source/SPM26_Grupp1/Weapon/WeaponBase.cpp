@@ -114,7 +114,7 @@ void AWeaponBase::Tick(float DeltaSeconds)
 
 float AWeaponBase::GetMaxShootRange() const
 {
-	if (ProjectileClass)
+	if (IsValid(ProjectileClass))
 	{
 		return ProjectileClass
 			->GetDefaultObject<AProjectileBase>()
