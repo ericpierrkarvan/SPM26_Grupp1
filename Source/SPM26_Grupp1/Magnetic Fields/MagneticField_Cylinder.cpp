@@ -184,12 +184,16 @@ void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* A
 	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
 	CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
+	
+	OnMagneticPull.Broadcast(Actor);
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 {
 	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	Repel(MagnetCenterPoint, Actor);
+	
+	OnMagneticRepulsion.Broadcast(Actor);
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.

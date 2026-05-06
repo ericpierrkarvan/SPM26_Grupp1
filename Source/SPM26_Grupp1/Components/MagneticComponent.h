@@ -1,6 +1,9 @@
 #pragma once
 
+#include "FMODAudioComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
+#include "FMODBlueprintStatics.h"
+#include "FMODEvent.h"
 #include "MagneticComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -26,7 +29,20 @@ public:
 	void SetCanSwitchPolarity(bool bNewCanSwitchPolarity);
 	void SetCanBeAffected(bool bCanBeAffected);
 	void SetCanBeRepelled(bool bNewCanBeRepelled);
-
+	
+	// FMOD bidnizz
+	// set SoundEvent per actor in editor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MagneticComponent|Sound")
+	UFMODEvent* MagneticSoundEvent;
+	// Tag so blueprints can branch on the sound category. Character, Rock etc
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MagneticComponent|Sound")
+	FName MagneticSoundTag;
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="MagneticComponent")
+	UFMODEvent* GetMagneticSound() const { return MagneticSoundEvent; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="MagneticComponent")
+	FName GetMagneticSoundTag() const { return MagneticSoundTag; }
+	
 private:
 	UPROPERTY(EditAnywhere, Category="MagneticComponent")
 	EPolarity Polarity;
