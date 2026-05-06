@@ -260,10 +260,8 @@ void AProj_MagneticCylinder::AlignPositiveMagneticFieldVFXOVERCOOKED(const FHitR
 // Align VFX effect to the magnetic field.
 void AProj_MagneticCylinder::AlignNegativeMagneticFieldVFX(const FHitResult& ImpactResult, const FVector& SpawnLocation, const int32 Polarity, const AMagneticField_Cylinder* Field) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Entered AlignNegativeMagneticFieldVFX..."));
 	if (!Field || !Field->GetVFXComponent()) return;
 	UNiagaraComponent* VFXComp = Field->GetVFXComponent();
-	UE_LOG(LogTemp, Warning, TEXT("Start VFX rotation: %s"), *VFXComp->GetComponentRotation().ToString());
 
 	const FVector Normal = ImpactResult.ImpactNormal;
 
