@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Components/ActorComponent.h"
 #include "ProgressGrantingComponent.generated.h"
 
 
+class UFMODEvent;
 enum class EProgressFlag : uint8;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -21,6 +23,12 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, Category="Audio")
+	UFMODEvent* PickupSound; //played when progress is consumed
+
+	UPROPERTY(EditAnywhere, Category="Audio")
+	UFMODEvent* FanfareSound; //played when progress is consumed
 
 public:	
 	// Called every frame
