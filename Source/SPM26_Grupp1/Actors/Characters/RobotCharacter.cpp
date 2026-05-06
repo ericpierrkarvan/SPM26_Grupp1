@@ -275,18 +275,26 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		PlatformDetectionSphere->GetOverlappingActors(ToIgnore);
 		ToIgnore.Add(this);
 
-		UCharacterMovementComponent* PayloadMoveComp = nullptr;
-		for (AActor* Actor : ToIgnore)
+		UCharacterMovementComponent* HeadCharacterMoveComp = nullptr;
+
+		if (!HeldActor)
 		{
-			if (ACharacter* Char = Cast<ACharacter>(Actor))
+			//we dont have a actor in our hands, but we might have something on our head
+			for (AActor* Actor : ToIgnore)
 			{
-				PayloadMoveComp = Char->GetCharacterMovement();
-				break;
+				if (Actor == this) continue;
+				if (ACharacter* Char = Cast<ACharacter>(Actor))
+				{
+					HeadCharacterMoveComp = Char->GetCharacterMovement();
+					break;
+				}
 			}
 		}
+
 		LaunchArcComponent->UpdateArc(
 			PlatformDetectionSphere->GetComponentLocation(),
-			GetLaunchForce(), PayloadMoveComp,
+			GetLaunchForce(),
+			HeadCharacterMoveComp,
 			ToIgnore
 		);
 	}
