@@ -11,15 +11,21 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MagneticField_Cylinder.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMagneticPull, AActor*, AffectedActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMagneticRepulsion, AActor*, AffectedActor);
+
 UCLASS()
 class SPM26_GRUPP1_API AMagneticField_Cylinder : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
+	
+	UPROPERTY(BlueprintAssignable, Category="AAA_Magnet|Events")
+	FOnMagneticPull OnMagneticPull;
+	UPROPERTY(BlueprintAssignable, Category="AAA_Magnet|Events")
+	FOnMagneticRepulsion OnMagneticRepulsion;
+	
 	// Sets default values for this actor's properties
 	AMagneticField_Cylinder();
 	virtual void Tick(float DeltaTime) override;
