@@ -162,9 +162,12 @@ protected:
 	virtual void LookGamepad(const FInputActionValue& Value);
 	virtual void LookMouse(const FInputActionValue& Value);
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Polarity|Audio")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* PolaritySwitchAudioComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	UFMODAudioComponent* GrabAudioComponent;
+	
 	UPROPERTY()
 	TWeakObjectPtr<UPickupComponent> CurrentTargetPickup;
 
@@ -202,6 +205,7 @@ protected:
 	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
 
 	virtual void TakePicture();
+	void PlayGrabSound() const;
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
