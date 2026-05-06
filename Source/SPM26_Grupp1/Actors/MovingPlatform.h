@@ -89,6 +89,8 @@ protected:
 	UFMODEvent* MovingSound;
 
 	void SetMoving(bool bMoving);
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 private:
 	//State
 	bool bIsMoving = false;

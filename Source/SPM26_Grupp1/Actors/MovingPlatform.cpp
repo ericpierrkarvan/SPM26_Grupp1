@@ -302,3 +302,13 @@ void AMovingPlatform::SetMoving(bool bMoving)
         }
     }
 }
+
+void AMovingPlatform::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+    if (Mesh)
+    {
+        //force the location of the mesh since the actor will snap to the spline point anyway
+        Mesh->SetRelativeLocation(FVector::ZeroVector);
+    }
+}
