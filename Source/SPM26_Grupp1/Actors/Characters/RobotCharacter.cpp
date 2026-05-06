@@ -802,7 +802,8 @@ void ARobotCharacter::SwitchPolarity_Implementation()
 	SwitchPolarityTimer = PolaritySwitchCooldown;
 	MagneticComponent->SwitchPolarity();
 	OnPolaritySwitched.Broadcast(MagneticComponent->GetPolarity(), PolaritySwitchCooldown);
-
+	OnSwitchPolarity(MagneticComponent->GetPolarity());
+	
 	ScreenDebugPolaritySwitchMessage();
 }
 

@@ -29,6 +29,8 @@ UInteractableComponent::UInteractableComponent()
 void UInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	bIsOn = bStartsOn;
 }
 
 
@@ -37,7 +39,14 @@ void UInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (InteractCooldownTimer > 0.f)
+	{
+		InteractCooldownTimer -= DeltaTime;
+		if (InteractCooldownTimer < 0.f)
+		{
+			InteractCooldownTimer = 0.f;
+		}
+	}
 }
 
 void UInteractableComponent::Interact(AActor* Interactor)
@@ -47,6 +56,7 @@ void UInteractableComponent::Interact(AActor* Interactor)
 	
 	if (CanInteract(Interactor))
 	{
+		InteractCooldownTimer = InteractCooldown;
 		bIsOn = !bIsOn;
 		OnInteract.Broadcast(Interactor, bIsOn);
 	}
@@ -57,9 +67,12 @@ UUserWidget* UInteractableComponent::GetPromptWidget(APlayerController* ForPlaye
 	if (!PromptWidgetClass || !ForPlayer) return nullptr;
 
 	//if we have already created this promp widget, use that
-	if (UUserWidget** Existing = PromptWidgets.Find(ForPlayer))
+	if (TWeakObjectPtr<UUserWidget>* Existing = PromptWidgets.Find(ForPlayer))
 	{
-		return *Existing;
+		if (Existing->IsValid())
+		{
+			return Existing->Get();
+		}
 	}
 
 	//create the promp widget
@@ -90,8 +103,12 @@ FVector UInteractableComponent::GetPromptWorldLocation() const
 bool UInteractableComponent::CanInteract(AActor* Interactor) const
 {
 	if (!bIsInteractable) return false;
-	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+	if (InteractCooldownTimer > 0.0f) return false;
+	if (ToggleMode == EInteractToggleMode::OnToOffOnly && !bIsOn) return false;
+	if (ToggleMode == EInteractToggleMode::OffToOnOnly && bIsOn) return false;
 
+	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+	
 	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
 	bool bIsRobot = Interactor->IsA(ARobotCharacter::StaticClass());
 

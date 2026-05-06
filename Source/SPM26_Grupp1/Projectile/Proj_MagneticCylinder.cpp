@@ -138,6 +138,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 				AlignSpawnedMagneticField(Field, ImpactResult, SpawnLocation);
 				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, ProjectilePolarity, Field);
 				
+				Field->InitializeFieldDuration(SpawnedMagneticFieldDuration);
 				UGameplayStatics::FinishSpawningActor(Field, FTransform(SpawnRotation, SpawnLocation)); // BeginPlay fires here
 			}
 		}
