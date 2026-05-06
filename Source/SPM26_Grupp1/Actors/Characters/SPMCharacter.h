@@ -15,7 +15,10 @@ enum class EProgressFlag : uint8;
 struct FPlayerProgress;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown)
+;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget);
 
 class UInteractableComponent;
@@ -30,9 +33,9 @@ class UProgressSubsystem;
 UENUM(BlueprintType)
 enum class ECameraState : uint8
 {
-	Regular  UMETA(DisplayName = "Regular"),
-	ADS      UMETA(DisplayName = "ADS"),
-	Payload  UMETA(DisplayName = "Payload")
+	Regular UMETA(DisplayName = "Regular"),
+	ADS UMETA(DisplayName = "ADS"),
+	Payload UMETA(DisplayName = "Payload")
 };
 
 UCLASS()
@@ -43,24 +46,27 @@ class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ASPMCharacter(const FObjectInitializer& ObjectInitializer);
-	
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION(BlueprintNativeEvent, Category="Input")
 	void SwitchPolarity();
 	virtual void SwitchPolarity_Implementation();
 
 	UFUNCTION(BlueprintNativeEvent, Category="Polarity")
 	void OnSwitchPolarity(EPolarity NewPolarity);
-	
+
 	virtual bool CanSwitchPolarity() const;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	float GetPolaritySwitchCooldown() const;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
 	FOnPolaritySwitched OnPolaritySwitched;
+
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	virtual EPolarity GetPolarity() const;
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	bool IsADSActive() const;
@@ -74,16 +80,18 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Progress")
 	FOnPictureTaken OnPictureTaken;
-	
-	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity);
+
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce,
+	                                     FVector ProjectileVelocity);
 
 	virtual void Interact(const FInputActionValue& Value);
 
 	virtual void ConsumePickup();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
 
@@ -96,7 +104,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> IA_LookMouse;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Jump;
 
@@ -105,7 +113,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Shoot;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_SwitchPolarity;
 
@@ -118,7 +126,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input|ADS")
 	bool bUseADSAimAcceleration = true;
 
-	
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
 	bool bDisplayInteractBoxTrace = false;
@@ -129,8 +136,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
 
-	
-	
 	//ADS
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveIn;
@@ -140,11 +145,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ADSMovementMultiplier = 0.5f;
-	
+
 	UPROPERTY(EditAnywhere, Category="Polarity")
 	float PolaritySwitchCooldown = 0.35f;
 	float SwitchPolarityTimer = 0.f;
-	
+
 	virtual void StartADS();
 	virtual void StopADS();
 	bool bIsADS = false;
@@ -155,28 +160,28 @@ protected:
 
 	void SetCameraState(ECameraState NewState);
 	ECameraState PreviousState = ECameraState::Regular;
-	ECameraState CurrentState  = ECameraState::Regular;
+	ECameraState CurrentState = ECameraState::Regular;
 
 	virtual void Move(const FInputActionValue& Value);
 	void ApplyAimAcceleration(FVector2D& Axis);
 	virtual void LookGamepad(const FInputActionValue& Value);
 	virtual void LookMouse(const FInputActionValue& Value);
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* PolaritySwitchAudioComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* GrabAudioComponent;
-	
+
 	UPROPERTY()
 	TWeakObjectPtr<UPickupComponent> CurrentTargetPickup;
 
 	virtual bool FindPickup();
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
 
-	
+
 	virtual void ApplyProgress(UProgressSubsystem* Progress);
 
 	UFUNCTION()
@@ -199,31 +204,37 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	UTextureRenderTarget2D* PickupRenderTarget;
-	
+
 	UPROPERTY()
 	AActor* HeldActor;
 	TWeakObjectPtr<UPickupComponent> HeldPickupComponent;
 
 	virtual void TakePicture();
 	void PlayGrabSound() const;
-private:
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
+	bool bIsInCoyoteTime = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
+	float CoyoteTimeWindow = 0.2f;
+
+private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
-	
+
 	void UpdateJumpCount(const FInputActionInstance& Instance);
 
 	void LookForInteractables(float DeltaTime);
 
 	UPROPERTY()
 	TObjectPtr<UInteractableComponent> CurrentTargetInteractableComp;
-	
-	APlayerController* GetViewingPlayerController() const; //method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
-	
+
+	APlayerController* GetViewingPlayerController() const;
+	//method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
+
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	float ADSFOV = 80.f;
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
@@ -234,13 +245,13 @@ private:
 	float ADSTransitionTimeIn = 0.12f;
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	float ADSTransitionTimeOut = 0.07f;
-	
+
 	float DefaultFOV = 90;
 	float DefaultCameraArmLength = 400.f;
 	float CurrentCameraArmLength = 400.f;
-	float ADSCurveAlpha    = 0.f;
+	float ADSCurveAlpha = 0.f;
 	float ADSCurveDirection = 0.f;
-	
+
 	FVector DefaultCameraOffset = FVector::ZeroVector;
 	FVector CurrentCameraOffset = FVector::ZeroVector;
 
