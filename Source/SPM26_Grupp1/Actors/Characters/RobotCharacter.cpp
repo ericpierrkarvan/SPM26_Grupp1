@@ -456,7 +456,7 @@ void ARobotCharacter::PerformDash()
 	DashSource->FinishVelocityParams.SetVelocity = DashDirection * (DashPower / 2.f);
 	GetRobotMovementComponent()->OnDashEvent.Broadcast(IsDashing());
 	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
+	GetWorld()->GetTimerManager().SetTimer(DashHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
 	DashTimer = DashCooldown;
 	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }

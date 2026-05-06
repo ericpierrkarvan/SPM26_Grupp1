@@ -17,8 +17,8 @@ class SPM26_GRUPP1_API USPMCharacterMovementComponent : public UCharacterMovemen
 public:
 	USPMCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 	bool IsGrounded();
-	void IncrementJumpCount();
-	int GetJumpCount() const { return JumpCount; }
+	void DecrementJumpCount();
+	int GetJumpsRemaining() const { return JumpsRemaining; }
 
 	virtual void PhysFalling(float DeltaTime, int32 Iterations) override;
 
@@ -36,7 +36,11 @@ public:
 		}
 		return nullptr;
 	}
+	
+	void ResetJumpsRemaining() { JumpsRemaining = MaxJumps; }
+protected:
+	int MaxJumps = 1;
 
 private:
-	int JumpCount = 0;
+	int JumpsRemaining = 0;
 };

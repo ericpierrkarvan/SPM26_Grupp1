@@ -24,16 +24,18 @@ bool USPMCharacterMovementComponent::IsGrounded()
 	if (IsFalling())
 		return false;
 	
-	JumpCount = 0;
 	return true;
 }
 
-void USPMCharacterMovementComponent::IncrementJumpCount()
+void USPMCharacterMovementComponent::DecrementJumpCount()
 {
-	JumpCount++;
+	JumpsRemaining--;
+	UE_LOG(LogTemp, Warning, TEXT("Jump Count %d"), GetJumpsRemaining());
 }
 
 void USPMCharacterMovementComponent::PhysFalling(float DeltaTime, int32 Iterations)
 {
 	Super::PhysFalling(DeltaTime, Iterations);
 }
+
+

@@ -17,6 +17,8 @@ class SPM26_GRUPP1_API UMechanicMovementComponent : public USPMCharacterMovement
 	GENERATED_BODY()
 
 public:
+	UMechanicMovementComponent(const FObjectInitializer& ObjectInitializer);
+	
 	UPROPERTY(EditAnywhere, Category = "Mantle")
 	float MaxFrontMantleCheckDistance = 50.f;
 
@@ -37,11 +39,11 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Mantle")
 	UAnimMontage* MantleAnimation;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "DoubleJump")
 	FOnDoubleJump DoubleJumpEvent;
-	
-	
+
+
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
 

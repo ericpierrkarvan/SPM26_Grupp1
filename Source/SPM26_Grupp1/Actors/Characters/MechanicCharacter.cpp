@@ -24,7 +24,8 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
-		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
+		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this,
+		                &AMechanicCharacter::DestroyAllMagneticFields);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &AMechanicCharacter::MechanicDoubleJump);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &AMechanicCharacter::StartADS);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &AMechanicCharacter::StopADS);
@@ -65,7 +66,7 @@ void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 	{
 		if (Progress->HasFlag(EProgressFlag::MagneticGunUnlocked) && !bHaveMagneticGun)
 		{
-			EquipWeapon(); 
+			EquipWeapon();
 		}
 		bCanEverChangeMagneticGunPolartiy = Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	}
@@ -84,16 +85,13 @@ UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() c
 void AMechanicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AMechanicCharacter::MechanicDoubleJump()
 {
 	//Bool to check if Mechanic is able to double jump
 	bool CanDoubleJump = !GetMechanicMovementComponent()->IsGrounded()
-		&& GetMechanicMovementComponent()->GetJumpCount() == 1;
-
-	UE_LOG(LogTemp, Warning, TEXT("Jump count: %d"), GetMechanicMovementComponent()->GetJumpCount());
+		&& GetMechanicMovementComponent()->GetJumpsRemaining() > -1;
 
 	if (CanDoubleJump)
 	{
@@ -148,8 +146,8 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	FCollisionQueryParams CameraCollisionParams;
 	CameraCollisionParams.AddIgnoredActor(this);
 
-	
-	FCollisionQueryParams CollisionParams; 
+
+	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this);
 	//trace from gun to end, we need material
 	CollisionParams.bReturnPhysicalMaterial = true;
@@ -157,7 +155,7 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	FVector CameraLocation;
 	FRotator CameraRotation;
 	PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
-	
+
 	//first do a trace from camera so we can see what the player is trying to hit with its crosshair
 	//and use that end point for the second trace/direction when we actually spawn the projectile
 	FVector TraceEnd = GetLineTraceEndPoint(CameraLocation, PlayerController);
@@ -167,13 +165,14 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 
 	//we want to get the end location for the camera trace
 	FVector CameraHitLocation = CameraHit.bBlockingHit ? CameraHit.ImpactPoint : TraceEnd;
-	
+
 	FVector GunTraceStart = GetCurrentProjectileSpawnLocation();
 	float MaxRange = GetEquippedWeapon() ? GetEquippedWeapon()->GetMaxShootRange() : 1000.f;
 	FVector GunToTarget = (CameraHitLocation - GunTraceStart).GetSafeNormal() * MaxRange;
 	FVector GunTraceEnd = GunTraceStart + GunToTarget;
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, GunTraceStart, GunTraceEnd, ECC_Visibility, CollisionParams);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, GunTraceStart, GunTraceEnd, ECC_Visibility,
+	                                                 CollisionParams);
 
 	// Draws the linetrace
 	DrawDebugLine(GetWorld(), GunTraceStart, GunTraceEnd, PolarityColor, false, -1, 0, 1);
@@ -199,9 +198,9 @@ void AMechanicCharacter::UpdateADSTrace()
 {
 	if (!IsADSActive()) return;
 	PerformAimTrace(ADSResult);
-	
+
 	USPMPhysicalMaterial* PhysMat = Cast<USPMPhysicalMaterial>(ADSResult.PhysMaterial.Get());
-	
+
 	bool bShowMagneticSurface = true;
 
 	//we have a valid material and it cant spawn magnetic field
@@ -266,10 +265,10 @@ EPolarity AMechanicCharacter::GetPolarity() const
 }
 
 // Switches the MagnetGun's polarity.
-void AMechanicCharacter::SwitchPolarity_Implementation() 
+void AMechanicCharacter::SwitchPolarity_Implementation()
 {
 	if (!CanSwitchPolarity()) return;
-	
+
 	AMagnetGun* MagnetGun = Cast<AMagnetGun>(GetEquippedWeapon());
 	if (MagnetGun)
 	{
@@ -278,9 +277,8 @@ void AMechanicCharacter::SwitchPolarity_Implementation()
 		EPolarity NewPolarity = MagnetGun->GetPolarity();
 		OnPolaritySwitched.Broadcast(NewPolarity, PolaritySwitchCooldown);
 		OnSwitchPolarity(NewPolarity);
-		
+
 		NewPolarity == EPolarity::Positive ? PolarityColor = FColor::Blue : PolarityColor = FColor::Orange;
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, PolarityColor, TEXT("Switched Gun Polarity"));
 	}
 }
-

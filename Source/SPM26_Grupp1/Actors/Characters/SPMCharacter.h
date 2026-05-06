@@ -88,6 +88,8 @@ public:
 
 	virtual void ConsumePickup();
 
+	virtual bool CanJumpInternal_Implementation() const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -212,10 +214,17 @@ protected:
 	virtual void TakePicture();
 	void PlayGrabSound() const;
 
+	virtual void OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
+	                                              const FVector& PreviousFloorContactNormal,
+	                                              const FVector& PreviousLocation, float TimeDelta) override;
+	void ResetCoyoteJump();
+	
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
-	bool bIsInCoyoteTime = false;
+	bool bCanCoyoteJump = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
-	float CoyoteTimeWindow = 0.2f;
+	float CoyoteTimeWindow = 0.5f;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -256,4 +265,6 @@ private:
 	FVector CurrentCameraOffset = FVector::ZeroVector;
 
 	virtual float GetADSMovementMultiplier() const;
+
+	FTimerHandle CoyoteTimerHandle;
 };

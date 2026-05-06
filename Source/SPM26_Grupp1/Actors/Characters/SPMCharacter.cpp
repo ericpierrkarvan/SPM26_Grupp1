@@ -572,6 +572,12 @@ void ASPMCharacter::Tick(float DeltaTime)
 	UpdateCamera(DeltaTime);
 	OnIsPickingUp(DeltaTime);
 	
+	
+	if (GetSPMMovementComponent()->IsGrounded())
+	{
+		GetSPMMovementComponent()->ResetJumpsRemaining();
+	}
+	
 	if (SwitchPolarityTimer > 0)
 	{
 		SwitchPolarityTimer -= DeltaTime;
@@ -617,7 +623,26 @@ USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
 
 void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 {
-	GetSPMMovementComponent()->IncrementJumpCount();
+	GetSPMMovementComponent()->DecrementJumpCount();
+
+}
+
+void ASPMCharacter::OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal, const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta)
+{	
+	bCanCoyoteJump = true;
+	UE_LOG(LogTemp, Warning, TEXT("WalkingOffLedge is triggered"));
+	GetWorldTimerManager().SetTimer(CoyoteTimerHandle, this, &ASPMCharacter::ResetCoyoteJump, CoyoteTimeWindow, false);
+}
+
+void ASPMCharacter::ResetCoyoteJump()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
+	bCanCoyoteJump = false;
+}
+
+bool ASPMCharacter::CanJumpInternal_Implementation() const
+{
+	return Super::CanJumpInternal_Implementation() || bCanCoyoteJump;
 }
 
 void ASPMCharacter::SwitchPolarity_Implementation()
