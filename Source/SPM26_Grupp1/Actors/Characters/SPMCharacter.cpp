@@ -55,7 +55,10 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	PickupCaptureComp->SetupAttachment(RootComponent);
 	PickupCaptureComp->bCaptureEveryFrame = false;
 	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
-	
+
+	GrabAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("GrabAudioComp"));
+	GrabAudioComponent->SetupAttachment(RootComponent);
+	GrabAudioComponent->SetAutoActivate(false);
 }
 
 void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
@@ -185,7 +188,8 @@ bool ASPMCharacter::FindPickup()
 
 	// Change collision after bounds are stored
 	CurrentTargetPickup->OnPickedUp(this);
-
+	PlayGrabSound();
+	
 	HeldActor = PickupActor;
 	HeldPickupComponent = CurrentTargetPickup;
 	bIsPickingUp = true;
@@ -509,6 +513,18 @@ void ASPMCharacter::TakePicture()
 
 	
 	OnPictureTaken.Broadcast(PickupRenderTarget);
+}
+
+void ASPMCharacter::PlayGrabSound() const
+{
+	if (GrabAudioComponent && GrabAudioComponent->Event)
+	{
+		GrabAudioComponent->Play();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s: Failed to play PlayGrabSound: No comp or sound event assigned"), *GetName());
+	}
 }
 
 void ASPMCharacter::UpdateCamera(float DeltaTime)
