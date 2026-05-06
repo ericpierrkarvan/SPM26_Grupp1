@@ -2,7 +2,8 @@
 
 
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
-
+#include "FMODEvent.h"
+#include "FMODBlueprintStatics.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 
 // Sets default values for this component's properties
@@ -36,6 +37,28 @@ void UProgressGrantingComponent::TickComponent(float DeltaTime, ELevelTick TickT
 
 void UProgressGrantingComponent::GiveProgress()
 {
+	const FTransform OwnerTransform = GetOwner()->GetActorTransform();
+	
+	if (PickupSound)
+	{
+		UFMODBlueprintStatics::PlayEventAtLocation(
+			this,
+			PickupSound,
+			OwnerTransform,
+			true
+		);
+	}
+
+	if (FanfareSound)
+	{
+		UFMODBlueprintStatics::PlayEventAtLocation(
+			this,
+			FanfareSound,
+			OwnerTransform,
+			true
+		);
+	}
+	
 	if (UGameInstance* GI = GetWorld()->GetGameInstance())
 	{
 		if (UProgressSubsystem* Progress = GI->GetSubsystem<UProgressSubsystem>())
