@@ -311,4 +311,9 @@ void AMovingPlatform::OnConstruction(const FTransform& Transform)
         //force the location of the mesh since the actor will snap to the spline point anyway
         Mesh->SetRelativeLocation(FVector::ZeroVector);
     }
+
+    if (Spline && Spline->GetNumberOfSplinePoints() > 0)
+    {
+        Spline->SetLocationAtSplinePoint(0, FVector::ZeroVector, ESplineCoordinateSpace::Local, true);
+    }
 }
