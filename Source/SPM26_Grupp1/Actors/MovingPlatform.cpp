@@ -1,4 +1,7 @@
 #include "MovingPlatform.h"
+
+#include "FMODAudioComponent.h"
+#include "FMODBlueprintStatics.h"
 #include "SPM26_Grupp1/Components/InteractableReceiverComponent.h"
 
 
@@ -17,32 +20,43 @@ AMovingPlatform::AMovingPlatform()
 
     Spline->SetSplinePointType(0, ESplinePointType::Linear);
     Spline->SetSplinePointType(1, ESplinePointType::Linear);
+
+    MovingAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("MovingAudioComponent"));
+    MovingAudioComponent->SetupAttachment(Mesh);
+    MovingAudioComponent->bAutoActivate = false;
+   
 }
 
 void AMovingPlatform::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (!Spline || !ReceiverComponent) return;
+    if (MovingAudioComponent)  MovingAudioComponent->Event = MovingSound;
     
-    //iterate through all spline points
-    for (int32 i = 0; i < Spline->GetNumberOfSplinePoints(); i++)
+    if (Spline)
     {
-        //set each spline as linear, ie straight lines between points
-        Spline->SetSplinePointType(i, ESplinePointType::Linear, false);
-    }
-    //since we are not updating spline in each iteration, update it once here
-    Spline->UpdateSpline();
+        //iterate through all spline points
+        for (int32 i = 0; i < Spline->GetNumberOfSplinePoints(); i++)
+        {
+            //set each spline as linear, ie straight lines between points
+            Spline->SetSplinePointType(i, ESplinePointType::Linear, false);
+        }
+        //since we are not updating spline in each iteration, update it once here
+        Spline->UpdateSpline();
 
-    SnapMeshToSplineStart();
+        SnapMeshToSplineStart();
+    }
+    
 
     //listen to activation changes
-    ReceiverComponent->OnActivationChanged.AddDynamic(this, &AMovingPlatform::OnActivationChanged);
-
-    //if we have no activator trigger, then we just autostart it
-    if (!ReceiverComponent->GetTargetActivator())
+    if (ReceiverComponent)
     {
-        OnActivationChanged(nullptr, true);
+        ReceiverComponent->OnActivationChanged.AddDynamic(this, &AMovingPlatform::OnActivationChanged);
+        //if we have no activator trigger, then we just autostart it
+        if (!ReceiverComponent->GetTargetActivator())
+        {
+            OnActivationChanged(nullptr, true);
+        }
     }
 }
 
@@ -88,7 +102,7 @@ void AMovingPlatform::Move(float DeltaTime)
                     CurrentDistance, ESplineCoordinateSpace::World
                 );
                 Mesh->SetWorldLocation(SnapLocation);
-                bIsMoving = false;
+                SetMoving(false);
                 bStopNextSpline = false;
                 return;
             }
@@ -98,7 +112,7 @@ void AMovingPlatform::Move(float DeltaTime)
     //we want to return to start. If we passed start distance we are successful 
     if (bReturningToStart && CurrentDistance <= 0.f)
     {
-        bIsMoving = false;
+        SetMoving(false);
         bReturningToStart = false;
         bFirstActivation = true;
         bStoppedAtEndpoint = false;
@@ -134,7 +148,7 @@ void AMovingPlatform::OnReachedEndpoint()
         //one shot: we want to stop at either end point
         if (bAtEnd || bAtStart)
         {
-            bIsMoving = false;
+            SetMoving(false);
             bStoppedAtEndpoint = true;
         }
         break;
@@ -147,7 +161,7 @@ void AMovingPlatform::OnReachedEndpoint()
         //however if we want to stop at next spline:
         if (bStopNextSpline && (bAtEnd || bAtStart))
         {
-            bIsMoving = false;
+            SetMoving(false);
             bStopNextSpline = false;
         }
         break;
@@ -168,8 +182,18 @@ void AMovingPlatform::OnActivationChanged(AActor* Interactor, bool bIsOn)
     if (bIsOn)
     {
         bStopNextSpline = false;  //remove any pending "stop at next spline point"
-        bIsMoving = true;
+        SetMoving(true);
 
+        if (StartSound)
+        {
+            UFMODBlueprintStatics::PlayEventAtLocation(this, StartSound, GetActorTransform(), true);    
+        }
+        
+        if (MovingAudioComponent && MovingAudioComponent->Event)
+        {
+            MovingAudioComponent->Play();
+        }
+        
         switch (Behavior)
         {
         case EMovingPlatformBehavior::OneShot:
@@ -217,11 +241,23 @@ void AMovingPlatform::OnActivationChanged(AActor* Interactor, bool bIsOn)
     }
     else //We are deactivating
     {
+        if (StopSound)
+        {
+            UFMODBlueprintStatics::PlayEventAtLocation(this, StopSound, GetActorTransform(), true);    
+        }
+        
+        if (MovingAudioComponent && MovingAudioComponent->Event)
+        {
+            MovingAudioComponent->Stop();
+            UE_LOG(LogTemp, Warning, TEXT("%s: stop moving sound"), *GetClass()->GetName())
+        }
+        
+        
         switch (StopBehavior)
         {
         case EMovingPlatformStopBehavior::Immediate:
             //stop moving at current position
-            bIsMoving = false;
+            SetMoving(false);
             bStopNextSpline = false;
             break;
 
@@ -233,7 +269,7 @@ void AMovingPlatform::OnActivationChanged(AActor* Interactor, bool bIsOn)
         case EMovingPlatformStopBehavior::ReturnToStart:
             //force the platform to move back to start
             Direction = -1;
-            bIsMoving = true;
+            SetMoving(true);
             bStopNextSpline = false;
             bReturningToStart = true;
             break;
@@ -248,5 +284,21 @@ void AMovingPlatform::SnapMeshToSplineStart()
     {
         FVector StartLocation = Spline->GetLocationAtDistanceAlongSpline(0.f, ESplineCoordinateSpace::World);
         Mesh->SetWorldLocation(StartLocation);
+    }
+}
+
+void AMovingPlatform::SetMoving(bool bMoving)
+{
+    bIsMoving = bMoving;
+    if (MovingAudioComponent)
+    {
+        if (bMoving)
+        {
+            if (!MovingAudioComponent->IsPlaying()) MovingAudioComponent->Play();
+        }
+        else
+        {
+            MovingAudioComponent->Stop();
+        }
     }
 }

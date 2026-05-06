@@ -41,5 +41,4 @@ void UInteractableReceiverComponent::BeginPlay()
 void UInteractableReceiverComponent::OnInteracted(AActor* Interactor, bool bIsOn)
 {
 	OnActivationChanged.Broadcast(Interactor, bIsOn);
-	UE_LOG(LogTemp, Warning, TEXT("%s: my state is = %i "), *GetClass()->GetName(), bIsOn)
 }

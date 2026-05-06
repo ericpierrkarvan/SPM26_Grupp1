@@ -3,10 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FMODEvent.h"
 #include "GameFramework/Actor.h"
 #include "Components/SplineComponent.h"
 #include "MovingPlatform.generated.h"
 
+
+class UFMODAudioComponent;
 
 UENUM(BlueprintType)
 enum class EMovingPlatformBehavior : uint8
@@ -72,6 +75,20 @@ public:
 	void OnReachedEndpoint();
 	void SnapMeshToSplineStart();
 
+protected:
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	UFMODAudioComponent* MovingAudioComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	UFMODEvent* StartSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	UFMODEvent* StopSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	UFMODEvent* MovingSound;
+
+	void SetMoving(bool bMoving);
 private:
 	//State
 	bool bIsMoving = false;
