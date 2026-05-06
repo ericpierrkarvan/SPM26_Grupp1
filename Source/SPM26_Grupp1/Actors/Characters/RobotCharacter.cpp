@@ -345,7 +345,8 @@ bool ARobotCharacter::FindPickup()
 
 	// Change collision after bounds are stored
 	CurrentTargetPickup->OnPickedUp(this);
-
+	PlayGrabSound();
+	
 	HeldActor = PickupActor;
 	HeldPickupComponent = CurrentTargetPickup;
 	bIsPickingUp = true;
