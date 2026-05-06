@@ -8,7 +8,7 @@
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
-#include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
+#include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
 // Sets default values
@@ -19,7 +19,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	RootComponent = Capsule;
-	Capsule->SetCapsuleSize(50, 250);
+	Capsule->SetCapsuleSize(CapsuleOriginalRadius, 250);
 	
 	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
 	MagnetVfxComponent->SetupAttachment(RootComponent);
@@ -33,11 +33,14 @@ void AMagneticField_Cylinder::BeginPlay()
 	Super::BeginPlay();
 	
 	// Collision collider
+	CapsuleOriginalRadius = Capsule->GetScaledCapsuleRadius();
 	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 	CapsuleHeight = CapsuleHalfHeight * 2;
 	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
 	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
 
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMagneticField_Cylinder::CheckInitialOverlaps);
+	
 }
 
 void AMagneticField_Cylinder::Activate()
@@ -185,7 +188,7 @@ void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* A
 	CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
 	CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
 	
-	OnMagneticPull.Broadcast(Actor);
+	OnMagneticPullBP(Actor);
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
@@ -193,7 +196,7 @@ void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	Repel(MagnetCenterPoint, Actor);
 	
-	OnMagneticRepulsion.Broadcast(Actor);
+	OnMagneticRepulsionBP(Actor);
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.
@@ -399,6 +402,40 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 	ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor);
 	if (!Robot) return;
 	Robot->CancelDash();
+	
+}
+
+void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
+{
+	UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
+	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
+	if (!OtherField) return;
+	
+	// If fields attract (Different polarities) -> Decrease size of this and Remove OtherField. If CurrentAmount... = 0, destroy this.
+	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> ShouldAttract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		OtherField->Destroy();
+		CurrentAmountOfSummarizedField--;
+		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
+		if (CurrentAmountOfSummarizedField <= 0) this->Destroy();
+		else
+		{
+			this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
+			// this->SetLifeSpan(MagneticFieldDuration);
+		}
+	}
+	// If fields don't attract (Same polarities) -> Increase size of this, reset its lifespan, Remove OtherField.
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> Should NOT Attract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		OtherField->Destroy();
+		CurrentAmountOfSummarizedField++;
+		CurrentAmountOfSummarizedField = FMath::Clamp(CurrentAmountOfSummarizedField, 0, MaxAmountOfSummarizedField);
+		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
+		this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
+		this->SetLifeSpan(MagneticFieldDuration);
+	}
 	
 }
 
@@ -614,4 +651,25 @@ void AMagneticField_Cylinder::CalculatePullStrength(const FVector& CurrentPlayer
 	PullStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, CapsuleHeight),
 		FVector2D(MinPullForce,MaxPullForce),
 		FVector::Dist(CurrentPlayerLocation, MagnetCenterPoint));
+}
+
+void AMagneticField_Cylinder::InitializeFieldDuration(const float InDuration)
+{
+	MagneticFieldDuration = InDuration;
+}
+
+void AMagneticField_Cylinder::CheckInitialOverlaps()
+{
+	TArray<AActor*> OverlappingActors;
+	GetCapsuleComponent()->GetOverlappingActors(OverlappingActors);
+	UE_LOG(LogTemp, Warning, TEXT("CheckInitialOverlaps() -> Count: %d"), OverlappingActors.Num());
+	
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (Cast<AMagneticField_Cylinder>(Actor))
+		{
+			IfFieldHandleOverlap(Actor);
+		}
+	}
+
 }

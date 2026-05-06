@@ -6,13 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
-#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MagneticField_Cylinder.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMagneticPull, AActor*, AffectedActor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMagneticRepulsion, AActor*, AffectedActor);
 
 UCLASS()
 class SPM26_GRUPP1_API AMagneticField_Cylinder : public AActor
@@ -20,11 +15,6 @@ class SPM26_GRUPP1_API AMagneticField_Cylinder : public AActor
 	GENERATED_BODY()
 	
 public:	
-	
-	UPROPERTY(BlueprintAssignable, Category="AAA_Magnet|Events")
-	FOnMagneticPull OnMagneticPull;
-	UPROPERTY(BlueprintAssignable, Category="AAA_Magnet|Events")
-	FOnMagneticRepulsion OnMagneticRepulsion;
 	
 	// Sets default values for this actor's properties
 	AMagneticField_Cylinder();
@@ -43,11 +33,19 @@ public:
 	UNiagaraComponent* GetVFXComponent() const;
 	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
+	
+	void InitializeFieldDuration(const float InDuration);
+	void CheckInitialOverlaps();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	
+	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
+	void OnMagneticPullBP(AActor* Actor);
+	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
+	void OnMagneticRepulsionBP(AActor* Actor);
 	
 	FVector LateralCorrection(const FVector& MagnetCenterPoint, AActor* Actor) const; 
 	FVector CalculateMagnetCenterPoint(AActor* Actor);
@@ -85,6 +83,7 @@ protected:
 	void SetActorAttractParameters(AActor* Actor);
 	bool ValidateOverLapBegin(AActor* OtherActor, const UPrimitiveComponent* OtherComp, const ACharacter* Character) const;
 	void IfRobotHandleDash(AActor* Actor);
+	void IfFieldHandleOverlap(AActor* OtherActor);
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
@@ -148,6 +147,13 @@ private:
 	float MaxRepelForce = 20.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
 	float SnapOffSet = 100.f; // avoid played inside the wall
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|CombineField")
+	float FieldSizeMultiplier = 0.15f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|CombineField")
+	int32 MaxAmountOfSummarizedField = 2;
+	int32 CurrentAmountOfSummarizedField = 1;
+	float MagneticFieldDuration;
+
 	
 	// Used for crippling/restoring character movement
 	float OriginalSpeed = 600;
@@ -160,6 +166,7 @@ private:
 	
 	float CapsuleHeight;
 	float CapsuleHalfHeight;
+	float CapsuleOriginalRadius = 50;
 	
 	// Strength of pull towards middle of the field
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
