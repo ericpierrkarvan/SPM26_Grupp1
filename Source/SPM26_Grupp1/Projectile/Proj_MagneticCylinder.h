@@ -18,6 +18,8 @@ public:
 	AProj_MagneticCylinder(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	
+	float GetSpawnedMagneticFieldDuration() const { return SpawnedMagneticFieldDuration; };
 
 protected:
 

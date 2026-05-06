@@ -10,6 +10,14 @@
 class UWidgetComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteract, AActor*, Interactor, bool, IsOn);
 
+UENUM(BlueprintType)
+enum class EInteractToggleMode : uint8
+{
+	BothWays        UMETA(DisplayName = "On <-> Off"),
+	OnToOffOnly     UMETA(DisplayName = "On -> Off Only"),
+	OffToOnOnly     UMETA(DisplayName = "Off -> On Only")
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API UInteractableComponent : public UActorComponent, public IPromptable
 {
@@ -23,6 +31,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	EInteractToggleMode ToggleMode = EInteractToggleMode::BothWays;
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -39,7 +49,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	void Interact(AActor* Interactor);
 
-	UPROPERTY(EditDefaultsOnly, Category="State")
+	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	bool bIsOn = false;
 	
 	UFUNCTION()
@@ -58,6 +68,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
 	bool bIsInteractable = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
+	float InteractCooldown = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	bool bStartsOn = false;
+	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	TSubclassOf<UUserWidget> PromptWidgetClass;
@@ -66,12 +82,12 @@ private:
 	FVector PromptOffset = FVector(0.f, 0.f, 10.f);
 
 	UPROPERTY()
-	TMap<APlayerController*, UUserWidget*> PromptWidgets;
-
-
-
+	TMap<TWeakObjectPtr<APlayerController>, TWeakObjectPtr<UUserWidget>> PromptWidgets;
+	
 	UPROPERTY(EditAnywhere, Category="Interaction")
 	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;
+
+	float InteractCooldownTimer = 0.f;
 };
 
 
