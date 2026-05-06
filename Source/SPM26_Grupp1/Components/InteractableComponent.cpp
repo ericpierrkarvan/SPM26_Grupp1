@@ -37,7 +37,14 @@ void UInteractableComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (InteractCooldownTimer > 0.f)
+	{
+		InteractCooldownTimer -= DeltaTime;
+		if (InteractCooldownTimer < 0.f)
+		{
+			InteractCooldownTimer = 0.f;
+		}
+	}
 }
 
 void UInteractableComponent::Interact(AActor* Interactor)
@@ -47,6 +54,7 @@ void UInteractableComponent::Interact(AActor* Interactor)
 	
 	if (CanInteract(Interactor))
 	{
+		InteractCooldownTimer = InteractCooldown;
 		bIsOn = !bIsOn;
 		OnInteract.Broadcast(Interactor, bIsOn);
 	}
@@ -90,8 +98,12 @@ FVector UInteractableComponent::GetPromptWorldLocation() const
 bool UInteractableComponent::CanInteract(AActor* Interactor) const
 {
 	if (!bIsInteractable) return false;
-	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+	if (InteractCooldownTimer > 0.0f) return false;
+	if (ToggleMode == EInteractToggleMode::OnToOffOnly && !bIsOn) return false;
+	if (ToggleMode == EInteractToggleMode::OffToOnOnly && bIsOn) return false;
 
+	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
+	
 	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
 	bool bIsRobot = Interactor->IsA(ARobotCharacter::StaticClass());
 
