@@ -9,6 +9,61 @@ UMagneticComponent::UMagneticComponent()
 	bCanSwitchPolarity = true;
 }
 
+void UMagneticComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (!MagneticPullSoundEvent) return;
+	
+	MagneticPullAudioComp = UFMODBlueprintStatics::PlayEventAttached(
+		MagneticPullSoundEvent,
+		GetOwner()->GetRootComponent(),
+		NAME_None,
+		FVector::ZeroVector,
+		EAttachLocation::KeepRelativeOffset,
+		true,
+		false,
+		false);
+	MagneticRepelAudioComp = UFMODBlueprintStatics::PlayEventAttached(
+	MagneticRepelSoundEvent,
+	GetOwner()->GetRootComponent(),
+	NAME_None,
+	FVector::ZeroVector,
+	EAttachLocation::KeepRelativeOffset,
+	true,
+	false,
+	false);
+}
+
+void UMagneticComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (MagneticPullAudioComp)
+	{
+		MagneticPullAudioComp->Stop();
+		MagneticPullAudioComp = nullptr;
+	}
+	
+	Super::EndPlay(EndPlayReason);
+}
+
+void UMagneticComponent::PlayPullSound() const
+{
+	if (!MagneticPullAudioComp) return;
+	MagneticPullAudioComp->Play();
+}
+
+void UMagneticComponent::PlayRepelSound() const
+{
+	if (!MagneticRepelAudioComp) return;
+	MagneticRepelAudioComp->Play();
+}
+
+void UMagneticComponent::StopMagneticSounds() const
+{
+	if (MagneticPullAudioComp) MagneticPullAudioComp->Stop();
+	if (MagneticRepelAudioComp) MagneticRepelAudioComp->Stop();
+}
+
 void UMagneticComponent::StartRepelImmunity()
 {
 	bCanBeRepelled = false;
