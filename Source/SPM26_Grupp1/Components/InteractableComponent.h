@@ -49,7 +49,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	void Interact(AActor* Interactor);
 
-	UPROPERTY(EditDefaultsOnly, Category="State")
+	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	bool bIsOn = false;
 	
 	UFUNCTION()
@@ -70,6 +70,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
 	float InteractCooldown = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	bool bStartsOn = false;
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Interaction")
@@ -79,7 +82,7 @@ private:
 	FVector PromptOffset = FVector(0.f, 0.f, 10.f);
 
 	UPROPERTY()
-	TMap<APlayerController*, UUserWidget*> PromptWidgets;
+	TMap<TWeakObjectPtr<APlayerController>, TWeakObjectPtr<UUserWidget>> PromptWidgets;
 	
 	UPROPERTY(EditAnywhere, Category="Interaction")
 	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;
