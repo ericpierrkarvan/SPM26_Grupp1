@@ -9,6 +9,7 @@
 #include "MechanicCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceCanSpawnMagneticField, bool, bShowIndicator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipWeapon, bool, bIsEquipped, AWeaponBase*, Weapon);
 
 class UMechanicMovementComponent;
 /**
@@ -35,6 +36,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSurfaceCanSpawnMagneticField OnSurfaceCanSpawnMagneticField;
+	UPROPERTY(BlueprintAssignable)
+	FOnEquipWeapon OnEquipWeapon;
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	float DoubleJumpVelocityMultiplier = 1.4f;
@@ -63,8 +67,8 @@ protected:
 	virtual void StartADS() override;
 	virtual void StopADS() override;
 
-	
-
+	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
+	virtual bool CanSwitchPolarity() const override;
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();
@@ -77,6 +81,9 @@ private:
 	FHitResult ADSResult;
 
 	bool bLastShowMagneticSurface = true;
+
+	bool bHaveMagneticGun = false;
+	bool bCanEverChangeMagneticGunPolartiy = false;
 
 	
 };
