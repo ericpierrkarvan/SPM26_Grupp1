@@ -30,7 +30,6 @@ bool USPMCharacterMovementComponent::IsGrounded()
 void USPMCharacterMovementComponent::DecrementJumpCount()
 {
 	JumpsRemaining--;
-	UE_LOG(LogTemp, Warning, TEXT("Jump Count %d"), GetJumpsRemaining());
 }
 
 void USPMCharacterMovementComponent::PhysFalling(float DeltaTime, int32 Iterations)

@@ -88,11 +88,14 @@ public:
 
 	virtual void ConsumePickup();
 
-	virtual bool CanJumpInternal_Implementation() const override;
 
-protected:
+	virtual void OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
+	                                              const FVector& PreviousFloorContactNormal,
+	                                              const FVector& PreviousLocation, float TimeDelta) override;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
@@ -214,13 +217,11 @@ protected:
 	virtual void TakePicture();
 	void PlayGrabSound() const;
 
-	virtual void OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
-	                                              const FVector& PreviousFloorContactNormal,
-	                                              const FVector& PreviousLocation, float TimeDelta) override;
+	virtual bool CanJumpInternal_Implementation() const override;
 	void ResetCoyoteJump();
-	
-	
-	
+
+	void OnJumpRelease();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
 	bool bCanCoyoteJump = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")

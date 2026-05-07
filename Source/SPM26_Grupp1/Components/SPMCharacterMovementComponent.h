@@ -21,7 +21,7 @@ public:
 	int GetJumpsRemaining() const { return JumpsRemaining; }
 
 	virtual void PhysFalling(float DeltaTime, int32 Iterations) override;
-
+	
 	template <typename T>
 	static T* FindNotifyByClass(const UAnimSequenceBase* Animation)
 	{
@@ -43,4 +43,5 @@ protected:
 
 private:
 	int JumpsRemaining = 0;
+	
 };
