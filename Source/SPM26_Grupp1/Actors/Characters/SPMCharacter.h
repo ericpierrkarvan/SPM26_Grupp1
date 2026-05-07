@@ -16,7 +16,7 @@ struct FPlayerProgress;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget, EProgressFlag, NewProgress);
 
 class UInteractableComponent;
 class USPMCharacterMovementComponent;

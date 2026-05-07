@@ -490,7 +490,7 @@ void ASPMCharacter::TakePicture()
 	PickupCaptureComp->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 	PickupCaptureComp->ShowOnlyComponents.Empty();
 
-	// Add only the mesh components of the held actor
+	//only show the mesh of the object we picked up
 	TArray<UMeshComponent*> Meshes;
 	HeldActor->GetComponents<UMeshComponent>(Meshes);
 	for (UMeshComponent* MeshComp : Meshes)
@@ -498,7 +498,7 @@ void ASPMCharacter::TakePicture()
 		PickupCaptureComp->ShowOnlyComponents.Add(MeshComp);
 	}
 
-	// Disable sky and atmosphere via show flags
+	//disable sky/fog for a clearer picture
 	PickupCaptureComp->ShowFlags.SetAtmosphere(false);
 	PickupCaptureComp->ShowFlags.SetFog(false);
 
@@ -511,8 +511,12 @@ void ASPMCharacter::TakePicture()
 	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	PickupCaptureComp->bCaptureEveryFrame = true;
 
-	
-	OnPictureTaken.Broadcast(PickupRenderTarget);
+	EProgressFlag NewFlag = EProgressFlag::None;
+	if (UProgressGrantingComponent* LocalProgComp = HeldActor->GetComponentByClass<UProgressGrantingComponent>())
+	{
+		NewFlag = LocalProgComp->GetProgressFlag();
+	}
+	OnPictureTaken.Broadcast(PickupRenderTarget, NewFlag);
 }
 
 void ASPMCharacter::PlayGrabSound() const

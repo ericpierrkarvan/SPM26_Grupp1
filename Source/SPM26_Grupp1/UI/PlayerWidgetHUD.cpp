@@ -108,7 +108,7 @@ void UPlayerWidgetHUD::OnAmmoChanged(int32 CurrentAmmo, int32 MaxAmmo, bool bAmm
 	UpdateAmmo(CurrentAmmo, MaxAmmo, bAmmoIncreased);
 }
 
-void UPlayerWidgetHUD::OnProgressPickup(UTextureRenderTarget2D* RenderTarget)
+void UPlayerWidgetHUD::OnProgressPickup(UTextureRenderTarget2D* RenderTarget, EProgressFlag NewProgress)
 {
 	if (!DynPhotoMaterial)
 	{
@@ -121,7 +121,7 @@ void UPlayerWidgetHUD::OnProgressPickup(UTextureRenderTarget2D* RenderTarget)
 	//PhotoImage->SetBrushFromMaterial(nullptr);
 	//PhotoImage->SetBrushFromMaterial(DynPhotoMaterial);
 	
-	OnProgressPickup_BP(DynPhotoMaterial);
+	OnProgressPickup_BP(DynPhotoMaterial, NewProgress);
 }
 
 void UPlayerWidgetHUD::OnClosePrompt()

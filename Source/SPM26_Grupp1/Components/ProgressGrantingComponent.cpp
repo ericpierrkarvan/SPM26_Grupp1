@@ -35,6 +35,11 @@ void UProgressGrantingComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	// ...
 }
 
+EProgressFlag UProgressGrantingComponent::GetProgressFlag() const
+{
+	return ProgressFlag;
+}
+
 void UProgressGrantingComponent::GiveProgress()
 {
 	const FTransform OwnerTransform = GetOwner()->GetActorTransform();

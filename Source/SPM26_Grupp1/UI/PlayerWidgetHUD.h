@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "PlayerWidgetHUD.generated.h"
 
@@ -73,10 +74,10 @@ protected:
 	void OnMagneticSurfaceChanged(bool bSurfaceCanSpawnMagneticField);
 
 	UFUNCTION(Category = "Progress")
-	void OnProgressPickup(UTextureRenderTarget2D* RenderTarget);
+	void OnProgressPickup(UTextureRenderTarget2D* RenderTarget, EProgressFlag NewProgress);
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Progress")
-	void OnProgressPickup_BP(UMaterialInstanceDynamic* RenderTargetMaterialInstance);
+	void OnProgressPickup_BP(UMaterialInstanceDynamic* RenderTargetMaterialInstance, EProgressFlag NewProgress);
 	
 	UPROPERTY(EditAnywhere)
 	UMaterialInterface* PhotoMaterial;
