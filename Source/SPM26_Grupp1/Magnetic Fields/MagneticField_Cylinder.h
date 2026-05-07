@@ -33,6 +33,7 @@ public:
 	UNiagaraComponent* GetVFXComponent() const;
 	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
+	int32 GetCurrentAmountOfSummarizedField() const;
 	
 	void InitializeFieldDuration(const float InDuration);
 	void CheckInitialOverlaps();
