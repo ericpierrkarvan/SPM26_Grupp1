@@ -414,7 +414,9 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	// If fields attract (Different polarities) -> Decrease size of this and Remove OtherField. If CurrentAmount... = 0, destroy this.
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> ShouldAttract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> ShouldAttract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> OtherFieldCurrentAmount: %hhd, thisCurrentAmount: %hhd"), OtherField->GetCurrentAmountOfSummarizedField(), this->GetCurrentAmountOfSummarizedField());
+		CurrentAmountOfSummarizedField = FMath::Max(CurrentAmountOfSummarizedField, OtherField->GetCurrentAmountOfSummarizedField());
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField--;
 		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
@@ -428,7 +430,7 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	// If fields don't attract (Same polarities) -> Increase size of this, reset its lifespan, Remove OtherField.
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> Should NOT Attract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> Should NOT Attract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField++;
 		CurrentAmountOfSummarizedField = FMath::Clamp(CurrentAmountOfSummarizedField, 0, MaxAmountOfSummarizedField);
@@ -672,4 +674,9 @@ void AMagneticField_Cylinder::CheckInitialOverlaps()
 		}
 	}
 
+}
+
+int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
+{
+	return CurrentAmountOfSummarizedField;
 }
