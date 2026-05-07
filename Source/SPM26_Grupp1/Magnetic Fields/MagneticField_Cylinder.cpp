@@ -132,7 +132,8 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	if (ActorsInField.IsEmpty()) return;
 	
 	// Clean up any actors destroyed while in the field
-	ActorsInField.RemoveAll([](const TWeakObjectPtr<AActor>& Actor) { return !Actor.IsValid(); });
+	//ActorsInField.RemoveAll([](const TWeakObjectPtr<AActor>& Actor) { return !Actor.IsValid(); });
+	ActorsInField.RemoveAll([](const AActor* Actor) { return !IsValid(Actor); });
 	
 	ApplyMagneticForce(DeltaTime);
 
@@ -172,10 +173,9 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
 {
-	for (TWeakObjectPtr<AActor>& WeakActor : ActorsInField)
+	for (AActor* Actor : ActorsInField)
 	{
-		if (!WeakActor.IsValid()) continue;
-		AActor* Actor = WeakActor.Get();
+		if (!IsValid(Actor)) continue;
 		const EPolarity OtherPolarity = GetObjectPolarity(Actor);
 		
 		ShouldAttract(this->Polarity, OtherPolarity) ? ApplyMagneticPull(DeltaTime, Actor) : ApplyMagneticRepulsion(Actor);

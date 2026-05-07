@@ -116,7 +116,9 @@ protected:
 	int32 PolarityValue;
 	
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
-	TArray<TWeakObjectPtr<AActor>> ActorsInField;
+	//TArray<TWeakObjectPtr<AActor>> ActorsInField;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	TArray<AActor*> ActorsInField;
 	bool bCharacterInsideField = false;
 	
 private:	
