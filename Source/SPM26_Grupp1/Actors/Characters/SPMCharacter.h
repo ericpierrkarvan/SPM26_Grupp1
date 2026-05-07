@@ -87,16 +87,17 @@ public:
 	virtual void Interact(const FInputActionValue& Value);
 
 	virtual void ConsumePickup();
-
-
+	
 	virtual void OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
 	                                              const FVector& PreviousFloorContactNormal,
 	                                              const FVector& PreviousLocation, float TimeDelta) override;
-
+	
+	virtual void Landed(const FHitResult& Hit) override;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-protected:
 
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
 
@@ -218,14 +219,6 @@ protected:
 	void PlayGrabSound() const;
 
 	virtual bool CanJumpInternal_Implementation() const override;
-	void ResetCoyoteJump();
-
-	void OnJumpRelease();
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
-	bool bCanCoyoteJump = false;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Movement")
-	float CoyoteTimeWindow = 0.5f;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -234,10 +227,8 @@ private:
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
-
-	void UpdateJumpCount(const FInputActionInstance& Instance);
-
 	void LookForInteractables(float DeltaTime);
+
 
 	UPROPERTY()
 	TObjectPtr<UInteractableComponent> CurrentTargetInteractableComp;
@@ -267,5 +258,19 @@ private:
 
 	virtual float GetADSMovementMultiplier() const;
 
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float JumpBufferDuration = 0.2f;
+
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float CoyoteTimeWindow = 0.3f;
+	
 	FTimerHandle CoyoteTimerHandle;
+	bool bCanCoyoteJump = false;
+	float JumpBufferTimer = 0.0f;
+	
+	void InputJump();
+	void UpdateJumpCount(const FInputActionInstance& Instance);
+	void ResetCoyoteJump();
+	void OnJumpRelease();
+	
 };

@@ -572,13 +572,9 @@ void ASPMCharacter::Tick(float DeltaTime)
 	UpdateCamera(DeltaTime);
 	OnIsPickingUp(DeltaTime);
 
-
-	if (GetSPMMovementComponent()->IsGrounded())
+	if (JumpBufferTimer > 0.0f)
 	{
-		if (USPMCharacterMovementComponent* MoveComp = GetSPMMovementComponent())
-		{
-			MoveComp->ResetJumpsRemaining();
-		}
+		JumpBufferTimer -= DeltaTime;
 	}
 
 	if (SwitchPolarityTimer > 0)
@@ -607,7 +603,7 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_LookGamePad, ETriggerEvent::Triggered, this, &ASPMCharacter::LookGamepad);
 		EIC->BindAction(IA_LookMouse, ETriggerEvent::Triggered, this, &ASPMCharacter::LookMouse);
 
-		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ASPMCharacter::Jump);
+		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ASPMCharacter::InputJump);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ASPMCharacter::OnJumpRelease);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ASPMCharacter::UpdateJumpCount);
 		EIC->BindAction(IA_SwitchPolarity, ETriggerEvent::Triggered, this, &ASPMCharacter::SwitchPolarity);
@@ -622,6 +618,18 @@ bool ASPMCharacter::IsADSActive() const
 USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
 {
 	return Cast<USPMCharacterMovementComponent>(GetCharacterMovement());
+}
+
+void ASPMCharacter::InputJump()
+{
+	if (CanJump())
+	{
+		Jump();
+	}
+	else if (!GetSPMMovementComponent()->IsGrounded())
+	{
+		JumpBufferTimer = JumpBufferDuration;
+	}
 }
 
 void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
@@ -651,13 +659,29 @@ void ASPMCharacter::OnJumpRelease()
 
 	if (!GetSPMMovementComponent()->IsGrounded() && GetSPMMovementComponent()->Velocity.Z > 0.f)
 	{
-		GetSPMMovementComponent()->Velocity.Z *= 0.5f;
+		GetSPMMovementComponent()->Velocity.Z *= 0.82f;
 	}
 }
 
 bool ASPMCharacter::CanJumpInternal_Implementation() const
 {
 	return Super::CanJumpInternal_Implementation() || bCanCoyoteJump;
+}
+
+void ASPMCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	if (USPMCharacterMovementComponent* MoveComp = GetSPMMovementComponent())
+	{
+		MoveComp->ResetJumpsRemaining();
+	}
+
+	if (JumpBufferTimer > 0.0f)
+	{
+		Jump();
+		JumpBufferTimer = 0.0f;
+	}
 }
 
 void ASPMCharacter::SwitchPolarity_Implementation()
