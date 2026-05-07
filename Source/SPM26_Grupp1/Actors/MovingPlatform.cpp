@@ -241,11 +241,6 @@ void AMovingPlatform::OnActivationChanged(AActor* Interactor, bool bIsOn)
     }
     else //We are deactivating
     {
-        if (StopSound)
-        {
-            UFMODBlueprintStatics::PlayEventAtLocation(this, StopSound, GetActorTransform(), true);    
-        }
-        
         if (MovingAudioComponent && MovingAudioComponent->Event)
         {
             MovingAudioComponent->Stop();
@@ -290,11 +285,20 @@ void AMovingPlatform::SnapMeshToSplineStart()
 void AMovingPlatform::SetMoving(bool bMoving)
 {
     bIsMoving = bMoving;
+    
+    if (!bMoving && StopSound)
+    {
+        UFMODBlueprintStatics::PlayEventAtLocation(this, StopSound, GetActorTransform(), true);
+    }
+    
     if (MovingAudioComponent)
     {
         if (bMoving)
         {
-            if (!MovingAudioComponent->IsPlaying()) MovingAudioComponent->Play();
+            if (!MovingAudioComponent->IsPlaying())
+            {
+                MovingAudioComponent->Play();
+            }
         }
         else
         {
