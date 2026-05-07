@@ -64,6 +64,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Interaction")
 	bool GetIsInteractable() const;
+
+	void SetInteractable(bool NewInteractableState);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
 	bool bIsInteractable = true;

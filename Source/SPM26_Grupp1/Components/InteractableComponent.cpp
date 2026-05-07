@@ -127,3 +127,8 @@ bool UInteractableComponent::GetIsInteractable() const
 {
 	return bIsInteractable;
 }
+
+void UInteractableComponent::SetInteractable(const bool NewInteractableState)
+{
+	bIsInteractable = NewInteractableState;
+}
