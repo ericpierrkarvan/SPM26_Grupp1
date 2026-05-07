@@ -13,7 +13,9 @@ class UMagneticComponent : public UActorComponent
 
 public:
 	UMagneticComponent();
-	
+	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
 	void StartRepelImmunity();
 	void StartAttractImmunity(float Seconds);
 	void SwitchPolarity();
@@ -33,13 +35,21 @@ public:
 	// FMOD bidnizz
 	// set SoundEvent per actor in editor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MagneticComponent|Sound")
-	UFMODEvent* MagneticSoundEvent;
+	UFMODEvent* MagneticPullSoundEvent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MagneticComponent|Sound")
+	UFMODEvent* MagneticRepelSoundEvent;
 	// Tag so blueprints can branch on the sound category. Character, Rock etc
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MagneticComponent|Sound")
 	FName MagneticSoundTag;
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="MagneticComponent")
-	UFMODEvent* GetMagneticSound() const { return MagneticSoundEvent; }
+	UFMODEvent* GetMagneticSound() const { return MagneticPullSoundEvent; }
+	UFUNCTION(BlueprintCallable, Category="MagneticComponent")
+	void PlayPullSound() const;
+	UFUNCTION(BlueprintCallable, Category="MagneticComponent")
+	void PlayRepelSound() const;
+	UFUNCTION(BlueprintCallable, Category="MagneticComponent")
+	void StopMagneticSounds() const;
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="MagneticComponent")
 	FName GetMagneticSoundTag() const { return MagneticSoundTag; }
 	
@@ -61,6 +71,11 @@ private:
 	
 	FTimerHandle RepelImmunityHandle;
 	FTimerHandle CanBeAffectedCooldownHandle;
+	
+	UPROPERTY()
+	UFMODAudioComponent* MagneticPullAudioComp;
+	UPROPERTY()
+	UFMODAudioComponent* MagneticRepelAudioComp;
 	
 	// Resistance to being moved by magnetic fields
 	// float ResistanceFactor;
