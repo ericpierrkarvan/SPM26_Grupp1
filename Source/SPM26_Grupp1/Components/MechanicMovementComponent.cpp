@@ -10,6 +10,7 @@
 UMechanicMovementComponent::UMechanicMovementComponent(const FObjectInitializer& ObjectInitializer) : USPMCharacterMovementComponent(ObjectInitializer)
 {
 	MaxJumps = 2;
+	ResetJumpsRemaining();
 }
 
 void UMechanicMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
@@ -159,6 +160,7 @@ void UMechanicMovementComponent::TryMantle()
 void UMechanicMovementComponent::OnMantleAnimFinished()
 {
 	SetMovementMode(DefaultLandMovementMode);
+	ResetJumpsRemaining();
 }
 
 float UMechanicMovementComponent::GetCapsuleHalfHeight() const
