@@ -61,7 +61,7 @@ void UMagneticComponent::PlayRepelSound() const
 void UMagneticComponent::StopMagneticSounds() const
 {
 	if (MagneticPullAudioComp) MagneticPullAudioComp->Stop();
-	if (MagneticRepelAudioComp) MagneticRepelAudioComp->Stop();
+	// if (MagneticRepelAudioComp) MagneticRepelAudioComp->Stop();
 }
 
 void UMagneticComponent::StartRepelImmunity()

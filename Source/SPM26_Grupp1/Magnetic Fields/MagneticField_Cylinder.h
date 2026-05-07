@@ -27,13 +27,16 @@ public:
 	UFUNCTION()
 	void OnPolarityChanged(EPolarity NewPolarity, float PolaritySwitchCooldown);
 	
+	// Getters & setters
 	void SetPolarity(const int32 NewPolarity);
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
 	UNiagaraComponent* GetVFXComponent() const;
 	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
-	
+	int32 GetCurrentAmountOfSummarizedField() const;
+	void ChooseMagneticSoundBasedOnPolarity(AActor* Actor);
+
 	void InitializeFieldDuration(const float InDuration);
 	void CheckInitialOverlaps();
 
@@ -42,11 +45,15 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	
+	// Blueprint-events for sound
 	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
 	void OnMagneticPullBP(AActor* Actor);
 	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
 	void OnMagneticRepulsionBP(AActor* Actor);
-	
+	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
+	void OnMagneticForceEndBP(AActor* Actor);
+
+	// magnet functions
 	FVector LateralCorrection(const FVector& MagnetCenterPoint, AActor* Actor) const; 
 	FVector CalculateMagnetCenterPoint(AActor* Actor);
 	void ApplyMagneticPull(float DeltaTime, AActor* Actor);
@@ -109,7 +116,9 @@ protected:
 	int32 PolarityValue;
 	
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
-	TArray<TWeakObjectPtr<AActor>> ActorsInField;
+	//TArray<TWeakObjectPtr<AActor>> ActorsInField;
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	TArray<AActor*> ActorsInField;
 	bool bCharacterInsideField = false;
 	
 private:	
