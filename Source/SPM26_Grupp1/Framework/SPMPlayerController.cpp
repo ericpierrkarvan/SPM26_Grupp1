@@ -8,6 +8,7 @@
 #include "ProgressSubsystem.h"
 #include "SPMGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Math/TransformCalculus3D.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
@@ -212,10 +213,19 @@ FTransform ASPMPlayerController::GetCheckpointTransform() const
 {
 	if (LastCheckpoint)
 	{
-		return LastCheckpoint->GetTransform();
+		FVector CheckpointLocation = LastCheckpoint->GetActorLocation();
+		FRotator CheckpointRotation = LastCheckpoint->GetActorRotation();
+		FVector ActorScale = FVector(1.0f);
+		
+		if (APawn* MyPawn = GetPawn())
+		{
+			ActorScale = MyPawn->GetActorScale3D();
+		}
+		
+		return FTransform(CheckpointRotation, CheckpointLocation , ActorScale);
 	}
 	
-	return FTransform();
+	return FTransform::Identity;
 }
 
 void ASPMPlayerController::OnRespawn()

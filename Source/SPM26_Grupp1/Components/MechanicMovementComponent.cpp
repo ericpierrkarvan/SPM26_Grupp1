@@ -7,6 +7,10 @@
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/AnimationNotifiers/UAnimMantleNotify.h"
 
+UMechanicMovementComponent::UMechanicMovementComponent(const FObjectInitializer& ObjectInitializer) : USPMCharacterMovementComponent(ObjectInitializer)
+{
+	MaxJumps = 2;
+}
 
 void UMechanicMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
 {
