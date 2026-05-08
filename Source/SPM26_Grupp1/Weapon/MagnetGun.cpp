@@ -2,7 +2,6 @@
 
 
 #include "MagnetGun.h"
-
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 // Sets default values
