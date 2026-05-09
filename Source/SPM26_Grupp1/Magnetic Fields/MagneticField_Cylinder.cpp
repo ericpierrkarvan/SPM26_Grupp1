@@ -132,7 +132,8 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	if (ActorsInField.IsEmpty()) return;
 	
 	// Clean up any actors destroyed while in the field
-	ActorsInField.RemoveAll([](const TWeakObjectPtr<AActor>& Actor) { return !Actor.IsValid(); });
+	//ActorsInField.RemoveAll([](const TWeakObjectPtr<AActor>& Actor) { return !Actor.IsValid(); });
+	ActorsInField.RemoveAll([](const AActor* Actor) { return !IsValid(Actor); });
 	
 	ApplyMagneticForce(DeltaTime);
 
@@ -172,10 +173,9 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
 {
-	for (TWeakObjectPtr<AActor>& WeakActor : ActorsInField)
+	for (AActor* Actor : ActorsInField)
 	{
-		if (!WeakActor.IsValid()) continue;
-		AActor* Actor = WeakActor.Get();
+		if (!IsValid(Actor)) continue;
 		const EPolarity OtherPolarity = GetObjectPolarity(Actor);
 		
 		ShouldAttract(this->Polarity, OtherPolarity) ? ApplyMagneticPull(DeltaTime, Actor) : ApplyMagneticRepulsion(Actor);
@@ -187,16 +187,14 @@ void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* A
 	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
 	CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
-	
-	OnMagneticPullBP(Actor);
+
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 {
 	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	Repel(MagnetCenterPoint, Actor);
-	
-	OnMagneticRepulsionBP(Actor);
+
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.
@@ -414,7 +412,9 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	// If fields attract (Different polarities) -> Decrease size of this and Remove OtherField. If CurrentAmount... = 0, destroy this.
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> ShouldAttract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> ShouldAttract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> OtherFieldCurrentAmount: %hhd, thisCurrentAmount: %hhd"), OtherField->GetCurrentAmountOfSummarizedField(), this->GetCurrentAmountOfSummarizedField());
+		CurrentAmountOfSummarizedField = FMath::Max(CurrentAmountOfSummarizedField, OtherField->GetCurrentAmountOfSummarizedField());
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField--;
 		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
@@ -428,7 +428,7 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	// If fields don't attract (Same polarities) -> Increase size of this, reset its lifespan, Remove OtherField.
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> Should NOT Attract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> Should NOT Attract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField++;
 		CurrentAmountOfSummarizedField = FMath::Clamp(CurrentAmountOfSummarizedField, 0, MaxAmountOfSummarizedField);
@@ -455,6 +455,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	IfRobotHandleDash(OtherActor);
 	ListenToRobot(Character);
+	ChooseMagneticSoundBasedOnPolarity(OtherActor);
 	
 	ActorToAttractOrPull = OtherActor;
 	bCharacterInsideField = true;
@@ -491,6 +492,7 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	
 	ActorsInField.Remove(OtherActor);
 	IfRobotSetWithinMagneticField(false, OtherActor);
+	OnMagneticForceEndBP(OtherActor); // Event to StopMagneticSounds
 	
 	// If the two objects should attract, implies charmovement is crippled -> need to restoremovement on escape
 	ACharacter* Character = Cast<ACharacter>(OtherActor);
@@ -672,4 +674,14 @@ void AMagneticField_Cylinder::CheckInitialOverlaps()
 		}
 	}
 
+}
+
+int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
+{
+	return CurrentAmountOfSummarizedField;
+}
+
+void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
+{
+	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
 }

@@ -26,9 +26,9 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<USPMCharacterMovementComponent>(
 		ACharacter::CharacterMovementComponentName))
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -61,9 +61,9 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	GrabAudioComponent->SetAutoActivate(false);
 }
 
-void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
+void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity,
+                                            float ImpactForce, FVector ProjectileVelocity)
 {
-	
 }
 
 // Called when the game starts or when spawned
@@ -74,7 +74,7 @@ void ASPMCharacter::BeginPlay()
 	if (CameraBoom)
 	{
 		DefaultCameraArmLength = CameraBoom->TargetArmLength;
-		DefaultCameraOffset = CameraBoom->SocketOffset; 
+		DefaultCameraOffset = CameraBoom->SocketOffset;
 	}
 	CurrentCameraArmLength = DefaultCameraArmLength;
 	if (FollowCamera)
@@ -97,7 +97,7 @@ void ASPMCharacter::PossessedBy(AController* NewController)
 
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(IMC_Default, 0);
@@ -199,7 +199,6 @@ bool ASPMCharacter::FindPickup()
 
 void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
-	
 }
 
 void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
@@ -575,7 +574,12 @@ void ASPMCharacter::Tick(float DeltaTime)
 	LookForInteractables(DeltaTime);
 	UpdateCamera(DeltaTime);
 	OnIsPickingUp(DeltaTime);
-	
+
+	if (JumpBufferTimer > 0.0f)
+	{
+		JumpBufferTimer -= DeltaTime;
+	}
+
 	if (SwitchPolarityTimer > 0)
 	{
 		SwitchPolarityTimer -= DeltaTime;
@@ -601,11 +605,11 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ASPMCharacter::Move);
 		EIC->BindAction(IA_LookGamePad, ETriggerEvent::Triggered, this, &ASPMCharacter::LookGamepad);
 		EIC->BindAction(IA_LookMouse, ETriggerEvent::Triggered, this, &ASPMCharacter::LookMouse);
-		
-		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::Jump);
-		EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ASPMCharacter::UpdateJumpCount);
+
+		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ASPMCharacter::InputJump);
+		EIC->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ASPMCharacter::OnJumpRelease);
+		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &ASPMCharacter::UpdateJumpCount);
 		EIC->BindAction(IA_SwitchPolarity, ETriggerEvent::Triggered, this, &ASPMCharacter::SwitchPolarity);
-		
 	}
 }
 
@@ -619,9 +623,68 @@ USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const
 	return Cast<USPMCharacterMovementComponent>(GetCharacterMovement());
 }
 
+void ASPMCharacter::InputJump()
+{
+	if (CanJump())
+	{
+		Jump();
+	}
+	else if (!GetSPMMovementComponent()->IsGrounded())
+	{
+		JumpBufferTimer = JumpBufferDuration;
+	}
+}
+
 void ASPMCharacter::UpdateJumpCount(const FInputActionInstance& Instance)
 {
-	GetSPMMovementComponent()->IncrementJumpCount();
+	GetSPMMovementComponent()->DecrementJumpCount();
+}
+
+void ASPMCharacter::OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
+                                                     const FVector& PreviousFloorContactNormal,
+                                                     const FVector& PreviousLocation, float TimeDelta)
+{
+	bCanCoyoteJump = true;
+	UE_LOG(LogTemp, Warning, TEXT("WalkingOffLedge is triggered"));
+	GetWorldTimerManager().SetTimer(CoyoteTimerHandle, this, &ASPMCharacter::ResetCoyoteJump, CoyoteTimeWindow, false);
+}
+
+void ASPMCharacter::ResetCoyoteJump()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
+	bCanCoyoteJump = false;
+}
+
+void ASPMCharacter::OnJumpRelease()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Jump released"));
+	StopJumping();
+
+	if (!GetSPMMovementComponent()->IsGrounded() && GetSPMMovementComponent()->Velocity.Z > 0.f)
+	{
+		GetSPMMovementComponent()->Velocity.Z *= 0.82f;
+	}
+}
+
+bool ASPMCharacter::CanJumpInternal_Implementation() const
+{
+	return Super::CanJumpInternal_Implementation() || bCanCoyoteJump;
+}
+
+void ASPMCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	if (USPMCharacterMovementComponent* MoveComp = GetSPMMovementComponent())
+	{
+		MoveComp->ResetJumpsRemaining();
+	}
+
+	if (JumpBufferTimer > 0.0f)
+	{
+		Jump();
+		JumpBufferTimer = 0.0f;
+	}
 }
 
 void ASPMCharacter::SwitchPolarity_Implementation()
@@ -630,7 +693,6 @@ void ASPMCharacter::SwitchPolarity_Implementation()
 
 void ASPMCharacter::OnSwitchPolarity_Implementation(EPolarity NewPolarity)
 {
-	
 }
 
 bool ASPMCharacter::CanSwitchPolarity() const

@@ -7,6 +7,11 @@
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/AnimationNotifiers/UAnimMantleNotify.h"
 
+UMechanicMovementComponent::UMechanicMovementComponent(const FObjectInitializer& ObjectInitializer) : USPMCharacterMovementComponent(ObjectInitializer)
+{
+	MaxJumps = 2;
+	ResetJumpsRemaining();
+}
 
 void UMechanicMovementComponent::UpdateCharacterStateAfterMovement(float DeltaSeconds)
 {
@@ -155,6 +160,7 @@ void UMechanicMovementComponent::TryMantle()
 void UMechanicMovementComponent::OnMantleAnimFinished()
 {
 	SetMovementMode(DefaultLandMovementMode);
+	ResetJumpsRemaining();
 }
 
 float UMechanicMovementComponent::GetCapsuleHalfHeight() const

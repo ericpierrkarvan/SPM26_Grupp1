@@ -46,6 +46,7 @@ public:
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION(BlueprintNativeEvent, Category="Input")
 	void SwitchPolarity();
 	virtual void SwitchPolarity_Implementation();
@@ -80,10 +81,17 @@ public:
 	virtual void Interact(const FInputActionValue& Value);
 
 	virtual void ConsumePickup();
-protected:
+	
+	virtual void OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
+	                                              const FVector& PreviousFloorContactNormal,
+	                                              const FVector& PreviousLocation, float TimeDelta) override;
+	
+	virtual void Landed(const FHitResult& Hit) override;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
 
@@ -118,7 +126,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input|ADS")
 	bool bUseADSAimAcceleration = true;
 
-	
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
 	bool bDisplayInteractBoxTrace = false;
@@ -129,8 +136,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
 	float InteractBoxStartOffset = 50.f;
 
-	
-	
 	//ADS
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveIn;
@@ -144,7 +149,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Polarity")
 	float PolaritySwitchCooldown = 0.35f;
 	float SwitchPolarityTimer = 0.f;
-	
+
 	virtual void StartADS();
 	virtual void StopADS();
 	bool bIsADS = false;
@@ -161,7 +166,7 @@ protected:
 	void ApplyAimAcceleration(FVector2D& Axis);
 	virtual void LookGamepad(const FInputActionValue& Value);
 	virtual void LookMouse(const FInputActionValue& Value);
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
 	UFMODAudioComponent* PolaritySwitchAudioComp;
 
@@ -206,18 +211,18 @@ protected:
 
 	virtual void TakePicture();
 	void PlayGrabSound() const;
-private:
 
+	virtual bool CanJumpInternal_Implementation() const override;
+
+private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
-	
-	void UpdateJumpCount(const FInputActionInstance& Instance);
-
 	void LookForInteractables(float DeltaTime);
+
 
 	UPROPERTY()
 	TObjectPtr<UInteractableComponent> CurrentTargetInteractableComp;
@@ -234,15 +239,31 @@ private:
 	float ADSTransitionTimeIn = 0.12f;
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	float ADSTransitionTimeOut = 0.07f;
-	
+
 	float DefaultFOV = 90;
 	float DefaultCameraArmLength = 400.f;
 	float CurrentCameraArmLength = 400.f;
-	float ADSCurveAlpha    = 0.f;
+	float ADSCurveAlpha = 0.f;
 	float ADSCurveDirection = 0.f;
-	
+
 	FVector DefaultCameraOffset = FVector::ZeroVector;
 	FVector CurrentCameraOffset = FVector::ZeroVector;
 
 	virtual float GetADSMovementMultiplier() const;
+
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float JumpBufferDuration = 0.2f;
+
+	UPROPERTY(EditAnywhere, Category="Movement")
+	float CoyoteTimeWindow = 0.3f;
+	
+	FTimerHandle CoyoteTimerHandle;
+	bool bCanCoyoteJump = false;
+	float JumpBufferTimer = 0.0f;
+	
+	void InputJump();
+	void UpdateJumpCount(const FInputActionInstance& Instance);
+	void ResetCoyoteJump();
+	void OnJumpRelease();
+	
 };
