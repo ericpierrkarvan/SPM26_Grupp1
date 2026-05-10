@@ -15,7 +15,8 @@ void AAlienAIController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (!PlayerPawn) return;
-	UE_LOG(LogTemp, Warning, TEXT("AlienNPCCharacter(): Character is: %s"), *PlayerPawn->GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("AlienNPCCharacter(): Character is: %s"), *PlayerPawn->GetName());
+	
 	if (LineOfSightTo(PlayerPawn))
 	{
 		MoveToActor(PlayerPawn, AcceptanceRadius);
