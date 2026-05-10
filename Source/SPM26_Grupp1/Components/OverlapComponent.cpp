@@ -73,6 +73,17 @@ bool UOverlapComponent::IsValidActor(AActor* Actor) const
 }
 
 
+void UOverlapComponent::OnRegister()
+{
+	Super::OnRegister();
+	//had issue with attaching the component and the heirarchy was not getting correct
+	//attaching onregister fixed the heirarchy issue
+	if (OverlapBox && OverlapBox->GetAttachParent() == nullptr)
+	{
+		OverlapBox->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+	}
+}
+
 // Called every frame
 void UOverlapComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

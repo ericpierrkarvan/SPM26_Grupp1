@@ -3,14 +3,27 @@
 
 #include "SPM26_Grupp1/UI/PlayerWidgetHUD.h"
 
+#include "Components/HorizontalBox.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Framework/UISubSystem.h"
 
 
 void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 {
+	//only subscribe once
+	if (!bSubscribedToSubsystem)
+	{
+		if (UUISubSystem* Sub = GetGameInstance()->GetSubsystem<UUISubSystem>())
+		{
+			Sub->OnTutorialPromptActivated.AddDynamic(this, &UPlayerWidgetHUD::OnTutorialPromptActivated);
+			bSubscribedToSubsystem = true;
+		}
+	}
+	
 	//unsubscribe from old dynamics
 	if (RobotCharacter)
 	{
@@ -127,4 +140,85 @@ void UPlayerWidgetHUD::OnProgressPickup(UTextureRenderTarget2D* RenderTarget, EP
 void UPlayerWidgetHUD::OnClosePrompt()
 {
 	OnPromptEnd.Broadcast();
+}
+
+void UPlayerWidgetHUD::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	//populate the tmap with our prompts
+	PromptWidgets.Add(ETutorialPrompt::Jump, JumpPrompt);
+	PromptWidgets.Add(ETutorialPrompt::DoubleJump, DoubleJumpPrompt);
+	PromptWidgets.Add(ETutorialPrompt::Dash, DashPrompt);
+	PromptWidgets.Add(ETutorialPrompt::Interact, InteractPrompt);
+	PromptWidgets.Add(ETutorialPrompt::Shoot, ShootPrompt);
+	PromptWidgets.Add(ETutorialPrompt::ADSAim, ADSAimPrompt);
+	PromptWidgets.Add(ETutorialPrompt::ADSLaunchMode, ADSLaunchModePrompt);
+	PromptWidgets.Add(ETutorialPrompt::SwitchPolarity, SwitchPolarityPrompt);
+	PromptWidgets.Add(ETutorialPrompt::DestroyMagneticField, DestroyMagneticFieldPrompt);
+	PromptWidgets.Add(ETutorialPrompt::Launch, LaunchPrompt);
+
+	HideAllPrompts();
+}
+
+void UPlayerWidgetHUD::ShowPrompts(const TArray<ETutorialPrompt>& Prompts)
+{
+	if (!ActionPromptContainer) return;
+
+	ActionPromptContainer->ClearChildren();
+
+	//create an array with the actual prompts that the class uses
+	//specifc class hud widget wont add the dash prompt if it cant use it for example
+	//so if we get input jump, dash we wont display "jump + " if we dont have dash implemented
+	TArray<UUIActionInput*> ValidWidgets;
+	for (ETutorialPrompt Prompt : Prompts)
+	{
+		UUIActionInput* Widget = PromptWidgets.FindRef(Prompt);
+		if (Widget)
+		{
+			ValidWidgets.Add(Widget);
+		}
+	}
+
+	for (int32 i = 0; i < ValidWidgets.Num(); i++)
+	{
+		ActionPromptContainer->AddChild(ValidWidgets[i]);
+		ValidWidgets[i]->Show();
+
+		//if we have another prompt we want to show, then lets add the "+"-widget
+		if (i < ValidWidgets.Num() - 1 && ActionInputSeparatorClass)
+		{
+			UUserWidget* Separator = CreateWidget<UUserWidget>(GetOwningPlayer(), ActionInputSeparatorClass);
+			ActionPromptContainer->AddChild(Separator);
+		}
+	}
+}
+
+void UPlayerWidgetHUD::HideAllPrompts() const
+{
+	ActionPromptContainer->ClearChildren();
+}
+
+void UPlayerWidgetHUD::OnTutorialPromptActivated(const TArray<ETutorialPrompt>& TutPrompts, ETextPlayerFilter PlayerFilter, bool bActivated, AActor* TriggeringActor)
+{
+	//not possesing any char
+	ASPMCharacter* MyCharacter = GetCurrentCharacter();
+	if (!MyCharacter) return;
+
+	//if i did not trigger this prompt, then i dont want to display it
+	if (TriggeringActor != MyCharacter) return;
+	
+	bool bIsRobot = RobotCharacter != nullptr;
+	bool bShouldShow = (PlayerFilter == ETextPlayerFilter::Both) || (PlayerFilter == ETextPlayerFilter::Robot && bIsRobot) || (PlayerFilter == ETextPlayerFilter::Mechanic && !bIsRobot);
+
+	if (!bShouldShow) return;
+
+	if (bActivated)
+	{
+		ShowPrompts(TutPrompts);
+	}
+	else
+	{
+		HideAllPrompts();
+	}
 }

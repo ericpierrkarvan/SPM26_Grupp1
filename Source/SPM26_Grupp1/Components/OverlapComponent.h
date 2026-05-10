@@ -42,6 +42,8 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Overlap")
 	TArray<FName> AcceptedTags;
+
+	virtual void OnRegister() override;
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

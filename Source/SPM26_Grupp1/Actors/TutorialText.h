@@ -4,19 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "TutorialText.generated.h"
 
+class UOverlapComponent;
 class UTextRenderComponent;
 
-UENUM(BlueprintType)
-enum class ETextPlayerFilter : uint8
-{
-	Both,
-	Robot,
-	Mechanic
-};
-
-UCLASS()
+UCLASS(meta=(PrioritizeCategories="Tutorial"))
 class SPM26_GRUPP1_API ATutorialText : public AActor
 {
 	GENERATED_BODY()
@@ -30,14 +24,34 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(VisibleAnywhere, Category="Tutorial")
+	UOverlapComponent* OverlapComponent;
 	
-	UPROPERTY(VisibleAnywhere, Category="Text")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* SceneRoot;
+	
+	UPROPERTY(VisibleAnywhere, Category="Tutorial")
 	UTextRenderComponent* TextComp;
 
-	UPROPERTY(EditAnywhere, Category="Text")
+	UPROPERTY(EditAnywhere, Category="Tutorial")
+	TArray<ETutorialPrompt> TutPrompts;
+	
+	UPROPERTY(EditAnywhere, Category="Tutorial")
 	ETextPlayerFilter PlayerFilter = ETextPlayerFilter::Both;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	UTextRenderComponent* DebugFilterText;
+
+	UPROPERTY()
+	UTextRenderComponent* DebugPromptText;
+#endif
+
+	virtual void OnConstruction(const FTransform& Transform) override;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	UFUNCTION()
+	void OnPlayerEnter(AActor* OtherActor, bool bActivated);
 };

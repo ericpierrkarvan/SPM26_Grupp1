@@ -3,11 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UIActionInput.h"
 #include "Blueprint/UserWidget.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "PlayerWidgetHUD.generated.h"
 
+class UHorizontalBox;
 class AWeaponBase;
 class ASPMCharacter;
 class UImage;
@@ -90,6 +93,48 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category="Prompt")
 	void OnClosePrompt();
-	
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Tutorial")
+	void OnTutorialPromptActivated_BP(ETutorialPrompt TutPrompt, bool bActivated);
+
+	UFUNCTION()
+	void OnTutorialPromptActivated(const TArray<ETutorialPrompt>& TutPrompts, ETextPlayerFilter PlayerFilter, bool bActivated, AActor* TriggeringActor);
+
 	TWeakObjectPtr<AWeaponBase> EquippedMagneticWeapon;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UHorizontalBox* ActionPromptContainer;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* JumpPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* DoubleJumpPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* DashPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* InteractPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* ShootPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* ADSAimPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* ADSLaunchModePrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* SwitchPolarityPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* DestroyMagneticFieldPrompt;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UUIActionInput* LaunchPrompt;
+	
+	UPROPERTY()
+	TMap<ETutorialPrompt, UUIActionInput*> PromptWidgets;
+
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<UUserWidget> ActionInputSeparatorClass;
+	
+	virtual void NativeConstruct() override;
+	void ShowPrompts(const TArray<ETutorialPrompt>& Prompts);
+	void HideAllPrompts() const;
+private:
+	bool bSubscribedToSubsystem = false;
 };
