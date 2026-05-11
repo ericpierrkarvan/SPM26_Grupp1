@@ -29,13 +29,6 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	
-	// OnProjectileStop instead of OnHit because bugging
-	if (ProjectileMovementComp)
-	{
-		ProjectileMovementComp->OnProjectileStop.AddDynamic(this, &AProj_MagneticCylinder::OnProjectileStopped);
-		// UE_LOG(LogTemp, Warning, TEXT("ProjectileStop trigger"));
-	}
 
 	//we need to get the material for when the projectile stops, ie it hits something
 	ProjectileMesh->bReturnMaterialOnMove = true;
@@ -47,6 +40,12 @@ void AProj_MagneticCylinder::BeginPlay()
 	Super::BeginPlay();
 	
 	// UE_LOG(LogTemp, Warning, TEXT("MagneticField spawned: %p"), this);
+	// OnProjectileStop instead of OnHit because bugging
+	if (ProjectileMovementComp)
+	{
+		ProjectileMovementComp->OnProjectileStop.AddUniqueDynamic(this, &AProj_MagneticCylinder::OnProjectileStopped);
+		// UE_LOG(LogTemp, Warning, TEXT("ProjectileStop trigger"));
+	}
 	
 	if (GetInstigator())
 	{
@@ -133,7 +132,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 			if (Field && Capsule)
 			{
 				Field->SetPolarity(ProjectilePolarity);
-				UE_LOG(LogTemp, Warning, TEXT("Field Polarity when Spawned: %hhd"), ProjectilePolarity)
+				// UE_LOG(LogTemp, Warning, TEXT("Field Polarity when Spawned: %hhd"), ProjectilePolarity)
 				RegisterFieldInMechanicArray(Field);
 				AlignSpawnedMagneticField(Field, ImpactResult, SpawnLocation);
 				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, ProjectilePolarity, Field);
