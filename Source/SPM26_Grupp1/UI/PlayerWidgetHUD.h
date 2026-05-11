@@ -95,7 +95,7 @@ protected:
 	void OnClosePrompt();
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Tutorial")
-	void OnTutorialPromptActivated_BP(ETutorialPrompt TutPrompt, bool bActivated);
+	void OnTutorialPromptActivated_BP(const TArray<ETutorialPrompt>& TutPrompts, bool bActivated);
 
 	UFUNCTION()
 	void OnTutorialPromptActivated(const TArray<ETutorialPrompt>& TutPrompts, ETextPlayerFilter PlayerFilter, bool bActivated, AActor* TriggeringActor);
@@ -134,7 +134,18 @@ protected:
 	
 	virtual void NativeConstruct() override;
 	void ShowPrompts(const TArray<ETutorialPrompt>& Prompts);
-	void HideAllPrompts() const;
+	UFUNCTION()
+	void OnActionPromptFadeOutFinished();
+	void HideAllActionPrompts();
+	
+
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnimOptional))
+	TObjectPtr<UWidgetAnimation> TutorialPromptFadeOutAnim; //fade for the tutorial popup fadeout animation
+
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnimOptional))
+	TObjectPtr<UWidgetAnimation> TutorialPromptFadeInAnim;
+
+	FWidgetAnimationDynamicEvent FadeOutDelegate;
 private:
 	bool bSubscribedToSubsystem = false;
 };

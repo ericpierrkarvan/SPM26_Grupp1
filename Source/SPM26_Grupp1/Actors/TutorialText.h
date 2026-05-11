@@ -10,7 +10,7 @@
 class UOverlapComponent;
 class UTextRenderComponent;
 
-UCLASS(meta=(PrioritizeCategories="Tutorial"))
+UCLASS(meta=(PrioritizeCategories="Prompt"))
 class SPM26_GRUPP1_API ATutorialText : public AActor
 {
 	GENERATED_BODY()
@@ -24,19 +24,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category="Tutorial")
+	UPROPERTY(VisibleAnywhere, Category="Prompt")
 	UOverlapComponent* OverlapComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* SceneRoot;
 	
-	UPROPERTY(VisibleAnywhere, Category="Tutorial")
+	UPROPERTY(VisibleAnywhere, Category="Prompt")
 	UTextRenderComponent* TextComp;
 
-	UPROPERTY(EditAnywhere, Category="Tutorial")
+	UPROPERTY(EditAnywhere, Category="Prompt")
 	TArray<ETutorialPrompt> TutPrompts;
 	
-	UPROPERTY(EditAnywhere, Category="Tutorial")
+	UPROPERTY(EditAnywhere, Category="Prompt")
 	ETextPlayerFilter PlayerFilter = ETextPlayerFilter::Both;
 
 #if WITH_EDITORONLY_DATA

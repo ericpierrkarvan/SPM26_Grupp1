@@ -23,6 +23,8 @@ ATutorialText::ATutorialText()
 	TextComp->SetupAttachment(RootComponent);
 	TextComp->SetText(FText::GetEmpty());
 	TextComp->SetAbsolute(false, false, true); //avoid scaling
+
+	TutPrompts.Add(ETutorialPrompt::None); //lets start with 1 value added
 	
 #if WITH_EDITORONLY_DATA
 	DebugFilterText = CreateEditorOnlyDefaultSubobject<UTextRenderComponent>(TEXT("DebugFilterText"));
@@ -39,7 +41,6 @@ ATutorialText::ATutorialText()
 	DebugPromptText->SetHorizontalAlignment(EHTA_Center);
 	DebugPromptText->SetAbsolute(false, false, true); //avoid scaling
 #endif
-
 	
 }
 

@@ -158,14 +158,24 @@ void UPlayerWidgetHUD::NativeConstruct()
 	PromptWidgets.Add(ETutorialPrompt::DestroyMagneticField, DestroyMagneticFieldPrompt);
 	PromptWidgets.Add(ETutorialPrompt::Launch, LaunchPrompt);
 
-	HideAllPrompts();
+	HideAllActionPrompts();
 }
 
 void UPlayerWidgetHUD::ShowPrompts(const TArray<ETutorialPrompt>& Prompts)
 {
 	if (!ActionPromptContainer) return;
 
+	//if we are fading out, stop the animation and clear the children before we repopulate
+
+	//had issues with the animation delegate firing even though we manually stopped the animation,
+	//this was causing removing of children after we added new ones
+	//so we want to unbind from the delegate to avoid this
+	UnbindFromAnimationFinished(TutorialPromptFadeOutAnim, FadeOutDelegate); 
+	StopAnimation(TutorialPromptFadeOutAnim);
+	
+	ActionPromptContainer->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	ActionPromptContainer->ClearChildren();
+
 
 	//create an array with the actual prompts that the class uses
 	//specifc class hud widget wont add the dash prompt if it cant use it for example
@@ -194,9 +204,30 @@ void UPlayerWidgetHUD::ShowPrompts(const TArray<ETutorialPrompt>& Prompts)
 	}
 }
 
-void UPlayerWidgetHUD::HideAllPrompts() const
+void UPlayerWidgetHUD::OnActionPromptFadeOutFinished()
 {
 	ActionPromptContainer->ClearChildren();
+}
+
+void UPlayerWidgetHUD::HideAllActionPrompts()
+{
+	if (!TutorialPromptFadeOutAnim)
+	{
+		//if we dont have a fadeout anim, just clear
+		ActionPromptContainer->ClearChildren();
+		return;
+	}
+
+	
+	//stop and unbind any old animations that might be in progress and then
+	//play the fade out animation and call OnActionPromptFadeOutFinished once complete
+	UnbindFromAnimationFinished(TutorialPromptFadeOutAnim, FadeOutDelegate);
+	StopAnimation(TutorialPromptFadeOutAnim);
+	
+	PlayAnimation(TutorialPromptFadeOutAnim);
+	
+	FadeOutDelegate.BindDynamic(this, &UPlayerWidgetHUD::OnActionPromptFadeOutFinished);
+	BindToAnimationFinished(TutorialPromptFadeOutAnim, FadeOutDelegate);
 }
 
 void UPlayerWidgetHUD::OnTutorialPromptActivated(const TArray<ETutorialPrompt>& TutPrompts, ETextPlayerFilter PlayerFilter, bool bActivated, AActor* TriggeringActor)
@@ -216,9 +247,16 @@ void UPlayerWidgetHUD::OnTutorialPromptActivated(const TArray<ETutorialPrompt>& 
 	if (bActivated)
 	{
 		ShowPrompts(TutPrompts);
+		
+		if (TutorialPromptFadeInAnim)
+		{
+			PlayAnimation(TutorialPromptFadeInAnim);
+		}
 	}
 	else
 	{
-		HideAllPrompts();
+		HideAllActionPrompts();
 	}
+	
+	OnTutorialPromptActivated_BP(TutPrompts, bActivated);
 }
