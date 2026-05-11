@@ -36,6 +36,11 @@ void AMagneticField_Cylinder::BeginPlay()
 	CapsuleOriginalRadius = Capsule->GetScaledCapsuleRadius();
 	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 	CapsuleHeight = CapsuleHalfHeight * 2;
+	
+	// Handles duplicate delegates (red error message on start play in editor)
+	Capsule->OnComponentBeginOverlap.RemoveAll(this);
+	Capsule->OnComponentEndOverlap.RemoveAll(this);
+	
 	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
 	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
 

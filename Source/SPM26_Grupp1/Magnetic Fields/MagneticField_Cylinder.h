@@ -110,7 +110,7 @@ protected:
 	UNiagaraComponent* MagnetVfxComponent;
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
-	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AAA_Magnet")
 	EPolarity Polarity;
 	UPROPERTY()
 	int32 PolarityValue;
