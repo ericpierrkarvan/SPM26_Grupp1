@@ -145,6 +145,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Audio")
 	UFMODAudioComponent* WalkingAudioComp;
 
+	ERobotMovementState MovementState;
+
 	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
 
@@ -192,6 +194,7 @@ private:
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
 	void OnIsPickingUp(float DeltaSeconds);
+	void MovementStateCheck();
 	bool bIsDashing = false;
 	void ResetDashHandle(){ bIsDashing = false; }
 	float DashTimer = 0.f;
@@ -208,7 +211,7 @@ private:
 	float DashRotationSpeed = 12.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement")
-	float MinimumSpeedToCountAsWalking = 10.f; // only trigger movement audio when above speed
+	float MinimumSpeedToCountAsWalking = 20.f; // only trigger movement audio when above speed
 	
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField = false;
