@@ -865,8 +865,23 @@ void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode
 		MovementState = PrevMovementMode == MOVE_Walking ? ERobotMovementState::Jumping : ERobotMovementState::Falling;
 		UE_LOG(LogTemp, Warning, TEXT("Movement Mode changed to: %hhd"), MovementState);
 		OnMovementStateChanged.Broadcast(MovementState);
+	}    
+	else if (GetCharacterMovement()->IsWalking() && PrevMovementMode == MOVE_Falling)
+	{
+		MovementState = ERobotMovementState::Landing;
+		OnMovementStateChanged.Broadcast(MovementState);
 	}
 	
+}
+
+void ARobotCharacter::Landed(const FHitResult& HitResult)
+{
+	Super::Landed(HitResult);
+	
+	float ImpactForce = FMath::Abs(GetVelocity().Z);
+	UE_LOG(LogTemp, Warning, TEXT("Landed() ImpactForce: %f"), ImpactForce);
+	
+	OnMovementStateChanged.Broadcast(ERobotMovementState::Landing);
 }
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)

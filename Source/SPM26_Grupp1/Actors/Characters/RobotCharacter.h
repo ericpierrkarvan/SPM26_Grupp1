@@ -20,7 +20,8 @@ enum class ERobotMovementState : uint8
 	Walking,
 	Falling,
 	Jumping,
-	Dashing
+	Landing
+	//Dashing
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMovementStateChanged, ERobotMovementState, NewState);
@@ -46,7 +47,8 @@ public:
 	virtual void ForceSwitchPolarity();
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
 	virtual void OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode) override;
-	
+	virtual void Landed(const FHitResult& HitResult) override; 
+
 	// Getters & Setters
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage() const;
