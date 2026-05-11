@@ -91,7 +91,7 @@ void AMechanicCharacter::MechanicDoubleJump()
 {
 	//Bool to check if Mechanic is able to double jump
 	bool CanDoubleJump = !GetMechanicMovementComponent()->IsGrounded()
-		&& GetMechanicMovementComponent()->GetJumpsRemaining() > 0;
+		&& GetMechanicMovementComponent()->GetJumpsRemaining() == 1;
 
 	if (CanDoubleJump)
 	{

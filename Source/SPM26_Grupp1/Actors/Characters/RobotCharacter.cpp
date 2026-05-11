@@ -206,8 +206,14 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 						HeldPickupComponent->OnDropped();
 					}
 					
+					//Temporary fix, might create an "OnLaunch" event on the mechanic character if we want any extra functionality
+					if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(HeldActor))
+					{
+						MechanicCharacter->GetSPMMovementComponent()->DecrementJumpCount();
+					}
+					
 					LaunchObject(HeldActor, FVector(0,0, 200));
-
+					
 					//reset pickup:
 					HeldActor = nullptr;
 					HeldPickupComponent = nullptr;
