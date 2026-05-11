@@ -283,20 +283,25 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 
 		UCharacterMovementComponent* HeadCharacterMoveComp = nullptr;
 
-		if (!HeldActor)
+		if (ACharacter* HeldChar = Cast<ACharacter>(HeldActor))
+		{
+			//if we picked a character up ourself
+			HeadCharacterMoveComp = HeldChar->GetCharacterMovement();
+		}
+		else if (!HeldActor)
 		{
 			//we dont have a actor in our hands, but we might have something on our head
 			for (AActor* Actor : ToIgnore)
 			{
 				if (Actor == this) continue;
-				if (ACharacter* Char = Cast<ACharacter>(Actor))
+				if (ACharacter* OverlapChar = Cast<ACharacter>(Actor))
 				{
-					HeadCharacterMoveComp = Char->GetCharacterMovement();
+					HeadCharacterMoveComp = OverlapChar->GetCharacterMovement();
 					break;
 				}
 			}
 		}
-
+		
 		LaunchArcComponent->UpdateArc(
 			PlatformDetectionSphere->GetComponentLocation(),
 			GetLaunchForce(),
@@ -486,7 +491,6 @@ void ARobotCharacter::PerformDash()
 	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
 	GetWorld()->GetTimerManager().SetTimer(DashHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
 	DashTimer = DashCooldown;
-	UE_LOG(LogTemp, Warning, TEXT("Dash"));
 }
 
 void ARobotCharacter::CancelDash() const
@@ -577,7 +581,7 @@ void ARobotCharacter::Launch()
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 	
 	const FVector LaunchForce = GetLaunchForce();
-
+	
 	TArray<AActor*> OverlappingActors;
 	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
 	AActor* LocalHeldActor = HeldActor;
