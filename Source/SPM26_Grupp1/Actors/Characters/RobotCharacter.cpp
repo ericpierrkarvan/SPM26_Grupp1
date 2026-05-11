@@ -38,6 +38,9 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 
 	HeadLaunchEndAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchEndAudioComp"));
 	HeadLaunchEndAudioComp->SetupAttachment(RootComponent);
+	
+	WalkingAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("WalkingAudioComp"));
+	WalkingAudioComp->SetupAttachment(RootComponent);
 }
 
 void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -206,8 +209,14 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 						HeldPickupComponent->OnDropped();
 					}
 					
+					//Temporary fix, might create an "OnLaunch" event on the mechanic character if we want any extra functionality
+					if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(HeldActor))
+					{
+						MechanicCharacter->GetSPMMovementComponent()->DecrementJumpCount();
+					}
+					
 					LaunchObject(HeldActor, FVector(0,0, 200));
-
+					
 					//reset pickup:
 					HeldActor = nullptr;
 					HeldPickupComponent = nullptr;
@@ -229,7 +238,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				TakePicture();
 			}
 
-			if (UISubSystem)
+			if (UISubSystem && IsLaunchableObject(HeldActor))
 			{
 				UISubSystem->OnContextActionActivated.Broadcast({ETutorialPrompt::Launch}, true);
 			}
@@ -242,7 +251,10 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
+	
+	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
+	MovementStateCheck();
+	
 	if (DashTimer > 0)
 		DashTimer -= DeltaSeconds;
 
@@ -393,7 +405,10 @@ float ARobotCharacter::GetFOVForState(ECameraState State) const
 
 void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 {
+	
 	FVector2D Axis = Value.Get<FVector2D>();
+	Axis *= GamepadLookSensitivityScale;
+	
 	if (IsADSActive() && !bHavePayload)
 	{
 		if (bUseADSAimAcceleration)
@@ -410,7 +425,8 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 			ApplyAimAcceleration(Axis);
 		}
 		
-		Axis *= PayloadLookSensitivityScale;
+		Axis.X *= PayloadLookSensitivityScale;
+		Axis.Y *= (PayloadLookSensitivityScale/2.5); //make y move slower
 	}
 	
 	AddControllerYawInput(Axis.X);
@@ -824,19 +840,33 @@ void ARobotCharacter::ProgressEnablePolaritySwitch()
 	bCanEverSwitchPolarity = true;
 }
 
+void ARobotCharacter::MovementStateCheck()
+{
+	if (!GetCharacterMovement()->IsWalking()) return;
+
+	const ERobotMovementState NewState = GetVelocity().SizeSquared() > MinimumSpeedToCountAsWalking
+		? ERobotMovementState::Walking
+		: ERobotMovementState::Idle;
+
+	if (NewState != MovementState)
+	{
+		MovementState = NewState;
+		OnMovementStateChanged.Broadcast(MovementState);
+	}
+}
+
 void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode)
 {
 	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
 	
-	ERobotMovementState NewState = ERobotMovementState::Idle;
-	
-	if (GetCharacterMovement()->IsWalking())
+	if (GetCharacterMovement()->IsFalling())
 	{
-		NewState = GetVelocity().SizeSquared() > MinimumSpeedToCountAsWalking ? ERobotMovementState::Walking : ERobotMovementState::Idle;
-	} 
-	else if (GetCharacterMovement()->IsFalling()) NewState = ERobotMovementState::Falling;
+		// If we were walking before, it's a jump, otherwise fell off a ledge
+		MovementState = PrevMovementMode == MOVE_Walking ? ERobotMovementState::Jumping : ERobotMovementState::Falling;
+		UE_LOG(LogTemp, Warning, TEXT("Movement Mode changed to: %hhd"), MovementState);
+		OnMovementStateChanged.Broadcast(MovementState);
+	}
 	
-	OnMovementStateChanged.Broadcast(NewState);
 }
 
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)

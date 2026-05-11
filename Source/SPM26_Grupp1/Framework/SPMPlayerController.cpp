@@ -90,6 +90,8 @@ void ASPMPlayerController::BeginPlay()
 	if (!Subsystem) return;
 
 	if (DefaultIMC) Subsystem->AddMappingContext(DefaultIMC, 0);
+	
+	bAutoManageActiveCameraTarget = false;
 }
 
 void ASPMPlayerController::SetupInputComponent()

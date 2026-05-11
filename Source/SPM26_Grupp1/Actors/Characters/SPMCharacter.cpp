@@ -149,6 +149,8 @@ void ASPMCharacter::LookGamepad(const FInputActionValue& Value)
 	
 	FVector2D Axis = Value.Get<FVector2D>();
 
+	Axis *= GamepadLookSensitivityScale;
+	
 	if (IsADSActive())
 	{
 		if (bUseADSAimAcceleration)

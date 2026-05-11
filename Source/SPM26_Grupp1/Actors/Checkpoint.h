@@ -22,6 +22,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UBoxComponent> Trigger;
 	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UArrowComponent> Arrow;
+	
 	UPROPERTY(EditAnywhere)
 	bool bOneTimeUse = false;
 	
@@ -38,4 +41,6 @@ public:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult);
+	
+	
 };
