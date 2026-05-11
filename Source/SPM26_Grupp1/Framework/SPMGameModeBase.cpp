@@ -77,7 +77,8 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 
 	ASPMPlayerController* PlayerController = Cast<ASPMPlayerController>(Controller);
 	if (!PlayerController) return;
-
+	
+	PlayerController->bIsSwitchingPlayer = true;
 	FTransform RespawnTransform = PlayerController->GetCheckpointTransform();
 
 	ACharacter* OldCharacter = PlayerController->GetCharacter();
@@ -101,9 +102,15 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 	if (NewCharacter)
 	{
 		PlayerController->Possess(NewCharacter);
-
-#if WITH_EDITOR
+	
 		
+		if (ASPMCharacter* Char = Cast<ASPMCharacter>(NewCharacter))
+		{
+			Char->OnRespawn.Broadcast(true);
+		}
+		
+#if WITH_EDITOR
+		PlayerController->bIsSwitchingPlayer = false;
 		if (OldCharacter == OriginalPawn0.Get())
 		{
 			OriginalPawn0 = NewCharacter;
