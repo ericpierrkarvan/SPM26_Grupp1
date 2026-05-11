@@ -306,7 +306,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	if (CRTMID)
 	{
 		//fade in/out the crt effect depending on our payload state
-		const float TargetIntensity = (bIsInLaunchMode && bHavePayload) ? 1.f : 0.f;
+		const float TargetIntensity = (bIsInLaunchMode && bHavePayload || (bIsInLaunchMode && bForceADSPayloadMode)) ? 1.f : 0.f;
 		CurrentCRTIntensity = FMath::FInterpTo(CurrentCRTIntensity, TargetIntensity, DeltaSeconds, CRTBlendSpeed);
 		CRTMID->SetScalarParameterValue(FName("Intensity"), CurrentCRTIntensity);
 	}
@@ -404,6 +404,20 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 	
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
+}
+
+void ARobotCharacter::StartADS()
+{
+	bIsADS = true;
+	if (!bForceADSPayloadMode) SetCameraState(ECameraState::ADS);
+	
+	if (GetCharacterMovement())
+	{
+		//when aiming we want the pawn to follow the direction of the camera
+		GetCharacterMovement()->bOrientRotationToMovement   = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	}
+	OnADS.Broadcast(bIsADS);
 }
 
 bool ARobotCharacter::CanSwitchPolarity() const
@@ -528,7 +542,7 @@ void ARobotCharacter::EnterLaunchMode()
 	if (bIsInLaunchMode) return;
 	bIsInLaunchMode = true;
 	StartADS();
-	if (bHavePayload) SetCameraState(ECameraState::Payload);
+	if (bHavePayload || bForceADSPayloadMode) SetCameraState(ECameraState::Payload);
 	OnLaunchStateChanged.Broadcast(0.f, bHavePayload); //notify hud
 }
 

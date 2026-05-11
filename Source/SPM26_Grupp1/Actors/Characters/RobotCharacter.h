@@ -153,6 +153,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	float CRTBlendSpeed = 5.f;
 
+	UPROPERTY(EditAnywhere, Category="ADS")
+	bool bForceADSPayloadMode = true;
+	virtual void StartADS() override;
 	virtual bool CanSwitchPolarity() const override;
 	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
 private:
