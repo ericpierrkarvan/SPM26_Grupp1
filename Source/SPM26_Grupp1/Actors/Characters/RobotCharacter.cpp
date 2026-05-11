@@ -830,6 +830,21 @@ void ARobotCharacter::ProgressEnablePolaritySwitch()
 	bCanEverSwitchPolarity = true;
 }
 
+void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+	
+	ERobotMovementState NewState = ERobotMovementState::Idle;
+	
+	if (GetCharacterMovement()->IsWalking())
+	{
+		NewState = GetVelocity().SizeSquared() > MinimumSpeedToCountAsWalking ? ERobotMovementState::Walking : ERobotMovementState::Idle;
+	} 
+	else if (GetCharacterMovement()->IsFalling()) NewState = ERobotMovementState::Falling;
+	
+	OnMovementStateChanged.Broadcast(NewState);
+}
+
 void ARobotCharacter::SetIsWithinMagneticField(const bool bNewValue)
 {
 	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
