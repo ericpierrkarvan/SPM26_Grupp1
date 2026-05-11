@@ -130,38 +130,50 @@ private:
 	class UStaticMeshComponent* Mesh;
 	
 	// Magnet settings
+	float MagneticFieldDuration; // Lifetime of spawned field is in Proj_MagneticCylinder
 	float PullStrength;
 	float RepelStrength;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float PullStrengthMultiplier = 50.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float ActorPullStrengthMultiplier = 500.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float RepelStrengthMultiplier = 50.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float RepelXYMultiplier = 0.2f; // Limits XY movement when Robot is repelled
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float ActorAttractVelocityMultiplier = 0.05f; // Limit Actor movement when being attracted
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float StopDistance = 15.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|General")
 	float MaxSpeed = 2000.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float MinPullForce = 4.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float MaxPullForce = 8.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|General")
+	float SnapOffSet = 100.f; // avoid player inside the wall
+	
+	// Magnet settings - pull
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+	float PullStrengthMultiplier = 50.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+	float ActorPullStrengthMultiplier = 500.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+    float ActorAttractVelocityMultiplier = 0.05f; // Limit Actor movement when being attracted
+    UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+    float StopDistance = 15.f; // Zero out actor movement when within this distance of magnetcenter
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+    float MinPullForce = 4.f;
+    UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+    float MaxPullForce = 8.f;
+	// Strength of pull towards middle of the field
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+	float CenteringStrength = 5.0f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
+	float CenteringDampingStrength = 3.0f;
+	
+	// Magnet settings - repel
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Repel")
+	float RepelStrengthMultiplier = 50.f;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Repel")
+	float RepelXYMultiplier = 0.2f; // Limits XY movement when Robot is repelled
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Repel")
 	float MinRepelForce = 10.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Repel")
 	float MaxRepelForce = 20.f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float SnapOffSet = 100.f; // avoid played inside the wall
+	
+	// Magnet settings - Combine fields
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|CombineField")
 	float FieldSizeMultiplier = 0.15f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|CombineField")
 	int32 MaxAmountOfSummarizedField = 2;
 	int32 CurrentAmountOfSummarizedField = 1;
-	float MagneticFieldDuration;
+
 
 	
 	// Used for crippling/restoring character movement
@@ -173,15 +185,10 @@ private:
 	float CrippledMaxAcceleration = OriginalMaxAcceleration * CripplingModifier;
 	float CrippledBrakingDecelerationWalking = OriginalBrakingDecelerationWalking * 5.0f;
 	
+	// CapsuleCollider
 	float CapsuleHeight;
 	float CapsuleHalfHeight;
 	float CapsuleOriginalRadius = 50;
-	
-	// Strength of pull towards middle of the field
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float CenteringStrength = 5.0f;
-	UPROPERTY(EditAnywhere, Category="AAA_Magnet")
-	float CenteringDampingStrength = 3.0f;
 	
 	// Active player
 	UPROPERTY()
