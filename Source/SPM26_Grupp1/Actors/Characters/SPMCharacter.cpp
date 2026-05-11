@@ -32,12 +32,12 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
-
+	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->SocketOffset = FVector(0.f, 0.f, 60.f);
-
+	
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
@@ -70,7 +70,7 @@ void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolari
 void ASPMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (CameraBoom)
 	{
 		DefaultCameraArmLength = CameraBoom->TargetArmLength;
@@ -103,7 +103,7 @@ void ASPMCharacter::PossessedBy(AController* NewController)
 			Subsystem->AddMappingContext(IMC_Default, 0);
 		}
 	}
-
+	
 	SetOwner(GetController());
 }
 
@@ -131,10 +131,10 @@ void ASPMCharacter::ApplyAimAcceleration(FVector2D& Axis)
 	//when the stick is not full in a direction we get a smaller value, say 0.5^ADSAimAccelerationPower, which would
 	//shrink the actual sensitivity. The less we move the stick, the actual movement gets even less.
 	const float RawX = FMath::Abs(Axis.X); //we need a positive number since we dont know the power value
-	const float CurvedX = FMath::Pow(RawX, ADSAimAccelerationPower); //apply the power
+	const float CurvedX  = FMath::Pow(RawX, ADSAimAccelerationPower); //apply the power
 	const float DirectionX = FMath::Sign(Axis.X); //direction
 	Axis.X = DirectionX * CurvedX; //apply the acceleration
-
+			
 	const float RawY = FMath::Abs(Axis.Y);
 	const float CurvedY = FMath::Pow(RawY, ADSAimAccelerationPower);
 	const float DirectionY = FMath::Sign(Axis.Y);
@@ -144,7 +144,7 @@ void ASPMCharacter::ApplyAimAcceleration(FVector2D& Axis)
 void ASPMCharacter::LookGamepad(const FInputActionValue& Value)
 {
 	//Consider updating LookMouse if you make changes here
-
+	
 	FVector2D Axis = Value.Get<FVector2D>();
 
 	if (IsADSActive())
@@ -153,10 +153,10 @@ void ASPMCharacter::LookGamepad(const FInputActionValue& Value)
 		{
 			ApplyAimAcceleration(Axis);
 		}
-
+		
 		Axis *= ADSLookSensitivityScale;
 	}
-
+	
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
 }
@@ -165,7 +165,7 @@ void ASPMCharacter::LookMouse(const FInputActionValue& Value)
 {
 	//Consider updating Look if you make changes here
 	FVector2D Axis = Value.Get<FVector2D>();
-
+	
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
 }
@@ -189,7 +189,7 @@ bool ASPMCharacter::FindPickup()
 	// Change collision after bounds are stored
 	CurrentTargetPickup->OnPickedUp(this);
 	PlayGrabSound();
-
+	
 	HeldActor = PickupActor;
 	HeldPickupComponent = CurrentTargetPickup;
 	bIsPickingUp = true;
@@ -223,8 +223,7 @@ void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
 		}
 
 		//adjusted target location so the pickup actor gets centered ontop of the robot
-		const FVector TargetLocation = GetActorLocation() + FVector(
-			0.f, 0.f, GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() + 30.f) - GrabOffset;
+		const FVector TargetLocation = GetActorLocation() + FVector(0.f, 0.f, GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() + 30.f) - GrabOffset;
 		const FVector NewLocation = FMath::Lerp(PickupStartLocation, TargetLocation, PickupAlpha);
 
 		HeldActor->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
@@ -238,6 +237,7 @@ void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
 
 		if (PickupAlpha >= 1.f)
 		{
+
 			HeldActor->AttachToComponent(
 				GetRootComponent(),
 				FAttachmentTransformRules::KeepWorldTransform
@@ -252,7 +252,7 @@ void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
 void ASPMCharacter::Interact(const FInputActionValue& Value)
 {
 	if (FindPickup()) return;
-
+	
 	if (CurrentTargetInteractableComp)
 	{
 		CurrentTargetInteractableComp->Interact(this);
@@ -264,24 +264,24 @@ void ASPMCharacter::ConsumePickup()
 	if (!HeldActor) return;
 
 	//give progress if possible
-	if (UProgressGrantingComponent* ProgressComp =
+	if (UProgressGrantingComponent* ProgressComp = 
 		HeldActor->FindComponentByClass<UProgressGrantingComponent>())
 	{
 		ProgressComp->GiveProgress();
 	}
-
+	
 	// if (HeldPickupComponent.IsValid())
 	// {
 	// 	HeldPickupComponent->OnDropped();
 	// }
-
+	
 	HeldActor->Destroy();
-
+	
 	HeldActor = nullptr;
 	HeldPickupComponent = nullptr;
 	bIsPickingUp = false;
 	PickupAlpha = 0.f;
-
+	
 	if (PickupCaptureComp)
 	{
 		PickupCaptureComp->bCaptureEveryFrame = false;
@@ -293,14 +293,14 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
 	// FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
 	// FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
-
+	
 	APlayerController* PC = GetViewingPlayerController();
 	if (!PC) return;
 
 	FVector CameraLocation;
 	FRotator CameraRotation;
 	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
+	
 	FVector ForwardDir = CameraRotation.Vector();
 	ForwardDir.Z = 0.f;
 	ForwardDir.Normalize();
@@ -325,12 +325,12 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		BoxShape,
 		Params
 	);
-
+	
 	if (bDisplayInteractBoxTrace)
 	{
 		//draw at End when no hit, at impact location when hit
 		FVector DrawLocation = bHit ? HitResult.Location : End;
-		FColor DrawColor = bHit ? FColor::Green : FColor::Red;
+		FColor  DrawColor    = bHit ? FColor::Green : FColor::Red;
 
 		DrawDebugBox(
 			GetWorld(),
@@ -338,30 +338,29 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			InteractBoxSize,
 			BoxRotation,
 			DrawColor,
-			false, -1.f
+			false, -1.f 
 		);
 	}
 
-
+	
 	UInteractableComponent* NewInteractable = nullptr;
 	CurrentTargetPickup = nullptr;
-
+	
 	if (bHit && HitResult.GetActor())
 	{
-		CurrentTargetPickup = Cast<UPickupComponent>(
-			HitResult.GetActor()->GetComponentByClass(UPickupComponent::StaticClass()));
+		CurrentTargetPickup = Cast<UPickupComponent>(HitResult.GetActor()->GetComponentByClass(UPickupComponent::StaticClass()));
 
 		if (CurrentTargetPickup.IsValid() && !CurrentTargetPickup->CanInteract(this))
 		{
 			//if we cant interact with the pickup
 			CurrentTargetPickup = nullptr;
 		}
-
+		
 		if (!CurrentTargetPickup.IsValid())
 		{
+		
 			//we havent seen a pickup actor, lets see if it have a interactable component
-			NewInteractable = Cast<UInteractableComponent>(
-				HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
+			NewInteractable = Cast<UInteractableComponent>(HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
 
 			if (NewInteractable && !NewInteractable->CanInteract(this))
 			{
@@ -370,7 +369,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 			}
 		}
 	}
-
+	
 	//decide which promptable should we display
 	//order: Pickup -> Interactable
 	IPromptable* NewPromptable = nullptr;
@@ -394,6 +393,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 
 APlayerController* ASPMCharacter::GetViewingPlayerController() const
 {
+	
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		APlayerController* PC = It->Get();
@@ -418,11 +418,11 @@ void ASPMCharacter::StartADS()
 {
 	bIsADS = true;
 	SetCameraState(ECameraState::ADS);
-
+	
 	if (GetCharacterMovement())
 	{
 		//when aiming we want the pawn to follow the direction of the camera
-		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bOrientRotationToMovement   = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
 	OnADS.Broadcast(bIsADS);
@@ -432,11 +432,11 @@ void ASPMCharacter::StopADS()
 {
 	bIsADS = false;
 	SetCameraState(ECameraState::Regular);
-
+	
 	if (GetCharacterMovement())
 	{
 		//reset camera/movement orientation
-		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bOrientRotationToMovement   = true;
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
 	OnADS.Broadcast(bIsADS);
@@ -446,9 +446,9 @@ float ASPMCharacter::GetArmLengthForState(ECameraState State) const
 {
 	switch (State)
 	{
-	case ECameraState::ADS: return ADSCameraArmLength;
+	case ECameraState::ADS:     return ADSCameraArmLength;
 	case ECameraState::Regular: return DefaultCameraArmLength;
-	default: return DefaultCameraArmLength;
+	default:                    return DefaultCameraArmLength;
 	}
 }
 
@@ -456,9 +456,9 @@ FVector ASPMCharacter::GetOffsetForState(ECameraState State) const
 {
 	switch (State)
 	{
-	case ECameraState::ADS: return ADSCameraOffset;
+	case ECameraState::ADS:     return ADSCameraOffset;
 	case ECameraState::Regular: return DefaultCameraOffset;
-	default: return DefaultCameraOffset;
+	default:                    return DefaultCameraOffset;
 	}
 }
 
@@ -466,9 +466,9 @@ float ASPMCharacter::GetFOVForState(ECameraState State) const
 {
 	switch (State)
 	{
-	case ECameraState::ADS: return ADSFOV;
+	case ECameraState::ADS:     return ADSFOV;
 	case ECameraState::Regular: return DefaultFOV;
-	default: return DefaultFOV;
+	default:                    return DefaultFOV;
 	}
 }
 
@@ -483,12 +483,13 @@ void ASPMCharacter::SetCameraState(ECameraState NewState)
 
 void ASPMCharacter::TakePicture()
 {
+	
 	if (!HeldActor || !PickupCaptureComp || !PickupRenderTarget || !GetViewingPlayerController()) return;
 
 	PickupCaptureComp->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 	PickupCaptureComp->ShowOnlyComponents.Empty();
 
-	// Add only the mesh components of the held actor
+	//only show the mesh of the object we picked up
 	TArray<UMeshComponent*> Meshes;
 	HeldActor->GetComponents<UMeshComponent>(Meshes);
 	for (UMeshComponent* MeshComp : Meshes)
@@ -496,7 +497,7 @@ void ASPMCharacter::TakePicture()
 		PickupCaptureComp->ShowOnlyComponents.Add(MeshComp);
 	}
 
-	// Disable sky and atmosphere via show flags
+	//disable sky/fog for a clearer picture
 	PickupCaptureComp->ShowFlags.SetAtmosphere(false);
 	PickupCaptureComp->ShowFlags.SetFog(false);
 
@@ -509,8 +510,12 @@ void ASPMCharacter::TakePicture()
 	PickupCaptureComp->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	PickupCaptureComp->bCaptureEveryFrame = true;
 
-
-	OnPictureTaken.Broadcast(PickupRenderTarget);
+	EProgressFlag NewFlag = EProgressFlag::None;
+	if (UProgressGrantingComponent* LocalProgComp = HeldActor->GetComponentByClass<UProgressGrantingComponent>())
+	{
+		NewFlag = LocalProgComp->GetProgressFlag();
+	}
+	OnPictureTaken.Broadcast(PickupRenderTarget, NewFlag);
 }
 
 void ASPMCharacter::PlayGrabSound() const
@@ -540,22 +545,20 @@ void ASPMCharacter::UpdateAimDownSight(float DeltaTime)
 
 		//update the alpha where (DeltaTime / ActiveTransitionTime), give you frame independency, ie how much of the total transition time did this frame take
 		//since the alpha goes from 0 to 1 in one direction and 1 to 0 in the other direction we take the direction into account
-		ADSCurveAlpha = FMath::Clamp(ADSCurveAlpha + (ADSCurveDirection * DeltaTime / ActiveTransitionTime), 0.f, 1.f);
+		ADSCurveAlpha = FMath::Clamp(ADSCurveAlpha + (ADSCurveDirection * DeltaTime / ActiveTransitionTime),0.f, 1.f);
 
 		//pick which curve to use
 		const UCurveFloat* ActiveCurve = (CurrentState == ECameraState::ADS) ? ADSCurveIn : ADSCurveOut;
 
 		//get the alpha from our curves if we have them, otherwise just go with linear time
 		const float CurvedAlpha = ActiveCurve ? ActiveCurve->GetFloatValue(ADSCurveAlpha) : ADSCurveAlpha;
-
-		const float NewArmLength = FMath::Lerp(GetArmLengthForState(PreviousState), GetArmLengthForState(CurrentState),
-		                                       CurvedAlpha);
-		const FVector NewOffset = FMath::Lerp(GetOffsetForState(PreviousState), GetOffsetForState(CurrentState),
-		                                      CurvedAlpha);
+		
+		const float NewArmLength = FMath::Lerp(GetArmLengthForState(PreviousState), GetArmLengthForState(CurrentState), CurvedAlpha);
+		const FVector NewOffset = FMath::Lerp(GetOffsetForState(PreviousState), GetOffsetForState(CurrentState), CurvedAlpha);
 		const float NewFOV = FMath::Lerp(GetFOVForState(PreviousState), GetFOVForState(CurrentState), CurvedAlpha);
 
 		CameraBoom->TargetArmLength = NewArmLength;
-		CameraBoom->SocketOffset = NewOffset;
+		CameraBoom->SocketOffset    = NewOffset;
 		FollowCamera->SetFieldOfView(NewFOV);
 
 		if (ADSCurveAlpha >= 1.f || ADSCurveAlpha <= 0.f)
@@ -612,7 +615,7 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 bool ASPMCharacter::IsADSActive() const
 {
-	return bIsADS;
+	return bIsADS; 
 }
 
 USPMCharacterMovementComponent* ASPMCharacter::GetSPMMovementComponent() const

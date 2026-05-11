@@ -30,13 +30,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Audio")
 	UFMODEvent* FanfareSound; //played when progress is consumed
 
+	UPROPERTY(EditAnywhere)
+	EProgressFlag ProgressFlag;
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(EditAnywhere)
-	EProgressFlag ProgressFlag;
-
+	EProgressFlag GetProgressFlag() const;
 	UFUNCTION(BlueprintCallable)
 	void GiveProgress();
 };

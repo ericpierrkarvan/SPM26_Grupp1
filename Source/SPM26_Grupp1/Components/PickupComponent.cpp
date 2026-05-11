@@ -90,7 +90,7 @@ void UPickupComponent::OnPickedUp(AActor* ByActor)
 		Char->GetCharacterMovement()->DisableMovement();
 		Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	}
-	// For physics objects — disable physics
+	//disable physics for objects
 	else if (UPrimitiveComponent* Prim = GetOwner()->FindComponentByClass<UPrimitiveComponent>())
 	{
 		Prim->SetSimulatePhysics(false);
