@@ -43,7 +43,7 @@ void ULaunchArcComponent::UpdateArc(FVector StartLocation, FVector LaunchVelocit
 	Params.LaunchVelocity = ArcVelocity;
 	Params.bTraceWithCollision = true;
 	Params.TraceChannel = ECC_WorldStatic;
-	Params.MaxSimTime = 3.f;
+	Params.MaxSimTime = MaxSimTime;
 	Params.SimFrequency = SimulationFrequency;
 	Params.DrawDebugType = bShowDebugTrace ? EDrawDebugTrace::ForOneFrame : EDrawDebugTrace::None;
 	Params.DrawDebugTime = 0.f;

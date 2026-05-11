@@ -13,7 +13,7 @@ class UFMODAudioComponent;
 /**
  * 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible, bool, bCanEverPrimeLaunch);
 
 
 class URobotMovementComponent;
@@ -153,6 +153,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	float CRTBlendSpeed = 5.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Launch")
+	bool bCanEverPrimeLaunch = false;
+	
 	UPROPERTY(EditAnywhere, Category="ADS")
 	bool bForceADSPayloadMode = true;
 	virtual void StartADS() override;

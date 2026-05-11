@@ -70,6 +70,8 @@ void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolari
 void ASPMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UISubSystem = GetGameInstance()->GetSubsystem<UUISubSystem>();
 	
 	if (CameraBoom)
 	{
