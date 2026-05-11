@@ -25,25 +25,29 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	MagnetVfxComponent->SetupAttachment(RootComponent);
 
 	Capsule->SetCollisionResponseToChannel(ECC_PROJECTILE, ECR_Ignore);
+	
+	// Collision collider
+	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+	CapsuleHeight = CapsuleHalfHeight * 2;
 }
 
 // Called when the game starts or when spawned
 void AMagneticField_Cylinder::BeginPlay()
 {
-	Super::BeginPlay();
 	
-	// Collision collider
-	CapsuleOriginalRadius = Capsule->GetScaledCapsuleRadius();
-	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-	CapsuleHeight = CapsuleHalfHeight * 2;
+	// Blueprint's own separate bindings calls here somehow?
+	Super::BeginPlay(); 
 	
-	// Handles duplicate delegates (red error message on start play in editor)
+	UE_LOG(LogTemp, Warning, TEXT("MagneticField BeginPlay - overlap delegates already bound: %s"),
+	Capsule->OnComponentBeginOverlap.IsAlreadyBound(this, &AMagneticField_Cylinder::OnOverlapBegin) 
+	? TEXT("YES - would have caused ensure") 
+	: TEXT("no"));
+	
 	Capsule->OnComponentBeginOverlap.RemoveAll(this);
 	Capsule->OnComponentEndOverlap.RemoveAll(this);
+	Capsule->OnComponentBeginOverlap.AddUniqueDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
+	Capsule->OnComponentEndOverlap.AddUniqueDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
 	
-	Capsule->OnComponentBeginOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapBegin);
-	Capsule->OnComponentEndOverlap.AddDynamic(this, &AMagneticField_Cylinder::OnOverlapEnd);
-
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMagneticField_Cylinder::CheckInitialOverlaps);
 	
 }
@@ -669,7 +673,7 @@ void AMagneticField_Cylinder::CheckInitialOverlaps()
 {
 	TArray<AActor*> OverlappingActors;
 	GetCapsuleComponent()->GetOverlappingActors(OverlappingActors);
-	UE_LOG(LogTemp, Warning, TEXT("CheckInitialOverlaps() -> Count: %d"), OverlappingActors.Num());
+	// UE_LOG(LogTemp, Warning, TEXT("CheckInitialOverlaps() -> Count: %d"), OverlappingActors.Num());
 	
 	for (AActor* Actor : OverlappingActors)
 	{

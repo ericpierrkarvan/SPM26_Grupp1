@@ -188,7 +188,7 @@ private:
 	// CapsuleCollider
 	float CapsuleHeight;
 	float CapsuleHalfHeight;
-	float CapsuleOriginalRadius = 50;
+	float CapsuleOriginalRadius = 75;
 	
 	// Active player
 	UPROPERTY()
