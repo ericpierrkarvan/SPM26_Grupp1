@@ -393,7 +393,10 @@ float ARobotCharacter::GetFOVForState(ECameraState State) const
 
 void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 {
+	
 	FVector2D Axis = Value.Get<FVector2D>();
+	Axis *= GamepadLookSensitivityScale;
+	
 	if (IsADSActive() && !bHavePayload)
 	{
 		if (bUseADSAimAcceleration)

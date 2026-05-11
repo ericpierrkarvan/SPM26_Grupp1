@@ -124,6 +124,9 @@ protected:
 	TObjectPtr<UInputAction> IA_SwitchPolarity;
 
 	UPROPERTY(EditAnywhere, Category="Input|ADS")
+	float GamepadLookSensitivityScale = 1.2f;
+	
+	UPROPERTY(EditAnywhere, Category="Input|ADS")
 	float ADSLookSensitivityScale = 0.4f;
 
 	UPROPERTY(EditAnywhere, Category="Input|ADS")
