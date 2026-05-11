@@ -27,6 +27,8 @@ class SPM26_GRUPP1_API UPlayerWidgetHUD : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+	UFUNCTION()
+	void OnContextActionActivated(const TArray<ETutorialPrompt>& Prompts, bool bActivated);
 	void SetOwningCharacter(AActor* NewCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -52,11 +54,8 @@ public:
 	void OnEquippedWeapon_BP(bool IsEquipped, AWeaponBase* Weapon);
 	
 protected:
-	UFUNCTION()
-	void UpdateRobotLaunchBarInternal(float NewPercentage, bool NewVisibility);
-
 	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateRobotLaunchBar(float NewPercentage, bool NewVisibility);
+	void UpdateRobotLaunchBar(float NewPercentage, bool NewVisibility, bool CanEverPrimeLaunch);
 
 	UFUNCTION()
 	void OnAmmoChanged(int32 CurrentAmmo, int32 MaxAmmo, bool bAmmoIncreased);
@@ -104,6 +103,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	UHorizontalBox* ActionPromptContainer;
+
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
+	UHorizontalBox* ContextActionContainer;
 	
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidgetOptional))
 	UUIActionInput* JumpPrompt;
@@ -137,7 +139,11 @@ protected:
 	UFUNCTION()
 	void OnActionPromptFadeOutFinished();
 	void HideAllActionPrompts();
-	
+
+	void ShowContextActions(const TArray<ETutorialPrompt>& Prompts);
+	void HideContextActions();
+	UFUNCTION()
+	void OnContextActionsFadeOutFinished();
 
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnimOptional))
 	TObjectPtr<UWidgetAnimation> TutorialPromptFadeOutAnim; //fade for the tutorial popup fadeout animation
@@ -146,6 +152,14 @@ protected:
 	TObjectPtr<UWidgetAnimation> TutorialPromptFadeInAnim;
 
 	FWidgetAnimationDynamicEvent FadeOutDelegate;
+
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnimOptional))
+	TObjectPtr<UWidgetAnimation> ContextFadeInAnim;
+
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnimOptional))
+	TObjectPtr<UWidgetAnimation> ContextFadeOutAnim;
+
+	FWidgetAnimationDynamicEvent ContextFadeOutDelegate;
 private:
 	bool bSubscribedToSubsystem = false;
 };

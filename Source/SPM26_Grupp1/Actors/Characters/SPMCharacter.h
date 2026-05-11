@@ -7,9 +7,11 @@
 #include "SPM26_Grupp1/Framework/SPMPlayerController.h"
 #include "GameFramework/Character.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
+#include "SPM26_Grupp1/Framework/UISubSystem.h"
 
 
 #include "SPMCharacter.generated.h"
+
 
 enum class EProgressFlag : uint8;
 struct FPlayerProgress;
@@ -92,6 +94,10 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
+
+	UPROPERTY()
+	UUISubSystem* UISubSystem;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Default;
 

@@ -10,6 +10,7 @@
  * 
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnTutorialPromptActivated, const TArray<ETutorialPrompt>&, TutPrompts, ETextPlayerFilter, PlayerFilter, bool, bActivated, AActor*, TriggeringActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnContextActionActivated, const TArray<ETutorialPrompt>&, Prompts, bool, bActivated);
 
 UCLASS()
 class SPM26_GRUPP1_API UUISubSystem : public UGameInstanceSubsystem
@@ -18,4 +19,7 @@ class SPM26_GRUPP1_API UUISubSystem : public UGameInstanceSubsystem
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnTutorialPromptActivated OnTutorialPromptActivated;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnContextActionActivated OnContextActionActivated;
 };

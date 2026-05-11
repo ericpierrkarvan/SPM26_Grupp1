@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
@@ -227,6 +228,11 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 			{
 				TakePicture();
 			}
+
+			if (UISubSystem)
+			{
+				UISubSystem->OnContextActionActivated.Broadcast({ETutorialPrompt::Launch}, true);
+			}
 			
 			bIsPickingUp = false;
 		}
@@ -246,7 +252,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		if (PayloadOverlapTime >= PayloadLandingConfirmTime)
 		{
 			EnterLaunchMode();
-			OnLaunchStateChanged.Broadcast(0.f, true); //notify hud
+			OnLaunchStateChanged.Broadcast(0.f, true, bCanEverPrimeLaunch); //notify hud
 		}
 	}
 	
@@ -265,7 +271,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		}
 		else
 		{
-			OnLaunchStateChanged.Broadcast(GetLaunchTimePercentage(), true);
+			OnLaunchStateChanged.Broadcast(GetLaunchTimePercentage(), true, bCanEverPrimeLaunch);
 		}
 	}
 
@@ -306,7 +312,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	if (CRTMID)
 	{
 		//fade in/out the crt effect depending on our payload state
-		const float TargetIntensity = (bIsInLaunchMode && bHavePayload) ? 1.f : 0.f;
+		const float TargetIntensity = (bIsInLaunchMode && bHavePayload || (bIsInLaunchMode && bForceADSPayloadMode)) ? 1.f : 0.f;
 		CurrentCRTIntensity = FMath::FInterpTo(CurrentCRTIntensity, TargetIntensity, DeltaSeconds, CRTBlendSpeed);
 		CRTMID->SetScalarParameterValue(FName("Intensity"), CurrentCRTIntensity);
 	}
@@ -406,6 +412,20 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 	AddControllerPitchInput(Axis.Y);
 }
 
+void ARobotCharacter::StartADS()
+{
+	bIsADS = true;
+	if (!bForceADSPayloadMode) SetCameraState(ECameraState::ADS);
+	
+	if (GetCharacterMovement())
+	{
+		//when aiming we want the pawn to follow the direction of the camera
+		GetCharacterMovement()->bOrientRotationToMovement   = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	}
+	OnADS.Broadcast(bIsADS);
+}
+
 bool ARobotCharacter::CanSwitchPolarity() const
 {
 	return bCanEverSwitchPolarity && Super::CanSwitchPolarity();
@@ -498,6 +518,10 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 	{
 		bHavePayload = true;
 		SetCameraState(ECameraState::Payload);
+		if (UISubSystem)
+		{
+			UISubSystem->OnContextActionActivated.Broadcast({ETutorialPrompt::Launch}, true);
+		}
 	}
 }
 
@@ -528,19 +552,24 @@ void ARobotCharacter::EnterLaunchMode()
 	if (bIsInLaunchMode) return;
 	bIsInLaunchMode = true;
 	StartADS();
-	if (bHavePayload) SetCameraState(ECameraState::Payload);
-	OnLaunchStateChanged.Broadcast(0.f, bHavePayload); //notify hud
+	if (bHavePayload || bForceADSPayloadMode) SetCameraState(ECameraState::Payload);
+	OnLaunchStateChanged.Broadcast(0.f, bHavePayload, bCanEverPrimeLaunch); //notify hud
 }
 
 void ARobotCharacter::ExitLaunchMode()
 {
+	if (UISubSystem)
+	{
+		UISubSystem->OnContextActionActivated.Broadcast({}, false);
+	}
+	
 	StopADS();
 	bHavePayload = false;
 	PayloadOverlapTime = 0.f;
 	bIsInLaunchMode = false;
 	bLaunchIsCharging = false;
 	LaunchChargeTimer = 0.f;
-	OnLaunchStateChanged.Broadcast(0.f, false); //notify hud
+	OnLaunchStateChanged.Broadcast(0.f, false, bCanEverPrimeLaunch); //notify hud
 }
 
 void ARobotCharacter::Launch()
@@ -669,8 +698,20 @@ void ARobotCharacter::OnShootPressed()
 	if (!bIsADS) return;
 	if (!bHavePayload) return;
 
-	if (!bLaunchIsCharging) OnLaunchStart();
-	bLaunchIsCharging = true;
+	if (bCanEverPrimeLaunch)
+	{
+		//we can prime
+		if (!bLaunchIsCharging) OnLaunchStart();
+		bLaunchIsCharging = true;
+	}
+	else
+	{
+		//skip the prime stuff and just launch the damn thing
+		LaunchChargeTimer = 0.f;
+		bLaunchIsCharging = true;
+		Launch();
+		ExitLaunchMode();
+	}
 }
 
 void ARobotCharacter::OnShootReleased()
