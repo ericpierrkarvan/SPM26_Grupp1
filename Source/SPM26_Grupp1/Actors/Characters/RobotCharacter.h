@@ -13,7 +13,18 @@ class UFMODAudioComponent;
 /**
  * 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible);
+UENUM(BlueprintType)
+enum class ERobotMovementState : uint8
+{
+	Idle,
+	Walking,
+	Falling,
+	Jumping,
+	Dashing
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMovementStateChanged, ERobotMovementState, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible, bool, bCanEverPrimeLaunch);
 
 
 class URobotMovementComponent;
@@ -29,31 +40,38 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 
 public:
 	
+	// Virtual
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
-
 	virtual void ForceSwitchPolarity();
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
+	virtual void OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode) override;
+	
+	// Getters & Setters
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage() const;
 	void SetIsWithinMagneticField(bool bNewValue);
 	bool GetIsWithinMagneticField() const;
 	int32 GetPolarityValue() const;
 	virtual EPolarity GetPolarity() const override;
+	FVector GetLaunchForce(UCharacterMovementComponent* CharMoveComp = nullptr) const;
+	
+	// Mechanics
 	void StartRepelImmunity();
 	void CancelDash() const;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnLaunchStateChanged OnLaunchStateChanged;
+	void ProgressEnablePolaritySwitch();
 	
-	FVector GetLaunchForce() const;
-
+	// Bools
 	bool IsDashing() const;
 	bool CanBeAffectedByMagneticField() const;
 	bool CanBeRepelled() const;
+	
+	// Delegates
+	UPROPERTY(BlueprintAssignable)
+	FOnLaunchStateChanged OnLaunchStateChanged;
+	UPROPERTY(BlueprintAssignable, Category="Audio")
+	FOnMovementStateChanged OnMovementStateChanged;
 
-	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
-
-	void ProgressEnablePolaritySwitch();
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -104,6 +122,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
 	float LaunchMinForce = 1500.f;
+
+	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
+	float LaunchMinForceObjects = 1800.f;
 	virtual bool CanJumpInternal_Implementation() const override;
 
 	//multiplier for force when trying to launch high arcs
@@ -123,6 +144,11 @@ protected:
 	UFMODAudioComponent* HeadLaunchStartAudioComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HeadLaunch|Audio")
 	UFMODAudioComponent* HeadLaunchEndAudioComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Audio")
+	UFMODAudioComponent* WalkingAudioComp;
+
+	ERobotMovementState MovementState;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ADS", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
@@ -153,6 +179,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	float CRTBlendSpeed = 5.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Launch")
+	bool bCanEverPrimeLaunch = false;
+	
+	UPROPERTY(EditAnywhere, Category="ADS")
+	bool bForceADSPayloadMode = true;
+	virtual void StartADS() override;
 	virtual bool CanSwitchPolarity() const override;
 	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
 private:
@@ -165,6 +197,7 @@ private:
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
 	void OnIsPickingUp(float DeltaSeconds);
+	void MovementStateCheck();
 	bool bIsDashing = false;
 	void ResetDashHandle(){ bIsDashing = false; }
 	float DashTimer = 0.f;
@@ -179,6 +212,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashRotationSpeed = 12.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MinimumSpeedToCountAsWalking = 20.f; // only trigger movement audio when above speed
 	
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField = false;

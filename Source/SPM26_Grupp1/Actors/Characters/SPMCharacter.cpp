@@ -70,6 +70,8 @@ void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolari
 void ASPMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UISubSystem = GetGameInstance()->GetSubsystem<UUISubSystem>();
 	
 	if (CameraBoom)
 	{
@@ -147,6 +149,8 @@ void ASPMCharacter::LookGamepad(const FInputActionValue& Value)
 	
 	FVector2D Axis = Value.Get<FVector2D>();
 
+	Axis *= GamepadLookSensitivityScale;
+	
 	if (IsADSActive())
 	{
 		if (bUseADSAimAcceleration)
