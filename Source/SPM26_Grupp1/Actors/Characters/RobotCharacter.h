@@ -54,7 +54,7 @@ public:
 	bool GetIsWithinMagneticField() const;
 	int32 GetPolarityValue() const;
 	virtual EPolarity GetPolarity() const override;
-	FVector GetLaunchForce() const;
+	FVector GetLaunchForce(UCharacterMovementComponent* CharMoveComp = nullptr) const;
 	
 	// Mechanics
 	void StartRepelImmunity();
@@ -122,6 +122,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
 	float LaunchMinForce = 1500.f;
+
+	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power")
+	float LaunchMinForceObjects = 1800.f;
 	virtual bool CanJumpInternal_Implementation() const override;
 
 	//multiplier for force when trying to launch high arcs
