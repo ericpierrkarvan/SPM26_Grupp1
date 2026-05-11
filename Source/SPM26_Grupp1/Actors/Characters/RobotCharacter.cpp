@@ -410,7 +410,8 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 			ApplyAimAcceleration(Axis);
 		}
 		
-		Axis *= PayloadLookSensitivityScale;
+		Axis.X *= PayloadLookSensitivityScale;
+		Axis.Y *= (PayloadLookSensitivityScale/2.5); //make y move slower
 	}
 	
 	AddControllerYawInput(Axis.X);
