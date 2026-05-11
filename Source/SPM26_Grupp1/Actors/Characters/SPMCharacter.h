@@ -19,6 +19,7 @@ struct FPlayerProgress;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget, EProgressFlag, NewProgress);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRespawn, bool, IsRespawning);
 
 class UInteractableComponent;
 class USPMCharacterMovementComponent;
@@ -36,6 +37,8 @@ enum class ECameraState : uint8
 	ADS      UMETA(DisplayName = "ADS"),
 	Payload  UMETA(DisplayName = "Payload")
 };
+
+
 
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
@@ -90,6 +93,9 @@ public:
 	
 	virtual void Landed(const FHitResult& Hit) override;
 	
+	UPROPERTY(BlueprintAssignable, Category = "Respawn")
+	FOnRespawn OnRespawn;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -123,6 +129,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_SwitchPolarity;
 
+	UPROPERTY(EditAnywhere, Category="Input|ADS")
+	float GamepadLookSensitivityScale = 1.2f;
+	
 	UPROPERTY(EditAnywhere, Category="Input|ADS")
 	float ADSLookSensitivityScale = 0.4f;
 

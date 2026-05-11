@@ -209,8 +209,14 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 						HeldPickupComponent->OnDropped();
 					}
 					
+					//Temporary fix, might create an "OnLaunch" event on the mechanic character if we want any extra functionality
+					if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(HeldActor))
+					{
+						MechanicCharacter->GetSPMMovementComponent()->DecrementJumpCount();
+					}
+					
 					LaunchObject(HeldActor, FVector(0,0, 200));
-
+					
 					//reset pickup:
 					HeldActor = nullptr;
 					HeldPickupComponent = nullptr;
@@ -232,7 +238,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				TakePicture();
 			}
 
-			if (UISubSystem)
+			if (UISubSystem && IsLaunchableObject(HeldActor))
 			{
 				UISubSystem->OnContextActionActivated.Broadcast({ETutorialPrompt::Launch}, true);
 			}
@@ -399,7 +405,10 @@ float ARobotCharacter::GetFOVForState(ECameraState State) const
 
 void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 {
+	
 	FVector2D Axis = Value.Get<FVector2D>();
+	Axis *= GamepadLookSensitivityScale;
+	
 	if (IsADSActive() && !bHavePayload)
 	{
 		if (bUseADSAimAcceleration)
@@ -416,7 +425,8 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 			ApplyAimAcceleration(Axis);
 		}
 		
-		Axis *= PayloadLookSensitivityScale;
+		Axis.X *= PayloadLookSensitivityScale;
+		Axis.Y *= (PayloadLookSensitivityScale/2.5); //make y move slower
 	}
 	
 	AddControllerYawInput(Axis.X);
