@@ -97,7 +97,7 @@ bool ARobotCharacter::CanJumpInternal_Implementation() const
 	return Super::CanJumpInternal_Implementation() && !bIsInLaunchMode;
 }
 
-FVector ARobotCharacter::GetLaunchForce() const
+FVector ARobotCharacter::GetLaunchForce(UCharacterMovementComponent* CharMoveComp) const
 {
 	const float ChargeRatio = FMath::Clamp(LaunchChargeTimer / MaxLaunchChargeTime, 0.f, 1.f);
 
@@ -125,8 +125,11 @@ FVector ARobotCharacter::GetLaunchForce() const
 	//multiplier for camera angle to reduce height at steep angles
 	const float AngleScale = FMath::Lerp(1.f, SteepAngleForceScale, FinalAlpha);
 
+	
+	float RawBase = CharMoveComp ? LaunchMinForce : LaunchMinForceObjects;
+	
 	//we have a base force we always apply, scaled by angle
-	const float BaseForce = LaunchMinForce * AngleScale;
+	const float BaseForce = RawBase * AngleScale;
 	//extra force from charge, also scaled by angle
 	const float ExtraForce = (FMath::Lerp(LaunchMinForce, LaunchMaxForce, ChargeRatio) - LaunchMinForce) * AngleScale;
 
@@ -316,7 +319,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		
 		LaunchArcComponent->UpdateArc(
 			PlatformDetectionSphere->GetComponentLocation(),
-			GetLaunchForce(),
+			GetLaunchForce(HeadCharacterMoveComp),
 			HeadCharacterMoveComp,
 			ToIgnore
 		);
@@ -596,7 +599,7 @@ void ARobotCharacter::Launch()
 {
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
 	
-	const FVector LaunchForce = GetLaunchForce();
+	//const FVector LaunchForce = GetLaunchForce();
 	
 	TArray<AActor*> OverlappingActors;
 	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
@@ -610,11 +613,11 @@ void ARobotCharacter::Launch()
 
 		if (ACharacter* Char = Cast<ACharacter>(HeldActor))
 		{
-			LaunchPlayerCharacter(Char, LaunchForce);
+			LaunchPlayerCharacter(Char, GetLaunchForce(Char->GetCharacterMovement()));
 		}
 		else
 		{
-			LaunchObject(HeldActor, LaunchForce);
+			LaunchObject(HeldActor, GetLaunchForce());
 		}
 
 		//reset pickup
@@ -632,7 +635,7 @@ void ARobotCharacter::Launch()
 
 		if (ACharacter* Char = Cast<ACharacter>(Actor))
 		{
-			LaunchPlayerCharacter(Char, LaunchForce);
+			LaunchPlayerCharacter(Char, GetLaunchForce(Char->GetCharacterMovement()));
 		}
 		else if (UPickupComponent* Pickup = Actor->FindComponentByClass<UPickupComponent>())
 		{
@@ -643,7 +646,7 @@ void ARobotCharacter::Launch()
 			
 				Pickup->OnDropped();
 			
-				LaunchObject(Actor, LaunchForce);
+				LaunchObject(Actor, GetLaunchForce());
 			}
 		}
 	}
