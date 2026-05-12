@@ -3,10 +3,11 @@
 
 #include "SPM26_Grupp1/Actors/TutorialText.h"
 
-#include "Components/BoxComponent.h"
+#include "Characters/RobotCharacter.h"
 #include "Components/TextRenderComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Components/OverlapComponent.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "SPM26_Grupp1/Framework/UISubSystem.h"
 
 // Sets default values
@@ -105,23 +106,70 @@ void ATutorialText::OnConstruction(const FTransform& Transform)
 void ATutorialText::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	
 }
+
+
 
 void ATutorialText::OnPlayerEnter(AActor* OtherActor, bool bActivated)
 {
+	UUISubSystem* Sub = GetGameInstance()->GetSubsystem<UUISubSystem>();
+	if (!Sub) return;
+
 	if (bActivated)
 	{
-		//player in
+		TArray<ETutorialPrompt> FilteredPrompts;
+		if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
+		{
+			for (ETutorialPrompt Prompt : TutPrompts)
+			{
+				//we need to check if we have unlocked the prompt we're trying to show
+				if (IsPromptUnlocked(Prompt, Progress, OtherActor))
+				{
+					FilteredPrompts.Add(Prompt);
+				}
+			}
+		}
+		else
+		{
+			//fallback if the subsystem fails for some reason
+			FilteredPrompts = TutPrompts;
+		}
+
+		//nothing to show
+		if (FilteredPrompts.IsEmpty()) return;
+
+		//track who we broadcasted to, so we know who to close prompts for
+		ActorsWeBroadcastedTo.Add(OtherActor);
+		Sub->OnTutorialPromptActivated.Broadcast(FilteredPrompts, PlayerFilter, true, OtherActor);
 	}
 	else
 	{
-		//player left
+		//only tell actors we prompted on activated that the prompt is no longer active
+		if (ActorsWeBroadcastedTo.Contains(OtherActor))
+		{
+			ActorsWeBroadcastedTo.Remove(OtherActor);
+			Sub->OnTutorialPromptActivated.Broadcast({}, PlayerFilter, false, OtherActor);
+		}
 	}
+}
 
-	if (UUISubSystem* Sub = GetGameInstance()->GetSubsystem<UUISubSystem>())
+bool ATutorialText::IsPromptUnlocked(ETutorialPrompt Prompt, UProgressSubsystem* Progress, AActor* OtherActor) const
+{
+	bool bIsRobot = Cast<ARobotCharacter>(OtherActor) != nullptr;
+
+	switch (Prompt)
 	{
-		Sub->OnTutorialPromptActivated.Broadcast(TutPrompts, PlayerFilter, bActivated, OtherActor);
+	case ETutorialPrompt::Shoot:
+		return Progress->HasFlag(EProgressFlag::MagneticGunUnlocked);
+	case ETutorialPrompt::SwitchPolarity:
+		if (bIsRobot)
+		{
+			return Progress->HasFlag(EProgressFlag::RobotCanSwitchPolarity);
+		}
+		return Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
+	case ETutorialPrompt::Launch:
+		return Progress->HasFlag(EProgressFlag::RobotCanHeadLaunch);
+	default:
+		return true;
 	}
 }
