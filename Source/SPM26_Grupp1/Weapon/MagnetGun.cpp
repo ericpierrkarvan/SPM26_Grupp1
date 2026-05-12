@@ -8,6 +8,8 @@
 AMagnetGun::AMagnetGun()
 {
 	ProjectileMaxDistance = 10000.f;
+	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMesh"));
+	RootComponent = GunMesh;
 	
 }
 
