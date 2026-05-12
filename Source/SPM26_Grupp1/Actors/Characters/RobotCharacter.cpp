@@ -251,6 +251,18 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 	}
 }
 
+void ARobotCharacter::OnDeath()
+{
+	CancelDash();
+	
+	if (!bHavePayload)
+	{
+		//if we are dying with ads but without a grabbed item
+		//then we want to exit ads
+		ExitLaunchMode();
+	}
+}
+
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -710,8 +722,9 @@ void ARobotCharacter::OnLaunchPressed()
 
 void ARobotCharacter::OnLaunchReleased()
 {
-	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
-
+	if (!bIsInLaunchMode) return;
+	if (bHavePayload && !bLaunchIsCharging) return;
+	
 	Launch();
 	ExitLaunchMode();
 }

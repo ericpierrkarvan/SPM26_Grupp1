@@ -99,6 +99,8 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	virtual void OnDeath();
 protected:
 
 	UPROPERTY()
@@ -167,7 +169,8 @@ protected:
 
 	virtual void StartADS();
 	virtual void StopADS();
-	bool bIsADS = false;
+	
+	volatile bool bIsADS = false;
 
 	virtual float GetArmLengthForState(ECameraState State) const;
 	virtual FVector GetOffsetForState(ECameraState State) const;

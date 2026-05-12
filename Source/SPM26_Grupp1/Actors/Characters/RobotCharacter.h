@@ -75,6 +75,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Audio")
 	FOnMovementStateChanged OnMovementStateChanged;
 
+	virtual void OnDeath();
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;

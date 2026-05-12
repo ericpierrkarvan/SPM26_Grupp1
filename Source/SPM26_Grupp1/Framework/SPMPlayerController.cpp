@@ -73,6 +73,8 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 		PlayerHudWidget->OnPromptEnd.AddDynamic(this, &ASPMPlayerController::OnPromptEnd);
 		PlayerHudWidget->AddToPlayerScreen();
 		PlayerHudWidget->SetOwningCharacter(P); //the playerhud wants updated character references
+
+		SetInputMode(FInputModeGameOnly());
 	}
 	
 	
@@ -84,12 +86,6 @@ void ASPMPlayerController::BeginPlay()
 
 	ULocalPlayer* LP = GetLocalPlayer();
 	if (!LP) return;
-
-	UEnhancedInputLocalPlayerSubsystem* Subsystem =
-		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP);
-	if (!Subsystem) return;
-
-	if (DefaultIMC) Subsystem->AddMappingContext(DefaultIMC, 0);
 	
 	bAutoManageActiveCameraTarget = false;
 }

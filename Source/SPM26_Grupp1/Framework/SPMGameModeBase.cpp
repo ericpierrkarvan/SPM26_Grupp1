@@ -78,64 +78,20 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 	ASPMPlayerController* PlayerController = Cast<ASPMPlayerController>(Controller);
 	if (!PlayerController) return;
 
-#if WITH_EDITOR
-	PlayerController->bIsSwitchingPlayer = true;
-#endif
 	FTransform RespawnTransform = PlayerController->GetCheckpointTransform();
 
-	ACharacter* OldCharacter = PlayerController->GetCharacter();
-	ACharacter* NewCharacter;
-	FActorSpawnParameters Params;
-	Params.Owner = Controller;
-	
-	if (Cast<ARobotCharacter>(OldCharacter))
+	if (APawn* Pawn = PlayerController->GetPawn())
 	{
-		NewCharacter = GetWorld()->SpawnActor<ARobotCharacter>(RobotCharacterClass, RespawnTransform, Params);
-	}
-	else if (Cast<AMechanicCharacter>(OldCharacter))
-	{
-		NewCharacter = GetWorld()->SpawnActor<AMechanicCharacter>(MechanicCharacterClass, RespawnTransform, Params);
-	}
-	else
-	{
-		return;
-	}
-
-	if (NewCharacter)
-	{
-		PlayerController->Possess(NewCharacter);
-		
-		if (ASPMCharacter* Char = Cast<ASPMCharacter>(NewCharacter))
+		if (ASPMCharacter* SPMChar = Cast<ASPMCharacter>(Pawn))
 		{
-			Char->OnRespawn.Broadcast(true);
-		}
-		
-#if WITH_EDITOR
-		PlayerController->bIsSwitchingPlayer = false;
-		if (OldCharacter == OriginalPawn0.Get())
-		{
-			OriginalPawn0 = NewCharacter;
-		}
-		else if (OldCharacter == OriginalPawn1.Get())
-		{
-			OriginalPawn1 = NewCharacter;
-		}
-		
-		ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-		ASPMPlayerController* PC1 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
-		
-		if (PC0 && PC1 && OriginalPawn0.IsValid() && OriginalPawn1.IsValid())
-		{
-			PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
-			PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
+			SPMChar->OnDeath();
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("Dev: Player destroyed %s"), *NewCharacter->GetName());
-#endif
-	}
+		Pawn->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
 
-	if (OldCharacter)
-	{
-		OldCharacter->Destroy();
+		if (ASPMCharacter* SPMChar = Cast<ASPMCharacter>(Pawn))
+		{
+			SPMChar->OnRespawn.Broadcast(true);
+		}
 	}
 }

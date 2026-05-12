@@ -93,6 +93,11 @@ void ASPMCharacter::BeginPlay()
 	}
 }
 
+void ASPMCharacter::OnDeath()
+{
+	StopADS();
+}
+
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -102,6 +107,7 @@ void ASPMCharacter::PossessedBy(AController* NewController)
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
+			Subsystem->RemoveMappingContext(IMC_Default);
 			Subsystem->AddMappingContext(IMC_Default, 0);
 		}
 	}
