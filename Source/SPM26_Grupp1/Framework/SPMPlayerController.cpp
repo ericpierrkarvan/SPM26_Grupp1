@@ -73,6 +73,8 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 		PlayerHudWidget->OnPromptEnd.AddDynamic(this, &ASPMPlayerController::OnPromptEnd);
 		PlayerHudWidget->AddToPlayerScreen();
 		PlayerHudWidget->SetOwningCharacter(P); //the playerhud wants updated character references
+
+		SetInputMode(FInputModeGameOnly());
 	}
 	
 	
