@@ -84,12 +84,6 @@ void ASPMPlayerController::BeginPlay()
 
 	ULocalPlayer* LP = GetLocalPlayer();
 	if (!LP) return;
-
-	UEnhancedInputLocalPlayerSubsystem* Subsystem =
-		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP);
-	if (!Subsystem) return;
-
-	if (DefaultIMC) Subsystem->AddMappingContext(DefaultIMC, 0);
 	
 	bAutoManageActiveCameraTarget = false;
 }
