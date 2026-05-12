@@ -3,6 +3,7 @@
 
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "FMODAudioComponent.h"
 #include "MechanicCharacter.h"
 #include "Camera/CameraComponent.h"
@@ -483,6 +484,25 @@ void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
 		}
 	}
 	
+}
+
+void ARobotCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(IMC_Robot, 0);
+		}
+	}
+
+	SetOwner(GetController());
+
+	SetOwner(GetController());
 }
 
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const

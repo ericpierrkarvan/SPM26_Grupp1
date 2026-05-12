@@ -101,18 +101,6 @@ void ASPMCharacter::OnDeath()
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->RemoveMappingContext(IMC_Default);
-			Subsystem->AddMappingContext(IMC_Default, 0);
-		}
-	}
-
-	SetOwner(GetController());
 }
 
 void ASPMCharacter::Move(const FInputActionValue& Value)
