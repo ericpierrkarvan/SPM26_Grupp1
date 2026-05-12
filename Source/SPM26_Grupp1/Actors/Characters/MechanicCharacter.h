@@ -10,7 +10,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceCanSpawnMagneticField, bool, bShowIndicator);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipWeapon, bool, bIsEquipped, AWeaponBase*, Weapon);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMovementStateChanged, ERobotMovementState, NewState);
+
 
 class UMechanicMovementComponent;
 /**
@@ -54,8 +54,6 @@ protected:
 	TSubclassOf<AProjectileBase> ProjectileClass;
 	UPROPERTY()
 	TArray<TWeakObjectPtr<AActor>> ActiveMagneticFields;
-	UPROPERTY(BlueprintAssignable, Category="Audio")
-	FOnMovementStateChanged OnMovementStateChanged;
 	
 	// The current location where a projectile will be spawned.
 	FVector CurrentProjectileSpawnPoint;
