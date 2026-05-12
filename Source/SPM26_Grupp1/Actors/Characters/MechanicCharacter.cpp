@@ -61,13 +61,17 @@ void AMechanicCharacter::StopADS()
 void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
 	Super::ApplyProgress(Progress);
-	UE_LOG(LogTemp, Warning, TEXT("Apply progress(): start"))
+
 	if (Progress)
 	{
 		if (Progress->HasFlag(EProgressFlag::MagneticGunUnlocked) && !bHaveMagneticGun)
 		{
-			EquipWeapon();
-			UE_LOG(LogTemp, Warning, TEXT("Equipped Weapon: %s, GetMesh(): %s"), *EquippedWeapon->GetName(), *GetMesh()->GetName())
+			//since we are creating an actor on equip weapon, we need a timer so we do it outside
+			//of the apply progress delegate chain
+			GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+			{
+				EquipWeapon();
+			});
 		}
 		bCanEverChangeMagneticGunPolartiy = Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	}
