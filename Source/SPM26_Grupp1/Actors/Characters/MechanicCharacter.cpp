@@ -124,6 +124,12 @@ void AMechanicCharacter::EquipWeapon()
 		//UE_LOG(LogTemp, Warning, TEXT("Equipped Weapon: %s, GetMesh(): %s"), *EquippedWeapon->GetName(), *GetMesh()->GetName())
 
 		OnEquipWeapon.Broadcast(bHaveMagneticGun, EquippedWeapon);
+
+		//force focus back if something took our focus
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			PC->SetInputMode(FInputModeGameOnly());
+		}
 	}
 }
 
