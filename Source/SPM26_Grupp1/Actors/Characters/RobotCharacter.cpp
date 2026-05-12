@@ -256,7 +256,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
-	MovementStateCheck();
+	CheckMovementState();
 	
 	if (DashTimer > 0)
 		DashTimer -= DeltaSeconds;
@@ -843,7 +843,7 @@ void ARobotCharacter::ProgressEnablePolaritySwitch()
 	bCanEverSwitchPolarity = true;
 }
 
-void ARobotCharacter::MovementStateCheck()
+void ARobotCharacter::CheckMovementState()
 {
 	if (!GetCharacterMovement()->IsWalking()) return;
 
@@ -855,6 +855,7 @@ void ARobotCharacter::MovementStateCheck()
 	{
 		MovementState = NewState;
 		OnMovementStateChanged.Broadcast(MovementState);
+		UE_LOG(LogTemp, Warning, TEXT("Movement Mode changed to: %hhd"), MovementState);
 	}
 }
 
@@ -868,6 +869,16 @@ void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode
 		MovementState = PrevMovementMode == MOVE_Walking ? ERobotMovementState::Jumping : ERobotMovementState::Falling;
 		UE_LOG(LogTemp, Warning, TEXT("Movement Mode changed to: %hhd"), MovementState);
 		OnMovementStateChanged.Broadcast(MovementState);
+		
+		// Jump -> Falling check
+		if (MovementState == ERobotMovementState::Jumping)
+		{
+			GetWorldTimerManager().SetTimer(FallingTimerHandle,
+				this,
+				&ARobotCharacter::CheckFallingTransition,
+				0.1f, // Check every 100ms
+				true); // looping
+		}
 	}    
 	else if (GetCharacterMovement()->IsWalking() && PrevMovementMode == MOVE_Falling)
 	{
@@ -875,6 +886,22 @@ void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode
 		OnMovementStateChanged.Broadcast(MovementState);
 	}
 	
+}
+
+// Jumping/falling transition, broadcasts Falling when Z-velocity < 0
+void ARobotCharacter::CheckFallingTransition()
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		GetWorldTimerManager().ClearTimer(FallingTimerHandle);
+		return;
+	}
+	if (GetVelocity().Z < 0.f)
+	{
+		MovementState = ERobotMovementState::Falling;
+		OnMovementStateChanged.Broadcast(MovementState);
+		GetWorldTimerManager().ClearTimer(FallingTimerHandle);
+	}
 }
 
 void ARobotCharacter::Landed(const FHitResult& HitResult)

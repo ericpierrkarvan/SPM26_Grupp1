@@ -47,6 +47,7 @@ public:
 	virtual void ForceSwitchPolarity();
 	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
 	virtual void OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode) override;
+	void CheckFallingTransition();
 	virtual void Landed(const FHitResult& HitResult) override; 
 
 	// Getters & Setters
@@ -194,12 +195,13 @@ private:
 	FTimerHandle DashHandle;
 	FTimerHandle MagnetizableCooldownHandle;
 	FTimerHandle RepelImmunityHandle;
+	FTimerHandle FallingTimerHandle;
 
 	void PerformDash();
 	bool CanDash() const;
 	void SmoothRotationWhenDashing(float DeltaSeconds);
 	void OnIsPickingUp(float DeltaSeconds);
-	void MovementStateCheck();
+	void CheckMovementState();
 	bool bIsDashing = false;
 	void ResetDashHandle(){ bIsDashing = false; }
 	float DashTimer = 0.f;
