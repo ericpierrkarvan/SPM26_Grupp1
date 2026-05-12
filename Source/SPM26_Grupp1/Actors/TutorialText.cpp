@@ -117,30 +117,26 @@ void ATutorialText::OnPlayerEnter(AActor* OtherActor, bool bActivated)
 
 	if (bActivated)
 	{
-		TArray<ETutorialPrompt> FilteredPrompts;
 		if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
 		{
+			//if any of the prompts that we want to show is not unlocked by the character,
+			//then we wont show anything
+			bool bAllUnlocked = true;
 			for (ETutorialPrompt Prompt : TutPrompts)
 			{
-				//we need to check if we have unlocked the prompt we're trying to show
-				if (IsPromptUnlocked(Prompt, Progress, OtherActor))
+				if (!IsPromptUnlocked(Prompt, Progress, OtherActor))
 				{
-					FilteredPrompts.Add(Prompt);
+					bAllUnlocked = false;
+					break;
 				}
 			}
-		}
-		else
-		{
-			//fallback if the subsystem fails for some reason
-			FilteredPrompts = TutPrompts;
-		}
 
-		//nothing to show
-		if (FilteredPrompts.IsEmpty()) return;
-
+			if (!bAllUnlocked || TutPrompts.IsEmpty()) return;
+		}
+		
 		//track who we broadcasted to, so we know who to close prompts for
 		ActorsWeBroadcastedTo.Add(OtherActor);
-		Sub->OnTutorialPromptActivated.Broadcast(FilteredPrompts, PlayerFilter, true, OtherActor);
+		Sub->OnTutorialPromptActivated.Broadcast(TutPrompts, PlayerFilter, true, OtherActor);
 	}
 	else
 	{
