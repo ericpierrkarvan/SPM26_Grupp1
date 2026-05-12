@@ -253,11 +253,14 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 
 void ARobotCharacter::OnDeath()
 {
-	Super::OnDeath();
-
-	Launch();
-	ExitLaunchMode();
 	CancelDash();
+	
+	if (!bHavePayload)
+	{
+		//if we are dying with ads but without a grabbed item
+		//then we want to exit ads
+		ExitLaunchMode();
+	}
 }
 
 void ARobotCharacter::Tick(float DeltaSeconds)

@@ -107,6 +107,7 @@ void ASPMCharacter::PossessedBy(AController* NewController)
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
+			Subsystem->RemoveMappingContext(IMC_Default);
 			Subsystem->AddMappingContext(IMC_Default, 0);
 		}
 	}
@@ -625,6 +626,7 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 bool ASPMCharacter::IsADSActive() const
 {
+	UE_LOG(LogTemp, Verbose, TEXT("IsADSActive: %s"), bIsADS ? TEXT("TRUE") : TEXT("FALSE"));
 	return bIsADS;
 }
 
