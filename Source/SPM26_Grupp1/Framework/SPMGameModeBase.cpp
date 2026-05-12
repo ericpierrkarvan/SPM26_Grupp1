@@ -104,7 +104,6 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 	if (NewCharacter)
 	{
 		PlayerController->Possess(NewCharacter);
-	
 		
 		if (ASPMCharacter* Char = Cast<ASPMCharacter>(NewCharacter))
 		{
