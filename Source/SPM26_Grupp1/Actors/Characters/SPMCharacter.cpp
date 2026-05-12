@@ -626,6 +626,7 @@ void ASPMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 bool ASPMCharacter::IsADSActive() const
 {
+	UE_LOG(LogTemp, Verbose, TEXT("IsADSActive: %s"), bIsADS ? TEXT("TRUE") : TEXT("FALSE"));
 	return bIsADS;
 }
 
