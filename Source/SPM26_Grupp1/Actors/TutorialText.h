@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "TutorialText.generated.h"
 
 class UOverlapComponent;
@@ -54,4 +55,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	UFUNCTION()
 	void OnPlayerEnter(AActor* OtherActor, bool bActivated);
+	
+
+private:
+	UPROPERTY()
+	TSet<AActor*> ActorsWeBroadcastedTo;
+	bool IsPromptUnlocked(ETutorialPrompt Prompt, UProgressSubsystem* Progress, AActor* OtherActor) const;
 };
