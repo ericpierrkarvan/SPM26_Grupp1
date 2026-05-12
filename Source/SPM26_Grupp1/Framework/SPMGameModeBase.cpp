@@ -77,8 +77,10 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 
 	ASPMPlayerController* PlayerController = Cast<ASPMPlayerController>(Controller);
 	if (!PlayerController) return;
-	
+
+#if WITH_EDITOR
 	PlayerController->bIsSwitchingPlayer = true;
+#endif
 	FTransform RespawnTransform = PlayerController->GetCheckpointTransform();
 
 	ACharacter* OldCharacter = PlayerController->GetCharacter();
