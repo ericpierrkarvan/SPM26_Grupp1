@@ -37,6 +37,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintCallable)
 	EProgressFlag GetProgressFlag() const;
 	UFUNCTION(BlueprintCallable)
 	void GiveProgress();
