@@ -8,14 +8,20 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "MechanicCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceCanSpawnMagneticField, bool, bShowIndicator);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipWeapon, bool, bIsEquipped, AWeaponBase*, Weapon);
-
+UENUM(BlueprintType)
+enum class EMechanicMovementState : uint8
+{
+	Idle,
+	Walking,
+	Falling,
+	Jumping,
+	Landing
+};
 
 class UMechanicMovementComponent;
-/**
- * 
- */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceCanSpawnMagneticField, bool, bShowIndicator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipWeapon, bool, bIsEquipped, AWeaponBase*, Weapon);
 
 UCLASS()
 class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
