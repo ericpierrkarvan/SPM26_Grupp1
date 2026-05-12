@@ -19,6 +19,13 @@ public:
 	int GetPolarityValue() const;
 	EPolarity GetPolarity() const;
 	void SwitchPolarity();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
+	UStaticMeshComponent* GunMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Material")
+	UMaterialInstance* GunColorMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Material")
+	UMaterialInstance* GunGlassMaterial;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Polarity")

@@ -35,8 +35,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	float SpawnedMagneticFieldDuration = 10.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Magnet|VFX")
 	UNiagaraSystem* MagnetVfxAsset;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Magnet|Material")
+	UMaterialInstance* PositiveProjMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Magnet|Material")
+	UMaterialInstance* NegativeProjMaterial;
 	
 	int32 ProjectilePolarity;
 	EPolarity ProjPolarity = EPolarity::None;

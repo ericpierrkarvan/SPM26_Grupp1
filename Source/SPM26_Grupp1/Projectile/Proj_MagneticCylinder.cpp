@@ -54,6 +54,7 @@ void AProj_MagneticCylinder::BeginPlay()
 	}
 	ProjectilePolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
 	ProjPolarity = GetOwner<AMagnetGun>()->GetPolarity();
+	ProjPolarity == EPolarity::Positive ? ProjectileMesh->SetMaterial(0, PositiveProjMaterial) : ProjectileMesh->SetMaterial(0, NegativeProjMaterial);
 	
 }
 
