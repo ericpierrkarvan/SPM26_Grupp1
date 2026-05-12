@@ -251,6 +251,13 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 	}
 }
 
+void ARobotCharacter::OnDeath()
+{
+	Super::OnDeath();
+	ExitLaunchMode();
+	CancelDash();
+}
+
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

@@ -93,6 +93,11 @@ void ASPMCharacter::BeginPlay()
 	}
 }
 
+void ASPMCharacter::OnDeath()
+{
+	StopADS();
+}
+
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
