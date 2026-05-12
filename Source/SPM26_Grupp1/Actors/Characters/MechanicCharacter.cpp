@@ -61,12 +61,13 @@ void AMechanicCharacter::StopADS()
 void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
 	Super::ApplyProgress(Progress);
-
+	UE_LOG(LogTemp, Warning, TEXT("Apply progress(): start"))
 	if (Progress)
 	{
 		if (Progress->HasFlag(EProgressFlag::MagneticGunUnlocked) && !bHaveMagneticGun)
 		{
 			EquipWeapon();
+			UE_LOG(LogTemp, Warning, TEXT("Equipped Weapon: %s, GetMesh(): %s"), *EquippedWeapon->GetName(), *GetMesh()->GetName())
 		}
 		bCanEverChangeMagneticGunPolartiy = Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	}
@@ -114,8 +115,9 @@ void AMechanicCharacter::EquipWeapon()
 
 		EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
 		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
-		                                  TEXT("hand_r"));
+		                                  TEXT("R_hand_socket"));
 		bHaveMagneticGun = true;
+		//UE_LOG(LogTemp, Warning, TEXT("Equipped Weapon: %s, GetMesh(): %s"), *EquippedWeapon->GetName(), *GetMesh()->GetName())
 
 		OnEquipWeapon.Broadcast(bHaveMagneticGun, EquippedWeapon);
 	}

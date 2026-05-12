@@ -58,6 +58,7 @@ protected:
 	TSubclassOf<AWeaponBase> DefaultWeaponClass;
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<AProjectileBase> ProjectileClass;
+	
 	UPROPERTY()
 	TArray<TWeakObjectPtr<AActor>> ActiveMagneticFields;
 	
