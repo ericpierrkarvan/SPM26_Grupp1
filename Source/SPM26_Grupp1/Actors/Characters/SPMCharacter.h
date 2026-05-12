@@ -169,8 +169,8 @@ protected:
 
 	virtual void StartADS();
 	virtual void StopADS();
-	UPROPERTY()
-	bool bIsADS = false;
+	
+	volatile bool bIsADS = false;
 
 	virtual float GetArmLengthForState(ECameraState State) const;
 	virtual FVector GetOffsetForState(ECameraState State) const;
