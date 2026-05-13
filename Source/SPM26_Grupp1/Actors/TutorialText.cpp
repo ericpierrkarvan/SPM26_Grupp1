@@ -117,26 +117,24 @@ void ATutorialText::OnPlayerEnter(AActor* OtherActor, bool bActivated)
 
 	if (bActivated)
 	{
+		bool bIsRobot = Cast<ARobotCharacter>(OtherActor) != nullptr;
+		TArray<ETutorialPrompt> FilteredPrompts;
 		if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
 		{
-			//if any of the prompts that we want to show is not unlocked by the character,
-			//then we wont show anything
-			bool bAllUnlocked = true;
 			for (ETutorialPrompt Prompt : TutPrompts)
 			{
-				if (!IsPromptUnlocked(Prompt, Progress, OtherActor))
+				if (IsPromptRelevantForCharacter(Prompt, bIsRobot) && IsPromptUnlocked(Prompt, Progress, OtherActor))
 				{
-					bAllUnlocked = false;
-					break;
+					FilteredPrompts.Add(Prompt);
 				}
 			}
 
-			if (!bAllUnlocked || TutPrompts.IsEmpty()) return;
+			if (FilteredPrompts.IsEmpty()) return;
 		}
 		
 		//track who we broadcasted to, so we know who to close prompts for
 		ActorsWeBroadcastedTo.Add(OtherActor);
-		Sub->OnTutorialPromptActivated.Broadcast(TutPrompts, PlayerFilter, true, OtherActor);
+		Sub->OnTutorialPromptActivated.Broadcast(FilteredPrompts, PlayerFilter, true, OtherActor);
 	}
 	else
 	{
@@ -168,4 +166,23 @@ bool ATutorialText::IsPromptUnlocked(ETutorialPrompt Prompt, UProgressSubsystem*
 	default:
 		return true;
 	}
+}
+
+bool ATutorialText::IsPromptRelevantForCharacter(ETutorialPrompt Prompt, bool bIsRobot) const
+{
+	//filter character specific stuff.
+	 switch (Prompt)
+	 {
+	 case ETutorialPrompt::Dash:
+	 case ETutorialPrompt::Launch:
+	 case ETutorialPrompt::ADSLaunchMode:
+	 	return bIsRobot;
+	 case ETutorialPrompt::DoubleJump:
+	 case ETutorialPrompt::Shoot:
+	 case ETutorialPrompt::ADSAim:
+	 case ETutorialPrompt::DestroyMagneticField:
+	 	return !bIsRobot;
+	 default:
+	 	return true;
+	 }
 }

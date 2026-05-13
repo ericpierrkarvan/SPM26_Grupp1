@@ -61,4 +61,5 @@ private:
 	UPROPERTY()
 	TSet<AActor*> ActorsWeBroadcastedTo;
 	bool IsPromptUnlocked(ETutorialPrompt Prompt, UProgressSubsystem* Progress, AActor* OtherActor) const;
+	bool IsPromptRelevantForCharacter(ETutorialPrompt Prompt, bool bIsRobot) const;
 };

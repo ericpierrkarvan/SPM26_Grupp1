@@ -56,5 +56,5 @@ void ACheckpoint::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	Controller->SetCheckpoint(this);
 	
 	bActivated = true;
-	UE_LOG(LogTemp, Warning, TEXT("Checkpoint Activated"));
+	//UE_LOG(LogTemp, Warning, TEXT("Checkpoint Activated"));
 }
