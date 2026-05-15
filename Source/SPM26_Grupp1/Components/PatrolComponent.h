@@ -25,10 +25,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="Patrol")
 	bool bIsLooping = true;
+	
+	UPROPERTY(EditAnywhere, Category="Patrol|Wait")
+	float WaitTime = 2.0f;
+	
+	UPROPERTY(EditAnywhere, Category="Patrol|Wait")
+	float RandomDeviation = 0.5f;
 
 private:
 	int32 CurrentIndex = 0;
-	int32 Direction = 1; // for ping-pong mode
-
 		
 };
