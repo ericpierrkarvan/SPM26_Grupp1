@@ -3,6 +3,7 @@
 
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "FMODAudioComponent.h"
 #include "MechanicCharacter.h"
 #include "Camera/CameraComponent.h"
@@ -485,6 +486,25 @@ void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
 	
 }
 
+void ARobotCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(IMC_Robot, 0);
+		}
+	}
+
+	SetOwner(GetController());
+
+	SetOwner(GetController());
+}
+
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 {
 	return Cast<URobotMovementComponent>(GetCharacterMovement());
@@ -868,7 +888,6 @@ void ARobotCharacter::CheckMovementState()
 	{
 		MovementState = NewState;
 		OnMovementStateChanged.Broadcast(MovementState);
-		UE_LOG(LogTemp, Warning, TEXT("Movement Mode changed to: %hhd"), MovementState);
 	}
 }
 
@@ -880,7 +899,7 @@ void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode
 	{
 		// If we were walking before, it's a jump, otherwise fell off a ledge
 		MovementState = PrevMovementMode == MOVE_Walking ? ERobotMovementState::Jumping : ERobotMovementState::Falling;
-		UE_LOG(LogTemp, Warning, TEXT("Movement Mode changed to: %hhd"), MovementState);
+		
 		OnMovementStateChanged.Broadcast(MovementState);
 		
 		// Jump -> Falling check
@@ -922,7 +941,7 @@ void ARobotCharacter::Landed(const FHitResult& HitResult)
 	Super::Landed(HitResult);
 	
 	float ImpactForce = FMath::Abs(GetVelocity().Z);
-	UE_LOG(LogTemp, Warning, TEXT("Landed() ImpactForce: %f"), ImpactForce);
+	
 	
 	OnMovementStateChanged.Broadcast(ERobotMovementState::Landing);
 }

@@ -459,7 +459,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (!ValidateOverLapBegin(OtherActor, OtherComp, Character)) return;
 	
 	if (OtherActor->FindComponentByClass<UMagneticComponent>()) ActorsInField.AddUnique(OtherActor);
-	UE_LOG(LogTemp, Warning, TEXT("OtherActor entered field: %s"), *OtherActor->GetName());	
+		
 	
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	IfRobotHandleDash(OtherActor);

@@ -106,9 +106,6 @@ protected:
 	UPROPERTY()
 	UUISubSystem* UISubSystem;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputMappingContext> IMC_Default;
-
 	//Shared inputs:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Move;

@@ -39,11 +39,7 @@ void UOverlapComponent::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (!IsValidActor(OtherActor)) return;
 	OverlappingActors.Add(OtherActor);
-	if (OverlappingActors.Num() == 1)
-	{
-		OnActivationChanged.Broadcast(OtherActor, true);
-	}
-		
+	OnActivationChanged.Broadcast(OtherActor, true);
 }
 
 void UOverlapComponent::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -54,10 +50,7 @@ void UOverlapComponent::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 
 	RemoveNullActors();
 	
-	if (OverlappingActors.Num() == 0)
-	{
-		OnActivationChanged.Broadcast(OtherActor, false);
-	}
+	OnActivationChanged.Broadcast(OtherActor, false);
 }
 
 bool UOverlapComponent::IsValidActor(AActor* Actor) const

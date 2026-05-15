@@ -5,6 +5,7 @@
 #include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 #include "CollisionDebugDrawingPublic.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "Kismet/GamePlayStatics.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
@@ -80,6 +81,25 @@ void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 bool AMechanicCharacter::CanSwitchPolarity() const
 {
 	return bCanEverChangeMagneticGunPolartiy && Super::CanSwitchPolarity();
+}
+
+void AMechanicCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ACharacter::PossessedBy(NewController);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(IMC_Mechanic, 0);
+		}
+	}
+
+	SetOwner(GetController());
 }
 
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
