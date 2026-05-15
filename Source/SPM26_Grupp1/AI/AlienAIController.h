@@ -20,8 +20,11 @@ public:
 	
 private:
 	
-	// Distance to player where AI stops chasing
-	UPROPERTY(EditAnywhere, Category="AI")
-	float AcceptanceRadius = 200;
+	UPROPERTY(EditAnywhere)
+	UBehaviorTree* AIBehavior;
+	
+	UPROPERTY(EditAnywhere)
+	UBlackboardComponent* BBC;
+	
 	
 };
