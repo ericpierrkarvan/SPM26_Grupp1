@@ -31,7 +31,6 @@ void UInteractableReceiverComponent::BeginPlay()
 		if (UInteractableComponent* Comp =
 			TargetActivator->FindComponentByClass<UInteractableComponent>())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%s: bind OK"), *GetClass()->GetName())
 			Comp->OnInteract.AddDynamic(this,
 				&UInteractableReceiverComponent::OnInteracted);
 		}

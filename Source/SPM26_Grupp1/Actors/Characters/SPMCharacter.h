@@ -106,9 +106,6 @@ protected:
 	UPROPERTY()
 	UUISubSystem* UISubSystem;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputMappingContext> IMC_Default;
-
 	//Shared inputs:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Move;
@@ -169,7 +166,8 @@ protected:
 
 	virtual void StartADS();
 	virtual void StopADS();
-	bool bIsADS = false;
+	
+	volatile bool bIsADS = false;
 
 	virtual float GetArmLengthForState(ECameraState State) const;
 	virtual FVector GetOffsetForState(ECameraState State) const;

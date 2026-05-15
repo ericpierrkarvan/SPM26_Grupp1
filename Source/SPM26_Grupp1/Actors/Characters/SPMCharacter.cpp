@@ -101,17 +101,6 @@ void ASPMCharacter::OnDeath()
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(IMC_Default, 0);
-		}
-	}
-
-	SetOwner(GetController());
 }
 
 void ASPMCharacter::Move(const FInputActionValue& Value)
@@ -655,19 +644,18 @@ void ASPMCharacter::OnWalkingOffLedge_Implementation(const FVector& PreviousFloo
                                                      const FVector& PreviousLocation, float TimeDelta)
 {
 	bCanCoyoteJump = true;
-	UE_LOG(LogTemp, Warning, TEXT("WalkingOffLedge is triggered"));
+	//UE_LOG(LogTemp, Warning, TEXT("WalkingOffLedge is triggered"));
 	GetWorldTimerManager().SetTimer(CoyoteTimerHandle, this, &ASPMCharacter::ResetCoyoteJump, CoyoteTimeWindow, false);
 }
 
 void ASPMCharacter::ResetCoyoteJump()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
+	//UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
 	bCanCoyoteJump = false;
 }
 
 void ASPMCharacter::OnJumpRelease()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Jump released"));
 	StopJumping();
 
 	if (!GetSPMMovementComponent()->IsGrounded() && GetSPMMovementComponent()->Velocity.Z > 0.f)

@@ -5,6 +5,7 @@
 #include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 #include "CollisionDebugDrawingPublic.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "Kismet/GamePlayStatics.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
@@ -61,13 +62,17 @@ void AMechanicCharacter::StopADS()
 void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
 	Super::ApplyProgress(Progress);
-	UE_LOG(LogTemp, Warning, TEXT("Apply progress(): start"))
+
 	if (Progress)
 	{
 		if (Progress->HasFlag(EProgressFlag::MagneticGunUnlocked) && !bHaveMagneticGun)
 		{
-			EquipWeapon();
-			UE_LOG(LogTemp, Warning, TEXT("Equipped Weapon: %s, GetMesh(): %s"), *EquippedWeapon->GetName(), *GetMesh()->GetName())
+			//since we are creating an actor on equip weapon, we need a timer so we do it outside
+			//of the apply progress delegate chain
+			GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+			{
+				EquipWeapon();
+			});
 		}
 		bCanEverChangeMagneticGunPolartiy = Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	}
@@ -76,6 +81,25 @@ void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 bool AMechanicCharacter::CanSwitchPolarity() const
 {
 	return bCanEverChangeMagneticGunPolartiy && Super::CanSwitchPolarity();
+}
+
+void AMechanicCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ACharacter::PossessedBy(NewController);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(IMC_Mechanic, 0);
+		}
+	}
+
+	SetOwner(GetController());
 }
 
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
@@ -120,6 +144,12 @@ void AMechanicCharacter::EquipWeapon()
 		//UE_LOG(LogTemp, Warning, TEXT("Equipped Weapon: %s, GetMesh(): %s"), *EquippedWeapon->GetName(), *GetMesh()->GetName())
 
 		OnEquipWeapon.Broadcast(bHaveMagneticGun, EquippedWeapon);
+
+		//force focus back if something took our focus
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			PC->SetInputMode(FInputModeGameOnly());
+		}
 	}
 }
 

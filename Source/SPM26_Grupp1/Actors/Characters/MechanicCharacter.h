@@ -49,6 +49,9 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	float DoubleJumpVelocityMultiplier = 1.4f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputMappingContext> IMC_Mechanic;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_DestroyFields;
@@ -77,6 +80,8 @@ protected:
 
 	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
 	virtual bool CanSwitchPolarity() const override;
+
+	virtual void PossessedBy(AController* NewController) override;
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();

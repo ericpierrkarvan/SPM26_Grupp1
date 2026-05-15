@@ -81,6 +81,9 @@ protected:
 	virtual void BeginPlay() override;
 	void ScreenDebugPolaritySwitchMessage() const;
 
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputMappingContext> IMC_Robot;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
 	
@@ -191,6 +194,7 @@ protected:
 	virtual void StartADS() override;
 	virtual bool CanSwitchPolarity() const override;
 	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
+	virtual void PossessedBy(AController* NewController) override;
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle DashHandle;
