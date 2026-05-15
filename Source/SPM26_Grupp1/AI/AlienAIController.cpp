@@ -17,8 +17,8 @@ void AAlienAIController::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("AAlienAIController::BeginPlay() BehaviorTree: %s"), *AIBehavior->GetName());
 		RunBehaviorTree(AIBehavior);
 		
-		APawn *PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		APawn *NPCPawn = GetPawn();
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		APawn* NPCPawn = GetPawn();
 		UE_LOG(LogTemp, Warning, TEXT("NPC velocity: %s"), *NPCPawn->GetVelocity().ToCompactString());
 		BBC = GetBlackboardComponent();
 		BBC->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
@@ -33,12 +33,12 @@ void AAlienAIController::Tick(float DeltaTime)
 	
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (!PlayerPawn) return;
-	//UE_LOG(LogTemp, Warning, TEXT("NPC velocity: %s"), *GetPawn()->GetVelocity().ToCompactString());
+	// UE_LOG(LogTemp, Warning, TEXT("NPC velocity: %s"), *GetPawn()->GetVelocity().ToCompactString());
 	// UE_LOG(LogTemp, Warning, TEXT("AlienNPCCharacter(): Character is: %s"), *PlayerPawn->GetName());
 	
 	if (LineOfSightTo(PlayerPawn))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LineOfSightTo() Player's ActorLocation: %s"), *PlayerPawn->GetActorLocation().ToCompactString());
+		//UE_LOG(LogTemp, Warning, TEXT("LineOfSightTo() Player's ActorLocation: %s"), *PlayerPawn->GetActorLocation().ToCompactString());
 		BBC->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
 		BBC->SetValueAsVector(TEXT("LastKnownPlayerLocation"), PlayerPawn->GetActorLocation());
 	}
@@ -48,5 +48,4 @@ void AAlienAIController::Tick(float DeltaTime)
 		BBC->ClearValue("PlayerLocation");
 	}
 	
-
 }
