@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "FMODAudioComponent.h"
 #include "MechanicCharacter.h"
+#include "NiagaraDebuggerCommon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -29,7 +30,7 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 	PlatformDetectionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
 	LaunchArcComponent = CreateDefaultSubobject<ULaunchArcComponent>(TEXT("LaunchArcComponent"));
-	
+
 	MagneticComponent = CreateDefaultSubobject<UMagneticComponent>(TEXT("MagneticComponent"));
 	MagneticComponent->SetPolarity(EPolarity::Negative);
 	MagneticComponent->SetCanSwitchPolarity(false);
@@ -39,7 +40,7 @@ ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
 
 	HeadLaunchEndAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("HeadLaunchEndAudioComp"));
 	HeadLaunchEndAudioComp->SetupAttachment(RootComponent);
-	
+
 	WalkingAudioComp = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("WalkingAudioComp"));
 	WalkingAudioComp->SetupAttachment(RootComponent);
 }
@@ -66,10 +67,10 @@ float ARobotCharacter::GetLaunchTimePercentage() const
 void ARobotCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	URobotMovementComponent* MoveComp = Cast<URobotMovementComponent>(this->GetMovementComponent());
 	OriginalAirControl = MoveComp->AirControl;
-	
+
 	if (PlatformDetectionSphere)
 	{
 		const float CapsuleHalfHeight = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
@@ -111,8 +112,8 @@ FVector ARobotCharacter::GetLaunchForce(UCharacterMovementComponent* CharMoveCom
 
 	//map how far through the interval we are between 0 and 1
 	const float PitchAlpha = FMath::Clamp(
-	(DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange),
-	0.f, 1.f);
+		(DegreesDown - PitchAtMaxRange) / (PitchAtMinRange - PitchAtMaxRange),
+		0.f, 1.f);
 
 	const float FinalAlpha = bInvertCameraPitch ? (1.f - PitchAlpha) : PitchAlpha;
 	//give us the launch pitch between our two min/max-angles
@@ -126,9 +127,9 @@ FVector ARobotCharacter::GetLaunchForce(UCharacterMovementComponent* CharMoveCom
 	//multiplier for camera angle to reduce height at steep angles
 	const float AngleScale = FMath::Lerp(1.f, SteepAngleForceScale, FinalAlpha);
 
-	
+
 	float RawBase = CharMoveComp ? LaunchMinForce : LaunchMinForceObjects;
-	
+
 	//we have a base force we always apply, scaled by angle
 	const float BaseForce = RawBase * AngleScale;
 	//extra force from charge, also scaled by angle
@@ -150,10 +151,11 @@ FVector ARobotCharacter::GetLaunchForce(UCharacterMovementComponent* CharMoveCom
 
 void ARobotCharacter::SmoothRotationWhenDashing(float DeltaSeconds)
 {
-		const FRotator CurrentRotation = GetActorRotation();
-		const FRotator TargetRotation = DashDirection.Rotation();
-		const FRotator SmoothedRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, DashRotationSpeed);
-		SetActorRotation(SmoothedRotation);
+	const FRotator CurrentRotation = GetActorRotation();
+	const FRotator TargetRotation = DashDirection.Rotation();
+	const FRotator SmoothedRotation =
+		FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, DashRotationSpeed);
+	SetActorRotation(SmoothedRotation);
 }
 
 void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
@@ -197,12 +199,12 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				//not a character, so let's attach it
 
 				UProgressGrantingComponent* ProgComp = HeldActor->FindComponentByClass<UProgressGrantingComponent>();
-				
+
 				if (ProgComp || bCanEverHeadLaunch)
 				{
 					HeldActor->AttachToComponent(
-					PlatformDetectionSphere,
-					FAttachmentTransformRules::KeepWorldTransform
+						PlatformDetectionSphere,
+						FAttachmentTransformRules::KeepWorldTransform
 					);
 				}
 				else
@@ -212,15 +214,9 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 					{
 						HeldPickupComponent->OnDropped();
 					}
-					
-					//Temporary fix, might create an "OnLaunch" event on the mechanic character if we want any extra functionality
-					if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(HeldActor))
-					{
-						MechanicCharacter->GetSPMMovementComponent()->DecrementJumpCount();
-					}
-					
-					LaunchObject(HeldActor, FVector(0,0, 200));
-					
+
+					LaunchObject(HeldActor, FVector(0, 0, 200));
+
 					//reset pickup:
 					HeldActor = nullptr;
 					HeldPickupComponent = nullptr;
@@ -228,12 +224,12 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 					PickupAlpha = 0.f;
 					return;
 				}
-				
+
 				//the overlap check might miss that we have an object on our head
 				//and since we know we have an object on our head, lets force the bool
 				if (bCanEverHeadLaunch && IsLaunchableObject(HeldActor))
 				{
-					bHavePayload = true; 
+					bHavePayload = true;
 				}
 			}
 
@@ -246,7 +242,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 			{
 				UISubSystem->OnContextActionActivated.Broadcast({ETutorialPrompt::Launch}, true);
 			}
-			
+
 			bIsPickingUp = false;
 		}
 	}
@@ -255,7 +251,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 void ARobotCharacter::OnDeath()
 {
 	CancelDash();
-	
+
 	if (!bHavePayload)
 	{
 		//if we are dying with ads but without a grabbed item
@@ -267,10 +263,10 @@ void ARobotCharacter::OnDeath()
 void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
+
 	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
 	CheckMovementState();
-	
+
 	if (DashTimer > 0)
 		DashTimer -= DeltaSeconds;
 
@@ -283,10 +279,10 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 			OnLaunchStateChanged.Broadcast(0.f, true, bCanEverPrimeLaunch); //notify hud
 		}
 	}
-	
+
 	if (IsDashing()) SmoothRotationWhenDashing(DeltaSeconds);
 
-	
+
 	if (bLaunchIsCharging)
 	{
 		LaunchChargeTimer += DeltaSeconds;
@@ -329,7 +325,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 				}
 			}
 		}
-		
+
 		LaunchArcComponent->UpdateArc(
 			PlatformDetectionSphere->GetComponentLocation(),
 			GetLaunchForce(HeadCharacterMoveComp),
@@ -341,11 +337,13 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	{
 		if (LaunchArcComponent) LaunchArcComponent->HideArc();
 	}
-	
+
 	if (CRTMID)
 	{
 		//fade in/out the crt effect depending on our payload state
-		const float TargetIntensity = (bIsInLaunchMode && bHavePayload || (bIsInLaunchMode && bForceADSPayloadMode)) ? 1.f : 0.f;
+		const float TargetIntensity = (bIsInLaunchMode && bHavePayload || (bIsInLaunchMode && bForceADSPayloadMode))
+			                              ? 1.f
+			                              : 0.f;
 		CurrentCRTIntensity = FMath::FInterpTo(CurrentCRTIntensity, TargetIntensity, DeltaSeconds, CRTBlendSpeed);
 		CRTMID->SetScalarParameterValue(FName("Intensity"), CurrentCRTIntensity);
 	}
@@ -393,7 +391,7 @@ bool ARobotCharacter::FindPickup()
 	// Change collision after bounds are stored
 	CurrentTargetPickup->OnPickedUp(this);
 	PlayGrabSound();
-	
+
 	HeldActor = PickupActor;
 	HeldPickupComponent = CurrentTargetPickup;
 	bIsPickingUp = true;
@@ -421,18 +419,17 @@ float ARobotCharacter::GetFOVForState(ECameraState State) const
 
 void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 {
-	
 	FVector2D Axis = Value.Get<FVector2D>();
 	Axis *= GamepadLookSensitivityScale;
-	
+
 	if (IsADSActive() && !bHavePayload)
 	{
 		if (bUseADSAimAcceleration)
 		{
 			ApplyAimAcceleration(Axis);
 		}
-		
-		Axis *= ADSLookSensitivityScale;	
+
+		Axis *= ADSLookSensitivityScale;
 	}
 	else if (bHavePayload)
 	{
@@ -440,11 +437,11 @@ void ARobotCharacter::LookGamepad(const FInputActionValue& Value)
 		{
 			ApplyAimAcceleration(Axis);
 		}
-		
+
 		Axis.X *= PayloadLookSensitivityScale;
-		Axis.Y *= (PayloadLookSensitivityScale/2.5); //make y move slower
+		Axis.Y *= (PayloadLookSensitivityScale / 2.5); //make y move slower
 	}
-	
+
 	AddControllerYawInput(Axis.X);
 	AddControllerPitchInput(Axis.Y);
 }
@@ -453,11 +450,11 @@ void ARobotCharacter::StartADS()
 {
 	bIsADS = true;
 	if (!bForceADSPayloadMode) SetCameraState(ECameraState::ADS);
-	
+
 	if (GetCharacterMovement())
 	{
 		//when aiming we want the pawn to follow the direction of the camera
-		GetCharacterMovement()->bOrientRotationToMovement   = false;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
 	OnADS.Broadcast(bIsADS);
@@ -479,11 +476,12 @@ void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
 
 		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
 		{
-			const ECanBeCharacterBase NewBase = bCanEverHeadLaunch ? ECanBeCharacterBase::ECB_Yes : ECanBeCharacterBase::ECB_No;
+			const ECanBeCharacterBase NewBase = bCanEverHeadLaunch
+				                                    ? ECanBeCharacterBase::ECB_Yes
+				                                    : ECanBeCharacterBase::ECB_No;
 			Capsule->CanCharacterStepUpOn = NewBase;
 		}
 	}
-	
 }
 
 void ARobotCharacter::PossessedBy(AController* NewController)
@@ -526,7 +524,7 @@ void ARobotCharacter::PerformDash()
 	FRotator ControlRotation = GetController()->GetControlRotation();
 	FRotator YawRotation{0, ControlRotation.Yaw, 0};
 
-	DashDirection = GetActorForwardVector();//FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	DashDirection = GetActorForwardVector(); //FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
 
 	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
@@ -547,7 +545,7 @@ void ARobotCharacter::PerformDash()
 void ARobotCharacter::CancelDash() const
 {
 	if (!bIsDashing) return;
-	
+
 	if (GetRobotMovementComponent()->GetRootMotionSource(TEXT("Dash")))
 	{
 		GetRobotMovementComponent()->RemoveRootMotionSource(TEXT("Dash"));
@@ -617,7 +615,7 @@ void ARobotCharacter::ExitLaunchMode()
 	{
 		UISubSystem->OnContextActionActivated.Broadcast({}, false);
 	}
-	
+
 	StopADS();
 	bHavePayload = false;
 	PayloadOverlapTime = 0.f;
@@ -630,13 +628,13 @@ void ARobotCharacter::ExitLaunchMode()
 void ARobotCharacter::Launch()
 {
 	if (!bIsInLaunchMode || !bLaunchIsCharging) return;
-	
+
 	//const FVector LaunchForce = GetLaunchForce();
-	
+
 	TArray<AActor*> OverlappingActors;
 	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
 	AActor* LocalHeldActor = HeldActor;
-	
+
 	//if we have a actor that we are holding, we launch that first and then check any overlapping actors
 	if (HeldActor && HeldPickupComponent.IsValid() && HeldPickupComponent->GetIsLaunchable())
 	{
@@ -658,7 +656,7 @@ void ARobotCharacter::Launch()
 		bIsPickingUp = false;
 		PickupAlpha = 0.f;
 	}
-	
+
 	//launch each overlapping actor
 	for (AActor* Actor : OverlappingActors)
 	{
@@ -675,9 +673,9 @@ void ARobotCharacter::Launch()
 			{
 				//detach from robot
 				Actor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			
+
 				Pickup->OnDropped();
-			
+
 				LaunchObject(Actor, GetLaunchForce());
 			}
 		}
@@ -694,6 +692,12 @@ void ARobotCharacter::LaunchPlayerCharacter(ACharacter* Char, const FVector& Lau
 	Char->GetCharacterMovement()->Velocity = LaunchForce;
 	Char->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 	Char->GetCharacterMovement()->AirControl = 0.f;
+
+	//Temporary fix, might create an "OnLaunch" event on the mechanic character if we want any extra functionality
+	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Char))
+	{
+		MechanicCharacter->GetSPMMovementComponent()->DecrementJumpCount();
+	}
 
 	//disable air control initially to enhance the "launch" effect
 	FTimerHandle AirControlTimer;
@@ -712,11 +716,11 @@ void ARobotCharacter::LaunchObject(AActor* Actor, const FVector& LaunchForce)
 
 	UPrimitiveComponent* Prim = Actor->FindComponentByClass<UPrimitiveComponent>();
 	if (!Prim) return;
-	
+
 	//reapply physics
 	Prim->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Prim->SetSimulatePhysics(true);
-	
+
 	Prim->AddImpulse(LaunchForce, NAME_None, true);
 }
 
@@ -744,7 +748,7 @@ void ARobotCharacter::OnLaunchReleased()
 {
 	if (!bIsInLaunchMode) return;
 	if (bHavePayload && !bLaunchIsCharging) return;
-	
+
 	Launch();
 	ExitLaunchMode();
 }
@@ -851,7 +855,8 @@ bool ARobotCharacter::CanBeAffectedByMagneticField() const
 	return MagneticComponent->CanBeAffected();
 }
 
-void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity)
+void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity,
+                                              float ImpactForce, FVector ProjectileVelocity)
 {
 	const EPolarity Polarity = MagneticComponent->GetPolarity();
 	bool bRepel = (ProjectilePolarity == Polarity); //same polaritys repell eachother
@@ -867,7 +872,7 @@ void ARobotCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPola
 
 	GetCharacterMovement()->AddImpulse(HorizontalDirection * ImpactForce, true);
 	GetCharacterMovement()->AddImpulse(FVector::UpVector * ImpactForce * UpMultiplier, true);
-	
+
 	ForceSwitchPolarity();
 }
 
@@ -881,8 +886,8 @@ void ARobotCharacter::CheckMovementState()
 	if (!GetCharacterMovement()->IsWalking()) return;
 
 	const ERobotMovementState NewState = GetVelocity().SizeSquared() > MinimumSpeedToCountAsWalking
-		? ERobotMovementState::Walking
-		: ERobotMovementState::Idle;
+		                                     ? ERobotMovementState::Walking
+		                                     : ERobotMovementState::Idle;
 
 	if (NewState != MovementState)
 	{
@@ -894,30 +899,29 @@ void ARobotCharacter::CheckMovementState()
 void ARobotCharacter::OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode)
 {
 	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
-	
+
 	if (GetCharacterMovement()->IsFalling())
 	{
 		// If we were walking before, it's a jump, otherwise fell off a ledge
 		MovementState = PrevMovementMode == MOVE_Walking ? ERobotMovementState::Jumping : ERobotMovementState::Falling;
-		
+
 		OnMovementStateChanged.Broadcast(MovementState);
-		
+
 		// Jump -> Falling check
 		if (MovementState == ERobotMovementState::Jumping)
 		{
 			GetWorldTimerManager().SetTimer(FallingTimerHandle,
-				this,
-				&ARobotCharacter::CheckFallingTransition,
-				0.1f, // Check every 100ms
-				true); // looping
+			                                this,
+			                                &ARobotCharacter::CheckFallingTransition,
+			                                0.1f, // Check every 100ms
+			                                true); // looping
 		}
-	}    
+	}
 	else if (GetCharacterMovement()->IsWalking() && PrevMovementMode == MOVE_Falling)
 	{
 		MovementState = ERobotMovementState::Landing;
 		OnMovementStateChanged.Broadcast(MovementState);
 	}
-	
 }
 
 // Jumping/falling transition, broadcasts Falling when Z-velocity < 0
@@ -939,10 +943,10 @@ void ARobotCharacter::CheckFallingTransition()
 void ARobotCharacter::Landed(const FHitResult& HitResult)
 {
 	Super::Landed(HitResult);
-	
+
 	float ImpactForce = FMath::Abs(GetVelocity().Z);
-	
-	
+
+
 	OnMovementStateChanged.Broadcast(ERobotMovementState::Landing);
 }
 
@@ -973,19 +977,19 @@ EPolarity ARobotCharacter::GetPolarity() const
 void ARobotCharacter::SwitchPolarity_Implementation()
 {
 	if (!CanSwitchPolarity()) return;
-	
+
 	SwitchPolarityTimer = PolaritySwitchCooldown;
 	MagneticComponent->SwitchPolarity();
 	OnPolaritySwitched.Broadcast(MagneticComponent->GetPolarity(), PolaritySwitchCooldown);
 	OnSwitchPolarity(MagneticComponent->GetPolarity());
-	
+
 	ScreenDebugPolaritySwitchMessage();
 }
 
 void ARobotCharacter::ForceSwitchPolarity()
 {
 	if (!bCanEverSwitchPolarity) return;
-	MagneticComponent->SwitchPolarity();	
+	MagneticComponent->SwitchPolarity();
 	SwitchPolarityTimer = PolaritySwitchCooldown;
 	OnPolaritySwitched.Broadcast(MagneticComponent->GetPolarity(), PolaritySwitchCooldown);
 }
