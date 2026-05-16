@@ -85,13 +85,9 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 		if (ASPMCharacter* SPMChar = Cast<ASPMCharacter>(Pawn))
 		{
 			SPMChar->OnDeath();
+			SPMChar->OnRespawn.Broadcast(true);
 		}
 
 		Pawn->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
-
-		if (ASPMCharacter* SPMChar = Cast<ASPMCharacter>(Pawn))
-		{
-			SPMChar->OnRespawn.Broadcast(true);
-		}
 	}
 }
