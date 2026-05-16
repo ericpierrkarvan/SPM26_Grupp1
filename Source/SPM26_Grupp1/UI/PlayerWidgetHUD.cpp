@@ -24,6 +24,11 @@ void UPlayerWidgetHUD::OnContextActionActivated(const TArray<ETutorialPrompt>& P
 	}
 }
 
+void UPlayerWidgetHUD::OnADSScanChanged(const TArray<AActor*>& Actors)
+{
+	OnADSScanUpdated(Actors);
+}
+
 void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 {
 	//only subscribe once
@@ -44,6 +49,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		RobotCharacter->OnADS.RemoveDynamic(this, &UPlayerWidgetHUD::OnADS);
 		RobotCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		RobotCharacter->OnPictureTaken.RemoveDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
+		RobotCharacter->OnADSScanChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnADSScanChanged);
 	}
 	if (MechanicCharacter)
 	{
@@ -70,6 +76,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		RobotCharacter->OnADS.AddDynamic(this, &UPlayerWidgetHUD::OnADS);
 		RobotCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		RobotCharacter->OnPictureTaken.AddDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
+		RobotCharacter->OnADSScanChanged.AddDynamic(this, &UPlayerWidgetHUD::OnADSScanChanged);
 
 	}
 	else if (MechanicCharacter)
@@ -345,4 +352,38 @@ void UPlayerWidgetHUD::OnTutorialPromptActivated(const TArray<ETutorialPrompt>& 
 	}
 	
 	OnTutorialPromptActivated_BP(TutPrompts, bActivated);
+}
+
+float UPlayerWidgetHUD::CalculateTargetScanSize(AActor* Actor, float MinSizePercent, float MaxSizePercent, float MinDistance, float MaxDistance) const
+{
+	if (!Actor) return 0.f;
+	
+	FVector2D ViewportSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	const float MinSize = ViewportSize.Y * MinSizePercent;
+	const float MaxSize = ViewportSize.Y * MaxSizePercent;
+
+	//we want the target square to cover the object
+	//lets take the width (x) and height (z) and use whichever is the greatest of the two
+	//to determine the size of the box
+	FVector Origin, BoxExtent;
+	Actor->GetActorBounds(false, Origin, BoxExtent);
+	const float BoundsSize = FMath::Max(BoxExtent.X, BoxExtent.Z);
+
+	
+	ASPMCharacter* MyChar = GetCurrentCharacter();
+	const float Distance = MyChar ? FVector::Dist(MyChar->GetActorLocation(), Actor->GetActorLocation()) : MaxDistance;
+
+	//interpolate the size between the min and max distance
+	const float DistanceSize = FMath::GetMappedRangeValueClamped(
+		FVector2D(MinDistance, MaxDistance),
+		FVector2D(BoundsSize, MinSize),
+		Distance
+	);
+
+	return FMath::Clamp(DistanceSize, MinSize, MaxSize);
 }

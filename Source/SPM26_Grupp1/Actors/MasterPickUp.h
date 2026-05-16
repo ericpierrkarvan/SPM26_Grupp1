@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SPM26_Grupp1/Interfaces/Scannable.h"
 #include "MasterPickUp.generated.h"
 
 class UPickupComponent;
 
 UCLASS()
-class SPM26_GRUPP1_API AMasterPickUp : public AActor
+class SPM26_GRUPP1_API AMasterPickUp : public AActor, public IScannable
 {
 	GENERATED_BODY()
 	

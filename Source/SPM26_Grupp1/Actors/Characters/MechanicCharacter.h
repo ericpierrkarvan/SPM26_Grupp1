@@ -6,6 +6,7 @@
 #include "SPM26_Grupp1/Weapon/WeaponBase.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
+#include "SPM26_Grupp1/Interfaces/Scannable.h"
 #include "MechanicCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -24,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceCanSpawnMagneticField, boo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipWeapon, bool, bIsEquipped, AWeaponBase*, Weapon);
 
 UCLASS()
-class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter
+class SPM26_GRUPP1_API AMechanicCharacter : public ASPMCharacter, public IScannable
 {
 	GENERATED_BODY()
 
