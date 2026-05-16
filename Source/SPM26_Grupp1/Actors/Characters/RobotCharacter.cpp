@@ -9,6 +9,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "Engine/OverlapResult.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/DeathField.h"
@@ -17,6 +18,7 @@
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
+#include "SPM26_Grupp1/Interfaces/Scannable.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 ARobotCharacter::ARobotCharacter(const FObjectInitializer& ObjectInitializer)
@@ -270,6 +272,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
 	CheckMovementState();
+	UpdateADSScan(DeltaSeconds);
 	
 	if (DashTimer > 0)
 		DashTimer -= DeltaSeconds;
@@ -844,6 +847,131 @@ bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
 	}
 
 	return false;
+}
+
+void ARobotCharacter::UpdateADSScan(float DeltaSeconds)
+{
+	if (!IsADSActive()) return;
+
+	APlayerController* PC = GetViewingPlayerController();
+	if (!PC) return;
+
+	ULocalPlayer* LP = Cast<ULocalPlayer>(PC->Player);
+	if (!LP || !LP->ViewportClient) return;
+
+	
+	FSceneViewProjectionData ProjectionData;
+	LP->GetProjectionData(LP->ViewportClient->Viewport, ProjectionData);
+	FConvexVolume Frustum;
+	//create the frustum "pyramid"
+	GetViewFrustumBounds(Frustum, ProjectionData.ComputeViewProjectionMatrix(), true);
+
+	TArray<AActor*> VisibleActors;
+
+	float SphereRadius = ScanSphereRadius;
+	TArray<FOverlapResult> Overlaps;
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(SphereRadius);
+	GetWorld()->OverlapMultiByChannel(Overlaps, GetActorLocation(), FQuat::Identity, ECC_INTERACT, Sphere);
+
+	for (FOverlapResult& Overlap : Overlaps)
+	{
+		//check if our target have the Scannable interface
+		AActor* Actor = Overlap.GetActor();
+		if (!Actor) continue;
+		if (!Actor->Implements<UScannable>()) continue;
+		if (!IScannable::Execute_IsScannable(Actor)) continue; //check if we're allowed to scan the target
+
+		FVector Origin, BoxExtent;
+		Actor->GetActorBounds(true, Origin, BoxExtent);
+#if WITH_EDITOR
+		if (bDrawScanDebug)
+		{
+			DrawDebugBox(
+				GetWorld(),
+				Origin,
+				BoxExtent,
+				FQuat::Identity,
+				FColor::Orange,
+				false,
+				0.f
+			);
+		}
+#endif
+		
+		float ExtraMargin = 1.1f;
+		float BoundsRadius = BoxExtent.Size() * ExtraMargin;
+		
+		//use a slightly larger sphere interpretation of the target and see if its
+		//inside the frustum
+		if (Frustum.IntersectSphere(Origin, BoundsRadius))
+		{
+			//lets make sure nothing is blocking the object we're trying to scan
+			//the object might be behind a wall or such
+			FHitResult HitResult;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this);
+			Params.AddIgnoredActor(Actor);
+
+			FVector CameraLocation;
+			FRotator CameraRotation;
+			PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+			
+			//lets see if we can see the edges of the actor we're trying to see
+			//up, down, right, left
+			TArray<FVector> PointsOnActorBoundingBox = {
+				Origin + FVector(0, 0, BoxExtent.Z * 0.9f),
+				Origin + FVector(0, 0, -BoxExtent.Z * 0.9f),
+				Origin + FVector(BoxExtent.X * 0.9f, 0, 0),
+				Origin + FVector(-BoxExtent.X * 0.9f, 0, 0)
+			};
+
+			bool bVisible = false;
+			for (const FVector& Point : PointsOnActorBoundingBox)
+			{
+				FHitResult VisibilityCheck;
+				bool bBlocked = GetWorld()->LineTraceSingleByChannel(
+					VisibilityCheck,
+					CameraLocation,
+					Point,
+					ECC_Visibility,
+					Params
+				);
+
+				//if nothing is blocking or we see the thing we are trying to see
+				if (!bBlocked || VisibilityCheck.GetActor() == Actor)
+				{
+					bVisible = true;
+					break;
+				}
+			}
+
+			if (bVisible)
+			{
+				VisibleActors.Add(Actor);
+			}
+		}
+	}
+
+#if WITH_EDITOR
+	if (bDrawScanDebug)
+	{
+		DrawDebugSphere(GetWorld(), GetActorLocation(), SphereRadius, 16, FColor::Cyan, false, 0.f);
+
+		//draw objects that we can scan
+		for (FOverlapResult& Overlap : Overlaps)
+		{
+			AActor* Actor = Overlap.GetActor();
+			if (!Actor) continue;
+			if (!Actor->Implements<UScannable>()) continue;
+			if (!IScannable::Execute_IsScannable(Actor)) continue; //check if we're allowed to scan the target
+			
+			FColor Color = VisibleActors.Contains(Actor) ? FColor::Green : FColor::Yellow;
+			DrawDebugSphere(GetWorld(), Actor->GetActorLocation(), 30.f, 8, Color, false, 0.f);
+		}
+	}
+#endif
+	
+	OnADSScanChanged.Broadcast(VisibleActors);
 }
 
 bool ARobotCharacter::CanBeAffectedByMagneticField() const

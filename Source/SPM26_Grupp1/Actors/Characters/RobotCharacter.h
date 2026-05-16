@@ -26,6 +26,7 @@ enum class ERobotMovementState : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMovementStateChanged, ERobotMovementState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible, bool, bCanEverPrimeLaunch);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADSScanChanged, const TArray<AActor*>&, Actors);
 
 
 class URobotMovementComponent;
@@ -74,6 +75,8 @@ public:
 	FOnLaunchStateChanged OnLaunchStateChanged;
 	UPROPERTY(BlueprintAssignable, Category="Audio")
 	FOnMovementStateChanged OnMovementStateChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnADSScanChanged OnADSScanChanged;
 
 	virtual void OnDeath();
 protected:
@@ -195,6 +198,11 @@ protected:
 	virtual bool CanSwitchPolarity() const override;
 	virtual void ApplyProgress(UProgressSubsystem* Progress) override;
 	virtual void PossessedBy(AController* NewController) override;
+
+	UPROPERTY(EditAnywhere, Category="Scan|Debug")
+	bool bDrawScanDebug = false;
+	UPROPERTY(EditAnywhere, Category="Scan")
+	float ScanSphereRadius = 2000.f;
 private:
 	URobotMovementComponent* GetRobotMovementComponent() const;
 	FTimerHandle DashHandle;
@@ -278,4 +286,5 @@ private:
 	//progress:
 	bool bCanEverSwitchPolarity = false;
 	bool bCanEverHeadLaunch = false;
+	void UpdateADSScan(float DeltaSeconds);
 };

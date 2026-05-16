@@ -29,12 +29,16 @@ class SPM26_GRUPP1_API UPlayerWidgetHUD : public UUserWidget
 public:
 	UFUNCTION()
 	void OnContextActionActivated(const TArray<ETutorialPrompt>& Prompts, bool bActivated);
+	UFUNCTION()
+	void OnADSScanChanged(const TArray<AActor*>& Actors);
 	void SetOwningCharacter(AActor* NewCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInteractPressed();
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInteractReleased();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnADSScanUpdated(const TArray<AActor*>& Actors);
 	UPROPERTY(BlueprintReadOnly)
 	ARobotCharacter* RobotCharacter;
 	UPROPERTY(BlueprintReadOnly)
@@ -98,6 +102,9 @@ protected:
 
 	UFUNCTION()
 	void OnTutorialPromptActivated(const TArray<ETutorialPrompt>& TutPrompts, ETextPlayerFilter PlayerFilter, bool bActivated, AActor* TriggeringActor);
+
+	UFUNCTION(BlueprintCallable, Category="TargetScan")
+	float CalculateTargetScanSize(AActor* Actor, float MinSizePercent = 0.1f, float MaxSizePercent = 0.15f, float MinDistance = 400.f, float MaxDistance = 1500.f) const;
 
 	TWeakObjectPtr<AWeaponBase> EquippedMagneticWeapon;
 
