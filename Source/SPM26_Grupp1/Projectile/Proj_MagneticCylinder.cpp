@@ -272,14 +272,15 @@ void AProj_MagneticCylinder::AlignNegativeMagneticFieldVFX(const FHitResult& Imp
 	FVector VFXBoxExtent;
 	GetActorBounds(false, VFXOrigin, VFXBoxExtent);
 
-	float OffsetDistance = FMath::Abs(FVector::DotProduct(VFXBoxExtent, Normal));
-	float HalfHeight = VFXBoxExtent.Z;
-	FVector AlignedLocation = SpawnLocation + Normal * OffsetDistance + FVector(0.f, 0.f, HalfHeight);
+	const float OffsetDistance = FMath::Abs(FVector::DotProduct(VFXBoxExtent, Normal));
+	const float HalfHeight = VFXBoxExtent.Z;
+	constexpr float SpawnPointOffset = 50.f; // offset on Z spawns vfx a bit inside the field
+	const FVector AlignedLocation = (SpawnLocation + Normal * OffsetDistance + FVector(0.f, 0.f, HalfHeight - SpawnPointOffset));
 	
 	// Position the VFX at the aligned location
 	VFXComp->SetWorldLocation(AlignedLocation);
 
-	FVector Up = FVector::UpVector;
+	const FVector Up = FVector::UpVector;
 	FRotator AlignedRotation;
 
 	// DotProduct(Normal, Up) measures how parallel impact normal is to world Up (0,0,1).
