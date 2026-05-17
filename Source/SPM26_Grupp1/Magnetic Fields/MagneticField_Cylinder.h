@@ -64,9 +64,9 @@ protected:
 	void ApplyMagneticForce(float DeltaTime);
 	void CheckDistanceToTargetAndStopMovement(AActor* Actor) const;
 	bool ShouldRepel(const AActor* Actor) const;
-	void Repel(const FVector& MagnetTarget, AActor* Actor);
-	void RepelCharacter(const FVector& MagnetTarget, ACharacter* Character);
-	void RepelActor(const FVector& MagnetTarget, const AActor* Actor);
+	void Repel(AActor* Actor);
+	void RepelCharacter(ACharacter* Character);
+	void RepelActor(const AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
 	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
 	void CalculateDirectionAndPull(float DeltaTime, AActor* Actor);

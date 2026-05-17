@@ -139,6 +139,8 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 	} 
 	else MagnetCenter = CapsuleLocation + CapsuleUp * MagnetCenterPointZOffSet * -PolarityValue;
 	
+	UE_LOG(LogTemp, Warning, TEXT("MagnetCenterPoint location: %s"), *MagnetCenter.ToCompactString());
+	
 	return MagnetCenter;
 }
 
@@ -167,7 +169,7 @@ void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 {
 	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	//Repel(MagnetCenterPoint, Actor);
-	Repel(MagnetCenterPoint, Actor);
+	Repel(Actor);
 
 }
 
@@ -259,23 +261,23 @@ bool AMagneticField_Cylinder::ShouldRepel(const AActor* Actor) const
 	return true;
 }
 
-void AMagneticField_Cylinder::Repel(const FVector& MagnetTarget, AActor* Actor)
+void AMagneticField_Cylinder::Repel(AActor* Actor)
 {
 	if (!ShouldRepel(Actor)) return;
 	
 	ACharacter* Character = Cast<ACharacter>(Actor);
-	if (Character) RepelCharacter(MagnetTarget, Character);
-	else RepelActor(MagnetTarget, Actor);
+	if (Character) RepelCharacter(Character);
+	else RepelActor(Actor);
 }
 
 // MagnetTarget is here the origin point of repulsion.
 // Repel a Character using LaunchCharacter.
-void AMagneticField_Cylinder::RepelCharacter(const FVector& MagnetTarget, ACharacter* Character)
+void AMagneticField_Cylinder::RepelCharacter(ACharacter* Character)
 {
 	if (!Character) return;
 	
 	FVector CurrentPlayerLocation = Character->GetActorLocation();
-	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
+	const FVector RepelDirection = (CurrentPlayerLocation - MagnetCenterPoint).GetSafeNormal();
 	CalculateRepelStrength(CurrentPlayerLocation);
 	FVector LaunchVelocity = GenerateSimpleFVectorForRepel(Character);
 	
@@ -283,7 +285,7 @@ void AMagneticField_Cylinder::RepelCharacter(const FVector& MagnetTarget, AChara
 }
 
 // Repel an Actor using AddImpulse, if it has a MagneticComponent.
-void AMagneticField_Cylinder::RepelActor(const FVector& MagnetTarget, const AActor* Actor)
+void AMagneticField_Cylinder::RepelActor(const AActor* Actor)
 {
 	if (!Actor) return;
 	
@@ -291,7 +293,7 @@ void AMagneticField_Cylinder::RepelActor(const FVector& MagnetTarget, const AAct
 	if (!MagComp) return;
 	
 	const FVector ActorLocation = Actor->GetActorLocation();
-	const FVector RepelDirection = (ActorLocation - MagnetTarget).GetSafeNormal();
+	const FVector RepelDirection = (ActorLocation - MagnetCenterPoint).GetSafeNormal();
 	CalculateRepelStrength(ActorLocation);
 	const float Strength = RepelStrength * RepelStrengthMultiplier;
 	
