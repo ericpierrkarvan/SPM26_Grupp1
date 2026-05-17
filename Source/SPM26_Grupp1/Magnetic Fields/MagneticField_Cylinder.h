@@ -35,6 +35,9 @@ public:
 	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
 	int32 GetCurrentAmountOfSummarizedField() const;
+	bool WasSpawnedByProjectile() const;
+	void SetSpawnedByProjectile(bool bNewWasSpawnedByProjectile);
+	
 	void ChooseMagneticSoundBasedOnPolarity(AActor* Actor);
 
 	void InitializeFieldDuration(const float InDuration);
@@ -54,25 +57,25 @@ protected:
 	void OnMagneticForceEndBP(AActor* Actor);
 
 	// magnet functions
-	FVector LateralCorrection(const FVector& MagnetCenterPoint, AActor* Actor) const; 
+	FVector LateralCorrection(AActor* Actor) const; 
 	FVector CalculateMagnetCenterPoint(AActor* Actor);
 	void ApplyMagneticPull(float DeltaTime, AActor* Actor);
 	void ApplyMagneticRepulsion(AActor* Actor);
 	void ApplyMagneticForce(float DeltaTime);
-	void CheckDistanceToTargetAndStopMovement(const FVector& MagnetCenterPoint, AActor* Actor) const;
+	void CheckDistanceToTargetAndStopMovement(AActor* Actor) const;
 	bool ShouldRepel(const AActor* Actor) const;
 	void Repel(const FVector& MagnetTarget, AActor* Actor);
 	void RepelCharacter(const FVector& MagnetTarget, ACharacter* Character);
 	void RepelActor(const FVector& MagnetTarget, const AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
 	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
-	void CalculateDirectionAndPull(const FVector& MagnetCenterPoint, float DeltaTime, AActor* Actor);
+	void CalculateDirectionAndPull(float DeltaTime, AActor* Actor);
 	void PullCharacter(const ACharacter* Character, const FVector& LatCorrection, const FVector& PullDirection,
 	                   float DeltaTime);
 	void PullActor(const AActor* Actor, const FVector& PullDirection, const FVector& LatCorrection, float DeltaTime) const;
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
-	void CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetCenterPoint);
-	void CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetCenterPoint);
+	void CalculateRepelStrength(const FVector& CurrentPlayerLocation);
+	void CalculatePullStrength(const FVector& CurrentPlayerLocation);
 	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
 
@@ -110,10 +113,14 @@ protected:
 	UNiagaraComponent* MagnetVfxComponent;
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AAA_Magnet")
+	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
+	bool bWasSpawnedByProjectile = false;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AAA_Magnet|Polarity")
 	EPolarity Polarity;
-	UPROPERTY()
-	int32 PolarityValue;
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Polarity")
+	int32 PolarityValue = 1;
 	
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
 	//TArray<TWeakObjectPtr<AActor>> ActorsInField;
@@ -137,6 +144,8 @@ private:
 	float MaxSpeed = 2000.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|General")
 	float SnapOffSet = 100.f; // avoid player inside the wall
+	// Center of the magnet's force (from where it pulls/repels)
+	FVector MagnetCenterPoint;
 	
 	// Magnet settings - pull
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Pull")
