@@ -160,7 +160,8 @@ void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* A
 	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
 	//CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
 	//CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
-	CalculateDirectionAndPull(DeltaTime, Actor);
+	CalculateDirection(Actor);
+	Pull(Actor, DeltaTime);
 	CheckDistanceToTargetAndStopMovement(Actor);
 
 }
@@ -198,16 +199,24 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(AActor* Actor
 	}
 }
 
-// Calculates direction of pull and pulls (Normal from character to MagnetTarget)
-void AMagneticField_Cylinder::CalculateDirectionAndPull(const float DeltaTime, AActor* Actor)
+// Calculates direction of repels and pulls (Normal from character to MagnetTarget)
+FVector AMagneticField_Cylinder::CalculateDirection(const AActor* Actor)
 {
-	if (!Actor) return;
+	if (!Actor) return FVector::ZeroVector;
 	
 	const FVector CurrentActorLocation = Actor->GetActorLocation();
 	CalculatePullStrength(CurrentActorLocation);
 	const FVector PullDirection = (MagnetCenterPoint - CurrentActorLocation).GetSafeNormal();
-	const FVector LatCorrection = LateralCorrection(Actor);
 	
+	return PullDirection;
+	
+}
+
+void AMagneticField_Cylinder::Pull(AActor* Actor, const float DeltaTime)
+{
+	if (!Actor) return;
+	const FVector PullDirection = CalculateDirection(Actor);
+	const FVector LatCorrection = LateralCorrection(Actor);
 	// Pull Character
 	const ACharacter* Character = Cast<ACharacter>(Actor);
 	if (Character)
@@ -218,10 +227,9 @@ void AMagneticField_Cylinder::CalculateDirectionAndPull(const float DeltaTime, A
 	
 	// If not Character
 	PullActor(Actor, PullDirection, LatCorrection, DeltaTime);
-	
 }
 
-void AMagneticField_Cylinder::PullCharacter(const ACharacter* Character, const FVector& LatCorrection, const FVector& PullDirection, const float DeltaTime)
+void AMagneticField_Cylinder::PullCharacter(const ACharacter* Character, const FVector& LatCorrection, const FVector& PullDirection, const float DeltaTime) const
 {
 	UCharacterMovementComponent* MovComp = Character->GetCharacterMovement();
 	if (!MovComp) return;
