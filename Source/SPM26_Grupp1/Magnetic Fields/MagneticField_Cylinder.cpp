@@ -29,6 +29,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	// Collision collider
 	CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 	CapsuleHeight = CapsuleHalfHeight * 2;
+	
 }
 
 // Called when the game starts or when spawned
@@ -37,11 +38,6 @@ void AMagneticField_Cylinder::BeginPlay()
 	
 	// Blueprint's own separate bindings calls here somehow?
 	Super::BeginPlay(); 
-	
-	UE_LOG(LogTemp, Warning, TEXT("MagneticField BeginPlay - overlap delegates already bound: %s"),
-	Capsule->OnComponentBeginOverlap.IsAlreadyBound(this, &AMagneticField_Cylinder::OnOverlapBegin) 
-	? TEXT("YES - would have caused ensure") 
-	: TEXT("no"));
 	
 	Capsule->OnComponentBeginOverlap.RemoveAll(this);
 	Capsule->OnComponentEndOverlap.RemoveAll(this);
@@ -77,40 +73,6 @@ void AMagneticField_Cylinder::Disable()
 		bHasCrippled = false;
 	}
 
-}
-
-// Set polarity of the field. Changes VFX based on polarity.
-void AMagneticField_Cylinder::SetPolarity(const int32 NewPolarity)
-{
-	PolarityValue = NewPolarity;
-	PolarityValue == 1 ? Polarity = EPolarity::Positive : Polarity = EPolarity::Negative;
-	
-	UNiagaraSystem* SelectedVFX = (Polarity == EPolarity::Positive) ? PositivePolarityVFX : NegativePolarityVFX;
-	
-	if (MagnetVfxComponent && SelectedVFX)
-	{
-		MagnetVfxComponent->SetAsset(SelectedVFX);
-		MagnetVfxComponent->ResetSystem(); // reset so new asset plays from beginning
-	}
-}
-
-UNiagaraComponent* AMagneticField_Cylinder::GetVFXComponent() const
-{
-	return MagnetVfxComponent;
-}
-
-UCapsuleComponent* AMagneticField_Cylinder::GetCapsuleComponent() const
-{
-	return Capsule;
-}
-
-EPolarity AMagneticField_Cylinder::GetPolarity() const
-{
-	return Polarity;
-}
-int32 AMagneticField_Cylinder::GetPolarityValue() const
-{
-	return Polarity == EPolarity::Positive ? 1 : -1;
 }
 
 // Currently Magnetfield lifetime's end destroys magnet. This method makes sure no double instance of cripplemovement
@@ -170,14 +132,16 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 	? CapsuleHalfHeight - (ActorHalfHeight) - AttractExtraOffset
 	: CapsuleHalfHeight + ActorHalfHeight + RepelExtraOffset;
 	
-	FVector MagnetCenterPoint;
+	FVector MagnetCenter;
 	if (Polarity == EPolarity::Positive)
 	{
-		MagnetCenterPoint = CapsuleLocation + CapsuleUp * MagnetCenterPointZOffSet * PolarityValue;
+		MagnetCenter = CapsuleLocation + CapsuleUp * MagnetCenterPointZOffSet * PolarityValue;
 	} 
-	else MagnetCenterPoint = CapsuleLocation + CapsuleUp * MagnetCenterPointZOffSet * -PolarityValue;
+	else MagnetCenter = CapsuleLocation + CapsuleUp * MagnetCenterPointZOffSet * -PolarityValue;
 	
-	return MagnetCenterPoint;
+	UE_LOG(LogTemp, Warning, TEXT("MagnetCenterPoint location: %s"), *MagnetCenter.ToCompactString());
+	
+	return MagnetCenter;
 }
 
 void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
@@ -193,21 +157,24 @@ void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
 
 void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* Actor)
 {
-	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
-	CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
-	CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
+	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
+	//CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
+	//CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
+	CalculateDirectionAndPull(DeltaTime, Actor);
+	CheckDistanceToTargetAndStopMovement(Actor);
 
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 {
-	const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
-	Repel(MagnetCenterPoint, Actor);
+	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
+	//Repel(MagnetCenterPoint, Actor);
+	Repel(Actor);
 
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.
-void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const FVector& MagnetCenterPoint, AActor* Actor) const
+void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(AActor* Actor) const
 {
 	const FVector CurrentActorLocation = Actor->GetActorLocation();
 	const float DistanceToTarget = FVector::Dist(CurrentActorLocation, MagnetCenterPoint);
@@ -232,14 +199,14 @@ void AMagneticField_Cylinder::CheckDistanceToTargetAndStopMovement(const FVector
 }
 
 // Calculates direction of pull and pulls (Normal from character to MagnetTarget)
-void AMagneticField_Cylinder::CalculateDirectionAndPull(const FVector& MagnetCenterPoint, const float DeltaTime, AActor* Actor)
+void AMagneticField_Cylinder::CalculateDirectionAndPull(const float DeltaTime, AActor* Actor)
 {
 	if (!Actor) return;
 	
 	const FVector CurrentActorLocation = Actor->GetActorLocation();
-	CalculatePullStrength(CurrentActorLocation, MagnetCenterPoint);
+	CalculatePullStrength(CurrentActorLocation);
 	const FVector PullDirection = (MagnetCenterPoint - CurrentActorLocation).GetSafeNormal();
-	const FVector LatCorrection = LateralCorrection(MagnetCenterPoint, Actor);
+	const FVector LatCorrection = LateralCorrection(Actor);
 	
 	// Pull Character
 	const ACharacter* Character = Cast<ACharacter>(Actor);
@@ -294,31 +261,31 @@ bool AMagneticField_Cylinder::ShouldRepel(const AActor* Actor) const
 	return true;
 }
 
-void AMagneticField_Cylinder::Repel(const FVector& MagnetTarget, AActor* Actor)
+void AMagneticField_Cylinder::Repel(AActor* Actor)
 {
 	if (!ShouldRepel(Actor)) return;
 	
 	ACharacter* Character = Cast<ACharacter>(Actor);
-	if (Character) RepelCharacter(MagnetTarget, Character);
-	else RepelActor(MagnetTarget, Actor);
+	if (Character) RepelCharacter(Character);
+	else RepelActor(Actor);
 }
 
 // MagnetTarget is here the origin point of repulsion.
 // Repel a Character using LaunchCharacter.
-void AMagneticField_Cylinder::RepelCharacter(const FVector& MagnetTarget, ACharacter* Character)
+void AMagneticField_Cylinder::RepelCharacter(ACharacter* Character)
 {
 	if (!Character) return;
 	
 	FVector CurrentPlayerLocation = Character->GetActorLocation();
-	const FVector RepelDirection = (CurrentPlayerLocation - MagnetTarget).GetSafeNormal();
-	CalculateRepelStrength(CurrentPlayerLocation, MagnetTarget);
+	const FVector RepelDirection = (CurrentPlayerLocation - MagnetCenterPoint).GetSafeNormal();
+	CalculateRepelStrength(CurrentPlayerLocation);
 	FVector LaunchVelocity = GenerateSimpleFVectorForRepel(Character);
 	
 	Character->LaunchCharacter(LaunchVelocity * RepelDirection, true, true);
 }
 
 // Repel an Actor using AddImpulse, if it has a MagneticComponent.
-void AMagneticField_Cylinder::RepelActor(const FVector& MagnetTarget, const AActor* Actor)
+void AMagneticField_Cylinder::RepelActor(const AActor* Actor)
 {
 	if (!Actor) return;
 	
@@ -326,8 +293,8 @@ void AMagneticField_Cylinder::RepelActor(const FVector& MagnetTarget, const AAct
 	if (!MagComp) return;
 	
 	const FVector ActorLocation = Actor->GetActorLocation();
-	const FVector RepelDirection = (ActorLocation - MagnetTarget).GetSafeNormal();
-	CalculateRepelStrength(ActorLocation, MagnetTarget);
+	const FVector RepelDirection = (ActorLocation - MagnetCenterPoint).GetSafeNormal();
+	CalculateRepelStrength(ActorLocation);
 	const float Strength = RepelStrength * RepelStrengthMultiplier;
 	
 	UPrimitiveComponent* PrimitiveComp = Actor->FindComponentByClass<UPrimitiveComponent>();
@@ -383,7 +350,7 @@ FVector AMagneticField_Cylinder::GenerateDynamicFVectorForRepel(const FVector& R
 }
 
 // Correct player towards center when in magnetic field
-FVector AMagneticField_Cylinder::LateralCorrection(const FVector& MagnetCenterPoint, AActor* Actor) const
+FVector AMagneticField_Cylinder::LateralCorrection(AActor* Actor) const
 {
 	if (!Actor) return FVector::ZeroVector;
 	// Project Actor position onto the pull axis to find the closest point on it
@@ -459,7 +426,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (!ValidateOverLapBegin(OtherActor, OtherComp, Character)) return;
 	
 	if (OtherActor->FindComponentByClass<UMagneticComponent>()) ActorsInField.AddUnique(OtherActor);
-		
+	MagnetCenterPoint = CalculateMagnetCenterPoint(OtherActor);
 	
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	IfRobotHandleDash(OtherActor);
@@ -644,7 +611,7 @@ EPolarity AMagneticField_Cylinder::GetObjectPolarity(AActor* Actor)
 	return EPolarity::None;
 }
 
-void AMagneticField_Cylinder::CalculateRepelStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetCenterPoint)
+void AMagneticField_Cylinder::CalculateRepelStrength(const FVector& CurrentPlayerLocation)
 {
 	RepelStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, CapsuleHeight),
 		FVector2D(MaxRepelForce,MinRepelForce),
@@ -657,7 +624,7 @@ void AMagneticField_Cylinder::CalculateRepelStrength(const FVector& CurrentPlaye
  * distance = Maximum -> PullStrength = 12
  * distance = Halfway there -> PullStrength = 8
  */
-void AMagneticField_Cylinder::CalculatePullStrength(const FVector& CurrentPlayerLocation, const FVector& MagnetCenterPoint)
+void AMagneticField_Cylinder::CalculatePullStrength(const FVector& CurrentPlayerLocation)
 {
 	PullStrength = FMath::GetMappedRangeValueClamped(FVector2D(0, CapsuleHeight),
 		FVector2D(MinPullForce,MaxPullForce),
@@ -693,4 +660,48 @@ int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
 void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 {
 	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
+}
+
+bool AMagneticField_Cylinder::WasSpawnedByProjectile() const
+{
+	return bWasSpawnedByProjectile;
+}
+
+void AMagneticField_Cylinder::SetSpawnedByProjectile(bool bNewWasSpawnedByProjectile)
+{
+	this->bWasSpawnedByProjectile = bNewWasSpawnedByProjectile;
+}
+
+// Set polarity of the field. Changes VFX based on polarity.
+void AMagneticField_Cylinder::SetPolarity(const int32 NewPolarity)
+{
+	PolarityValue = NewPolarity;
+	PolarityValue == 1 ? Polarity = EPolarity::Positive : Polarity = EPolarity::Negative;
+	
+	UNiagaraSystem* SelectedVFX = (Polarity == EPolarity::Positive) ? PositivePolarityVFX : NegativePolarityVFX;
+	
+	if (MagnetVfxComponent && SelectedVFX)
+	{
+		MagnetVfxComponent->SetAsset(SelectedVFX);
+		MagnetVfxComponent->ResetSystem(); // reset so new asset plays from beginning
+	}
+}
+
+UNiagaraComponent* AMagneticField_Cylinder::GetVFXComponent() const
+{
+	return MagnetVfxComponent;
+}
+
+UCapsuleComponent* AMagneticField_Cylinder::GetCapsuleComponent() const
+{
+	return Capsule;
+}
+
+EPolarity AMagneticField_Cylinder::GetPolarity() const
+{
+	return Polarity;
+}
+int32 AMagneticField_Cylinder::GetPolarityValue() const
+{
+	return Polarity == EPolarity::Positive ? 1 : -1;
 }

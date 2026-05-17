@@ -133,6 +133,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 			if (Field && Capsule)
 			{
 				Field->SetPolarity(ProjectilePolarity);
+				Field->SetSpawnedByProjectile(true);
 				// UE_LOG(LogTemp, Warning, TEXT("Field Polarity when Spawned: %hhd"), ProjectilePolarity)
 				RegisterFieldInMechanicArray(Field);
 				AlignSpawnedMagneticField(Field, ImpactResult, SpawnLocation);
