@@ -1,0 +1,87 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "LevelExitTrigger.h"
+
+#include "SPMGameInstance.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+
+// Sets default values
+ALevelExitTrigger::ALevelExitTrigger()
+{
+	Collider = CreateDefaultSubobject<UBoxComponent>(TEXT("Collider"));
+	SetRootComponent(Collider);
+	Collider->SetCollisionResponseToAllChannels(ECR_Overlap);
+	
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(RootComponent);
+	Mesh->SetCollisionProfileName(TEXT("NoCollision"));
+}
+
+void ALevelExitTrigger::BeginPlay()
+{
+	Super::BeginPlay();
+	Collider->OnComponentBeginOverlap.AddDynamic(this, &ALevelExitTrigger::OnOverlapBegin);
+	Collider->OnComponentEndOverlap.AddDynamic(this, &ALevelExitTrigger::OnOverlapEnd);
+}
+
+void ALevelExitTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor->IsA<ACharacter>()) return;
+	if (OtherActor->IsA<ARobotCharacter>())
+	{
+		bIsRobotInTriggerArea = true;
+		RobotEnteredLoadNextLevelTriggerBP();
+	}
+	if (OtherActor->IsA<AMechanicCharacter>())
+	{
+		bIsMechanicInTriggerArea = true;
+		MechanicEnteredLoadNextLevelTriggerBP();
+	}
+	
+	if (bIsRobotInTriggerArea && bIsMechanicInTriggerArea) LoadNextLevelCountdown();
+}
+
+void ALevelExitTrigger::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!OtherActor->IsA<ACharacter>()) return;
+	if (OtherActor->IsA<ARobotCharacter>()) bIsRobotInTriggerArea = false;
+	if (OtherActor->IsA<AMechanicCharacter>()) bIsMechanicInTriggerArea = false;
+	
+	StopCountdown();
+}
+
+void ALevelExitTrigger::LoadNextLevelCountdown()
+{
+	UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Next level starting in %f..."), LevelExitCountdownTime);
+	GetWorldTimerManager().ClearTimer(LevelExitCountdownHandle);
+
+	StartLoadNextLevelBP(); // sound event
+	
+	GetWorldTimerManager().SetTimer(
+		LevelExitCountdownHandle,
+		[this]()
+		{
+			LoadNextLevel();
+		},
+		LevelExitCountdownTime,
+		false);
+}
+
+void ALevelExitTrigger::StopCountdown()
+{
+	UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Stopped loading next level. (Player exited field)"));
+	GetWorldTimerManager().ClearTimer(LevelExitCountdownHandle);
+	StopLoadNextLevelBP(); // stop sound event
+}
+
+void ALevelExitTrigger::LoadNextLevel() const
+{
+	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
+	if (GI) GI->LoadNextLevel();
+}
+
+

@@ -22,10 +22,16 @@ protected:
 
 public:	
 	bool CanPass(const AActor* Actor);
+	
+	// Sound events
+	UFUNCTION(BlueprintImplementableEvent, Category="Forcefield|Sound Events")
 	void PushedBackBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="Forcefield|Sound Events")
 	void PassingThroughBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="Forcefield|Sound Events")
 	void StopPassingThroughBP();
 	
+	// Bools
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|Permissions")
 	bool bRobotCanPass = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|Permissions")

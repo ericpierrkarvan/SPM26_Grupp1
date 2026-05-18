@@ -44,18 +44,6 @@ bool AForcefield::CanPass(const AActor* Actor)
 	return false; // If not a character, return false;
 }
 
-void AForcefield::PushedBackBP()
-{
-}
-
-void AForcefield::PassingThroughBP()
-{
-}
-
-void AForcefield::StopPassingThroughBP()
-{
-}
-
 void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
                                  bool bFromSweep, const FHitResult& SweepResult)
