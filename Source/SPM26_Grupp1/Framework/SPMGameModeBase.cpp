@@ -104,6 +104,8 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 
 		Pawn->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
 	}
+	
+	RespawnPlayerBP();
 }
 
 void ASPMGameModeBase::SpawnPlayersAtStart()
@@ -133,5 +135,7 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 
 		PlayerController->Possess(NewPawn);
 	}
+	
+	SpawnPlayersAtStartBP();
 }
 
