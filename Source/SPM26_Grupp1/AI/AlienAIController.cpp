@@ -3,7 +3,6 @@
 
 #include "AlienAIController.h"
 
-#include "AssetDefinitionAssetInfo.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
