@@ -4,7 +4,6 @@
 #include "BTTask_GetNextPatrolPoint.h"
 
 #include "AIController.h"
-#include "AssetDefinitionAssetInfo.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "SPM26_Grupp1/Components/PatrolComponent.h"
 
