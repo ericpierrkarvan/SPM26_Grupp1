@@ -69,9 +69,10 @@ protected:
 	void RepelActor(const AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
 	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
-	void CalculateDirectionAndPull(float DeltaTime, AActor* Actor);
+	FVector CalculateDirection(const AActor* Actor);
+	void Pull(AActor* Actor, float DeltaTime);
 	void PullCharacter(const ACharacter* Character, const FVector& LatCorrection, const FVector& PullDirection,
-	                   float DeltaTime);
+	                   float DeltaTime) const;
 	void PullActor(const AActor* Actor, const FVector& PullDirection, const FVector& LatCorrection, float DeltaTime) const;
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
 	void CalculateRepelStrength(const FVector& CurrentPlayerLocation);
