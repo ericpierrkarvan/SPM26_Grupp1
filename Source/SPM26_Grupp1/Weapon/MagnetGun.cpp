@@ -2,6 +2,8 @@
 
 
 #include "MagnetGun.h"
+
+#include "NiagaraSystem.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
 // Sets default values
@@ -10,6 +12,9 @@ AMagnetGun::AMagnetGun()
 	ProjectileMaxDistance = 10000.f;
 	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMesh"));
 	RootComponent = GunMesh;
+	
+	GunVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("GunVFXComponent"));
+	GunVFXComponent->SetupAttachment(RootComponent);
 	
 }
 
