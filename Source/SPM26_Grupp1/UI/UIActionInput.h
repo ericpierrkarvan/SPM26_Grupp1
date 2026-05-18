@@ -21,7 +21,9 @@ class SPM26_GRUPP1_API UUIActionInput : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 	virtual void NativeOnInitialized() override;
+	UFUNCTION(BlueprintCallable)
 	void Show();
+	UFUNCTION(BlueprintCallable)
 	void Hide();
 	UFUNCTION()
 	void HandleInputMethodChanged(bool bUsingGamepad);
@@ -35,7 +37,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> DefaultInputAction;
-	
+
+	UPROPERTY(EditAnywhere, Category="ActionInput")
+	bool bStartHidden = true;
 protected:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	UCommonActionWidget* ActionWidget;

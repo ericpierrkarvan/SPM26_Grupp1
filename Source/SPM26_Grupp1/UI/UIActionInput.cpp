@@ -16,8 +16,8 @@ void UUIActionInput::NativeConstruct()
 		ActionWidget->SetInputAction(InputActionRow);
 		ActionWidget->SynchronizeProperties(); //force widget to re-read
 	}
-	
-	Hide();
+
+	if (bStartHidden) Hide();
 }
 
 void UUIActionInput::NativeOnInitialized()
