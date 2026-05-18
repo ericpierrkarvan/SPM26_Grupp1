@@ -16,6 +16,16 @@ public:
 	// Sets default values for this actor's properties
 	ALevelExitTrigger();
 	virtual void BeginPlay() override;
+	
+	// Sound events
+	UFUNCTION(BlueprintImplementableEvent, Category="ExitTrigger|Sound Events")
+	void MechanicEnteredLoadNextLevelTriggerBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="ExitTrigger|Sound Events")
+	void RobotEnteredLoadNextLevelTriggerBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="ExitTrigger|Sound Events")
+	void StartLoadNextLevelBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="ExitTrigger|Sound Events")
+	void StopLoadNextLevelBP();
 
 protected:
 
@@ -24,13 +34,14 @@ private:
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 						bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	                  int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	                  int32 OtherBodyIndex);
 
 	void LoadNextLevelCountdown();
 	void StopCountdown();
 	void LoadNextLevel() const;
-
+	
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* Collider;
 	UPROPERTY(EditAnywhere)

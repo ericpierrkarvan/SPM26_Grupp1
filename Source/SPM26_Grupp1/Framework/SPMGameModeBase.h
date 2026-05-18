@@ -17,9 +17,13 @@ class SPM26_GRUPP1_API ASPMGameModeBase : public AGameModeBase
 public:
 	UFUNCTION()
 	void RespawnPlayer(AController* Controller);
+	void SpawnPlayersAtStart();
 #if WITH_EDITOR
 	void SwitchKeyboardToPlayer();
 
+protected:
+	virtual void BeginPlay() override;
+	
 private:
 	int32 ActiveKeyboardPlayer = 0;
 	TWeakObjectPtr<APawn> OriginalPawn0;

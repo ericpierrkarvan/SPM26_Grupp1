@@ -27,25 +27,25 @@ void ALevelExitTrigger::BeginPlay()
 }
 
 void ALevelExitTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor->IsA<ACharacter>()) return;
 	if (OtherActor->IsA<ARobotCharacter>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Robot entered levelexittrigger."));
 		bIsRobotInTriggerArea = true;
+		RobotEnteredLoadNextLevelTriggerBP();
 	}
 	if (OtherActor->IsA<AMechanicCharacter>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Robot entered levelexittrigger."));
 		bIsMechanicInTriggerArea = true;
+		MechanicEnteredLoadNextLevelTriggerBP();
 	}
 	
 	if (bIsRobotInTriggerArea && bIsMechanicInTriggerArea) LoadNextLevelCountdown();
 }
 
 void ALevelExitTrigger::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!OtherActor->IsA<ACharacter>()) return;
 	if (OtherActor->IsA<ARobotCharacter>()) bIsRobotInTriggerArea = false;
@@ -59,6 +59,8 @@ void ALevelExitTrigger::LoadNextLevelCountdown()
 	UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Next level starting in %f..."), LevelExitCountdownTime);
 	GetWorldTimerManager().ClearTimer(LevelExitCountdownHandle);
 
+	StartLoadNextLevelBP(); // sound event
+	
 	GetWorldTimerManager().SetTimer(
 		LevelExitCountdownHandle,
 		[this]()
@@ -73,6 +75,7 @@ void ALevelExitTrigger::StopCountdown()
 {
 	UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Stopped loading next level. (Player exited field)"));
 	GetWorldTimerManager().ClearTimer(LevelExitCountdownHandle);
+	StopLoadNextLevelBP(); // stop sound event
 }
 
 void ALevelExitTrigger::LoadNextLevel() const

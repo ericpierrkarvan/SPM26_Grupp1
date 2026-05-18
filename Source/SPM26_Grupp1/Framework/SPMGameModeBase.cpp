@@ -29,6 +29,20 @@ void ASPMGameModeBase::SwitchKeyboardToPlayer()
 	SwapPossession();
 }
 
+void ASPMGameModeBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	UGameInstance* GI = GetGameInstance();
+	if (GI->GetNumLocalPlayers() < 2)
+	{
+		FString Error;
+		GI->CreateLocalPlayer(1, Error, true);
+	}
+	
+	SpawnPlayersAtStart();
+}
+
 void ASPMGameModeBase::SwapPossession()
 {
 	ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
@@ -91,3 +105,33 @@ void ASPMGameModeBase::RespawnPlayer(AController* Controller)
 		Pawn->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
 	}
 }
+
+void ASPMGameModeBase::SpawnPlayersAtStart()
+{
+	UGameInstance* GI = GetGameInstance();
+	if (!GI) return;
+	
+	TArray<TSubclassOf<ACharacter>> ClassOrder = { MechanicCharacterClass, RobotCharacterClass };
+	
+	for (int32 i = 0; i < GI->GetLocalPlayers().Num(); i++)
+	{
+		ULocalPlayer* LocalPlayer = GI->GetLocalPlayers()[i];
+		APlayerController* PlayerController = LocalPlayer->GetPlayerController(GetWorld());
+		if (!PlayerController) continue;
+		
+		AActor* StartSpot = FindPlayerStart(PlayerController);
+		if (!StartSpot) continue;
+		
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		
+		ACharacter* NewPawn = GetWorld()->SpawnActor<ACharacter>(
+		ClassOrder[i],
+		StartSpot->GetActorLocation(),
+		StartSpot->GetActorRotation(),
+		Params);
+
+		PlayerController->Possess(NewPawn);
+	}
+}
+
