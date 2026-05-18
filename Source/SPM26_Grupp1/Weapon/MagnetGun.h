@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraComponent.h"
 #include "WeaponBase.h"
 #include "GameFramework/Actor.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
@@ -20,12 +21,19 @@ public:
 	EPolarity GetPolarity() const;
 	void SwitchPolarity();
 	
+	// Mesh & Material
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
 	UStaticMeshComponent* GunMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Material")
 	UMaterialInstance* GunColorMaterial;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Material")
 	UMaterialInstance* GunGlassMaterial;
+	
+	// VFX
+	UPROPERTY(EditAnywhere, Category="Weapon|VFX")
+	UNiagaraSystem* GunVFX;
+	UPROPERTY(EditAnywhere, Category="Weapon|VFX")
+	UNiagaraComponent* GunVFXComponent;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Polarity")
