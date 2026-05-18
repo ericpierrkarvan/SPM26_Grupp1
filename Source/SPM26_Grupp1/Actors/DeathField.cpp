@@ -39,6 +39,7 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	ASPMPlayerController* Controller = Cast<ASPMPlayerController>(Pawn->GetController());
 	if (!Controller) return;
 	
+	DeathByDeathFieldBP();
 	Controller->OnRespawn();
 }
 
