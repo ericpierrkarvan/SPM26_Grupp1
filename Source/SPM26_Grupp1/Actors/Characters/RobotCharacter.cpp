@@ -240,7 +240,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				TakePicture();
 			}
 
-			if (UISubSystem && IsLaunchableObject(HeldActor))
+			if (bCanEverHeadLaunch && UISubSystem && IsLaunchableObject(HeldActor))
 			{
 				UISubSystem->OnContextActionActivated.Broadcast({ETutorialPrompt::Launch}, true);
 			}
