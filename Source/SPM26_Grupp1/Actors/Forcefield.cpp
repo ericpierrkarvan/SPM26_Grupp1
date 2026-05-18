@@ -52,6 +52,10 @@ void AForcefield::PassingThroughBP()
 {
 }
 
+void AForcefield::StopPassingThroughBP()
+{
+}
+
 void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
                                  bool bFromSweep, const FHitResult& SweepResult)
@@ -64,6 +68,11 @@ void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		PushBack(OtherActor);
 	}
 	else PassingThroughBP();
+}
+
+void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor)
+{
+	StopPassingThroughBP();
 }
 
 void AForcefield::UpdateVFX() const
