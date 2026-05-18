@@ -867,6 +867,8 @@ void ARobotCharacter::UpdateADSScan(float DeltaSeconds)
 	GetViewFrustumBounds(Frustum, ProjectionData.ComputeViewProjectionMatrix(), true);
 
 	TArray<AActor*> VisibleActors;
+	TArray<AActor*> HeadLaunchActors;
+	PlatformDetectionSphere->GetOverlappingActors(HeadLaunchActors);
 
 	float SphereRadius = ScanSphereRadius;
 	TArray<FOverlapResult> Overlaps;
@@ -880,7 +882,8 @@ void ARobotCharacter::UpdateADSScan(float DeltaSeconds)
 		if (!Actor) continue;
 		if (!Actor->Implements<UScannable>()) continue;
 		if (!IScannable::Execute_IsScannable(Actor)) continue; //check if we're allowed to scan the target
-
+		if (HeadLaunchActors.Contains(Actor)) continue; //if the actor is in our headlaunch-checker, then dont show the box
+		if (Actor == HeldActor) continue; //dont make a box around what we're grabbing
 		FVector Origin, BoxExtent;
 		Actor->GetActorBounds(true, Origin, BoxExtent);
 #if WITH_EDITOR
