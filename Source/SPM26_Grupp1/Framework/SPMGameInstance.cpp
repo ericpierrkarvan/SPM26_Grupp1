@@ -2,12 +2,14 @@
 
 
 #include "SPM26_Grupp1/Framework/SPMGameInstance.h"
-
-#include "GameFramework/InputDeviceSubsystem.h"
-#include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
 
 enum class EHardwareDevicePrimaryType : uint8;
+
+USPMGameInstance::USPMGameInstance()
+{
+	LevelOrder = { Level1, Level2 };
+}
 
 void USPMGameInstance::RemoveExtraLocalPlayers()
 {
@@ -16,6 +18,21 @@ void USPMGameInstance::RemoveExtraLocalPlayers()
 	for (int32 i = AllPlayers.Num() - 1; i > 0; i--)
 	{
 		RemoveLocalPlayer(AllPlayers[i]);
+	}
+}
+
+void USPMGameInstance::LoadNextLevel()
+{
+	CurrentLevelIndex++;
+	
+	if (LevelOrder.IsValidIndex(CurrentLevelIndex))
+	{
+		UGameplayStatics::OpenLevel(this, LevelOrder[CurrentLevelIndex]);
+	}
+	else
+	{
+		// No more levels, go to main menu
+		UGameplayStatics::OpenLevel(this, FName("Startmenue"));
 	}
 }
 
@@ -97,3 +114,4 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 		Mapper.Internal_ChangeInputDeviceUserMapping(Gamepads[1], User1, CurrentOwner1);
 	}
 }
+
