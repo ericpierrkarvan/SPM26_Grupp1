@@ -19,5 +19,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Instance")
 	void RemoveExtraLocalPlayers();
 protected:
+	virtual void Init() override;
+	virtual void HandleInputDeviceConnectionChange(EInputDeviceConnectionState NewConnectionState, FPlatformUserId PlatformUserId, FInputDeviceId InputDeviceId) override;
 private:
+	void SetupLocalMultiplayerInput();
 };
