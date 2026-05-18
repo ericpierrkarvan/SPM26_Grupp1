@@ -25,11 +25,11 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
-		EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this,
-		                &AMechanicCharacter::DestroyAllMagneticFields);
 		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &AMechanicCharacter::MechanicDoubleJump);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &AMechanicCharacter::StartADS);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &AMechanicCharacter::StopADS);
+		
+		//EIC->BindAction(IA_DestroyFields, ETriggerEvent::Triggered, this, &AMechanicCharacter::DestroyAllMagneticFields);
 	}
 }
 
