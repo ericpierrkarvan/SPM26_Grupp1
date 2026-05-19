@@ -28,7 +28,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Pickup")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pickup")
 	FText PickupPromptText = FText::FromString("Grab");
 	
 	UPROPERTY(BlueprintReadOnly, Category="Pickup")
