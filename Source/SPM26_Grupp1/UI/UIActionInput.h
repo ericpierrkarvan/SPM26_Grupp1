@@ -27,8 +27,13 @@ public:
 	void Hide();
 	UFUNCTION()
 	void HandleInputMethodChanged(bool bUsingGamepad);
+
+	UFUNCTION(BlueprintCallable)
 	FText GetCurrentKeyName() const;
 
+	UFUNCTION(BlueprintCallable)
+	void SetDefaultInputAction(UInputAction* InputAction);
+	
 	UFUNCTION(BlueprintImplementableEvent, Category="Input")
 	void OnInputMethodChanged_BP(bool bUsingGamepad, const FText& KeyName);
 	
@@ -40,6 +45,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="ActionInput")
 	bool bStartHidden = true;
+
+	UFUNCTION(BlueprintCallable)
+	void RefreshKeyboardBindText();
 protected:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	UCommonActionWidget* ActionWidget;
