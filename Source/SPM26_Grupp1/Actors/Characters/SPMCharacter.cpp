@@ -100,7 +100,7 @@ void ASPMCharacter::OnDeath()
 
 void ASPMCharacter::SetInputEnabled(bool bEnabled)
 {
-	if (APlayerController* CurrentPlayer = GetViewingPlayerController())
+	if (APlayerController* CurrentPlayer = Cast<APlayerController>(GetController()))
 	{
 		if (bEnabled)
 		{
