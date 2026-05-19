@@ -3,8 +3,12 @@
 
 #include "AlienNPCCharacter.h"
 
+#include "RobotCharacter.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+class ARobotCharacter;
 // Sets default values
 AAlienNPCCharacter::AAlienNPCCharacter()
 {
@@ -25,13 +29,59 @@ void AAlienNPCCharacter::BeginPlay()
 void AAlienNPCCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	TryPushBack(DeltaTime);
 
 }
 
-// Called to bind functionality to input
-void AAlienNPCCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AAlienNPCCharacter::PushBack(AActor* Actor)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	if (!Actor) return;
+	FVector AwayDirection = (Actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	AwayDirection.Z = PushbackHeightArc; // arc height of pushback
+	AwayDirection.Normalize();
+	
+	if (const ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) Robot->CancelDash();
+	
+	if (const ACharacter* Character = Cast<ACharacter>(Actor))
+	{
+		Character->GetCharacterMovement()->AddImpulse(AwayDirection * CharacterPushBackStrength, true);
+		PushedBackCharacterBP();
+	}
+	else
+	{
+		UPrimitiveComponent* PrimitiveComp = Actor->FindComponentByClass<UPrimitiveComponent>();
+		if (PrimitiveComp && PrimitiveComp->IsSimulatingPhysics())
+		{
+			PrimitiveComp->AddImpulse(AwayDirection * ObjectPushBackStrength, NAME_None, true);
+			PushedBackObjectBP();
+		}
+	}
+}
 
+void AAlienNPCCharacter::TryPushBack(float DeltaTime)
+{
+	TimeSinceLastPushBack += DeltaTime;
+	if (TimeSinceLastPushBack < PushBackCooldown) return;
+	
+	// Push during chase
+	if (const AAlienAIController* AI = Cast<AAlienAIController>(GetController()))
+	{
+		const UBlackboardComponent* BBC = AI->GetBlackboardComponent();
+		if (!BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"))) return;
+	}
+	
+	TArray<AActor*> NearbyActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacter::StaticClass(), NearbyActors);
+	
+	for (AActor* Actor : NearbyActors)
+	{
+		if (Actor == this) continue;
+		if (FVector::Dist(GetActorLocation(), Actor->GetActorLocation()) < PushBackRadius)
+		{
+			PushBack(Actor);
+			TimeSinceLastPushBack = 0.f;
+		}
+	}
 }
 

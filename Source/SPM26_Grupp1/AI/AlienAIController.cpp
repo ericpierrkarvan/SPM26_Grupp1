@@ -3,6 +3,7 @@
 
 #include "AlienAIController.h"
 
+#include "NavigationSystem.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -11,9 +12,12 @@ void AAlienAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	MechanicPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	RobotPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
+	if (!MechanicPawn || !RobotPawn) return;
+	
 	if (AIBehavior)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AAlienAIController::BeginPlay() BehaviorTree: %s"), *AIBehavior->GetName());
 		RunBehaviorTree(AIBehavior);
 		
 		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
@@ -32,22 +36,165 @@ void AAlienAIController::BeginPlay()
 void AAlienAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (!MechanicPawn || !RobotPawn) return;
 	
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!PlayerPawn) return;
-	// UE_LOG(LogTemp, Warning, TEXT("NPC velocity: %s"), *GetPawn()->GetVelocity().ToCompactString());
-	// UE_LOG(LogTemp, Warning, TEXT("AlienNPCCharacter(): Character is: %s"), *PlayerPawn->GetName());
+	HandleMechanicOnLineOfSight(DeltaTime);
+	//HandleRobotOnLineOfSight(DeltaTime);
 	
-	if (LineOfSightTo(PlayerPawn))
+}
+
+void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
+{
+	if (LineOfSightTo(MechanicPawn, FVector::ZeroVector))
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("LineOfSightTo() Player's ActorLocation: %s"), *PlayerPawn->GetActorLocation().ToCompactString());
-		BBC->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
-		BBC->SetValueAsVector(TEXT("LastKnownPlayerLocation"), PlayerPawn->GetActorLocation());
+		bCanSeeMechanic = true;
+		ThrottledPathCheckMechanic(DeltaTime);
+		bShouldChaseMechanic = bCanSeeMechanic && bCachedReachableMechanic;
+		
+		if (bShouldChaseMechanic)
+		{
+			bShouldInvestigate = false;
+			BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), true);
+			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), false);
+			// MechanicLocation is Target for Chase MoveTo
+			BBC->SetValueAsVector(TEXT("MechanicLocation"), MechanicPawn->GetActorLocation());
+			// Can reach, so investigation point is also valid
+			BBC->SetValueAsVector(TEXT("LastKnownMechanicLocation"), MechanicPawn->GetActorLocation());
+		}
+		else
+		{
+			// Can see but can't reach, don't chase, don't investigate
+			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), false);
+			BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
+			BBC->ClearValue(TEXT("MechanicLocation"));
+		}
 	}
 	else
 	{
-		// clear PlayerLocation
-		BBC->ClearValue("PlayerLocation");
+		const bool bWasChasing = BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"));
+		
+		bCanSeeMechanic = false;
+		bShouldChaseMechanic = false;
+		TimeSinceLastReachabilityCheckMechanic = ReachabilityCheckIntervalMechanic;
+		bCachedReachableMechanic = false;
+		
+		BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
+		BBC->ClearValue(TEXT("MechanicLocation"));
+		
+		if (bWasChasing)
+		{
+			// Just lost LOS — LastKnownMechanicLocation still holds the last
+			// position we updated while chasing, check if we can get there
+			const FVector LastKnown = BBC->GetValueAsVector(TEXT("LastKnownMechanicLocation"));
+			bShouldInvestigate = IsLocationNavReachable(LastKnown);
+			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), bShouldInvestigate);
+		}
 	}
+
+}
+void AAlienAIController::HandleRobotOnLineOfSight(float DeltaTime)
+{
+	if (LineOfSightTo(RobotPawn, FVector::ZeroVector))
+	{
+		bCanSeeRobot = true;
+		ThrottledPathCheckRobot(DeltaTime);
+		bShouldChaseRobot = bCanSeeRobot && bCachedReachableRobot;
+		SetRobotBBCValuesOnLineOfSight();
+	}
+	else
+	{
+		bCanSeeRobot = false;
+		bShouldChaseRobot = false;
+		ClearRobotBBCValuesOnLostLineOfSight();
+	}
+}
+
+bool AAlienAIController::IsPlayerNavReachable(const APawn* Player) const
+{
+	if (!Player || !GetPawn()) return false;
 	
+	const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (!NavSys) return false;
+	
+	const FPathFindingQuery Query(
+			GetPawn(),
+			*NavSys->GetDefaultNavDataInstance(),
+			GetPawn()->GetActorLocation(),
+			Player->GetActorLocation());
+	
+	// Is player reachable?
+	return NavSys->TestPathSync(Query);
+}
+
+bool AAlienAIController::IsLocationNavReachable(const FVector& Location) const
+{
+	if (!GetPawn()) return false;
+
+	const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (!NavSys) return false;
+
+	const FPathFindingQuery Query(
+		GetPawn(),
+		*NavSys->GetDefaultNavDataInstance(),
+		GetPawn()->GetActorLocation(),
+		Location
+	);
+
+	// Is Location reachable? 
+	return NavSys->TestPathSync(Query);
+
+}
+
+// Check if Mechanic is reachable only every X seconds
+void AAlienAIController::ThrottledPathCheckMechanic(float DeltaTime)
+{
+	TimeSinceLastReachabilityCheckMechanic += DeltaTime;
+	if (TimeSinceLastReachabilityCheckMechanic >= ReachabilityCheckIntervalMechanic)
+	{
+		TimeSinceLastReachabilityCheckMechanic = 0;
+		bCachedReachableMechanic = IsPlayerNavReachable(MechanicPawn);
+	}
+}
+
+// Check if Robot is reachable only every X seconds
+void AAlienAIController::ThrottledPathCheckRobot(float DeltaTime)
+{
+	TimeSinceLastReachabilityCheckRobot += DeltaTime;
+	if (TimeSinceLastReachabilityCheckRobot >= ReachabilityCheckIntervalRobot)
+	{
+		TimeSinceLastReachabilityCheckRobot = 0;
+		bCachedReachableRobot = IsPlayerNavReachable(RobotPawn);
+	}
+}
+
+void AAlienAIController::SetMechanicBBCValuesOnLineOfSight() const
+{
+	BBC->SetValueAsBool(TEXT("CanSeeMechanic"), bCanSeeMechanic);
+	BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), bShouldChaseMechanic);
+	BBC->SetValueAsVector(TEXT("MechanicLocation"), MechanicPawn->GetActorLocation());
+	BBC->SetValueAsVector(TEXT("LastKnownMechanicLocation"), MechanicPawn->GetActorLocation());
+}
+void AAlienAIController::ClearMechanicBBCValuesOnLostLineOfSight() const
+{
+	const FVector LastKnownMechanicLocation = BBC->GetValueAsVector("LastKnownMechanicLocation");
+	const bool bCanReach = IsLocationNavReachable(LastKnownMechanicLocation);
+	
+	BBC->SetValueAsBool(TEXT("CanReachLastKnownMechanicLocation"), bCanReach);
+	BBC->ClearValue("MechanicLocation");
+	BBC->ClearValue("CanSeeMechanic");
+	BBC->ClearValue("ShouldChaseMechanic");
+}
+
+void AAlienAIController::SetRobotBBCValuesOnLineOfSight() const
+{
+	BBC->SetValueAsBool(TEXT("CanSeeRobot"), bCanSeeRobot);
+	BBC->SetValueAsBool(TEXT("ShouldChaseRobot"), bShouldChaseRobot);
+	BBC->SetValueAsVector(TEXT("RobotLocation"), RobotPawn->GetActorLocation());
+	BBC->SetValueAsVector(TEXT("LastKnownRobotLocation"), RobotPawn->GetActorLocation());
+}
+void AAlienAIController::ClearRobotBBCValuesOnLostLineOfSight() const
+{
+	BBC->ClearValue("RobotLocation");
+	BBC->ClearValue("CanSeeRobot");
+	BBC->ClearValue("ShouldChaseRobot");
 }

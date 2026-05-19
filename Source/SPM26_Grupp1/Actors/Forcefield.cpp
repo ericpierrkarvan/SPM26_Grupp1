@@ -25,12 +25,15 @@ AForcefield::AForcefield()
 
 }
 
+
+
 // Called when the game starts or when spawned
 void AForcefield::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &AForcefield::OnOverlapBegin);
+	Collider->OnComponentEndOverlap.AddDynamic(this, &AForcefield::OnOverlapEnd);
 	UpdateMaterial();
 	//UpdateVFX();
 }
@@ -56,11 +59,14 @@ void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		PushBack(OtherActor);
 	}
 	else PassingThroughBP();
+	UE_LOG(LogTemp, Warning, TEXT("PassingThroughBP()"));
 }
 
-void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor)
+void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	StopPassingThroughBP();
+	UE_LOG(LogTemp, Warning, TEXT("StopPassingThroughBP()"));
 }
 
 void AForcefield::UpdateVFX() const

@@ -47,4 +47,5 @@ void UBTTask_CustomWait::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
+	
 }
