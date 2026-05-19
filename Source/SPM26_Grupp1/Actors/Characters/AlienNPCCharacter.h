@@ -42,8 +42,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void PushedBackCharacterBP();
+	UFUNCTION(BlueprintImplementableEvent)
+	void PushedBackObjectBP();
+	
 private:
-	void PushBack(AActor* Actor) const;
+	void PushBack(AActor* Actor);
 	void TryPushBack(float DeltaTime);
 
 

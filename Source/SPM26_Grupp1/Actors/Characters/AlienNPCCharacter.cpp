@@ -34,7 +34,7 @@ void AAlienNPCCharacter::Tick(float DeltaTime)
 
 }
 
-void AAlienNPCCharacter::PushBack(AActor* Actor) const
+void AAlienNPCCharacter::PushBack(AActor* Actor)
 {
 	if (!Actor) return;
 	FVector AwayDirection = (Actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
@@ -45,7 +45,8 @@ void AAlienNPCCharacter::PushBack(AActor* Actor) const
 	
 	if (const ACharacter* Character = Cast<ACharacter>(Actor))
 	{
-		Character->GetCharacterMovement()->AddImpulse(AwayDirection * CharacterPushBackStrength, true); 
+		Character->GetCharacterMovement()->AddImpulse(AwayDirection * CharacterPushBackStrength, true);
+		PushedBackCharacterBP();
 	}
 	else
 	{
@@ -53,6 +54,7 @@ void AAlienNPCCharacter::PushBack(AActor* Actor) const
 		if (PrimitiveComp && PrimitiveComp->IsSimulatingPhysics())
 		{
 			PrimitiveComp->AddImpulse(AwayDirection * ObjectPushBackStrength, NAME_None, true);
+			PushedBackObjectBP();
 		}
 	}
 }

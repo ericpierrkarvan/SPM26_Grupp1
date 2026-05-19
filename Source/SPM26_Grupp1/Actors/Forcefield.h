@@ -18,6 +18,8 @@ public:
 	AForcefield();
 
 protected:
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	virtual void BeginPlay() override;
 
 public:	
@@ -75,7 +77,6 @@ private:
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 					UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 					bool bFromSweep, const FHitResult& SweepResult);
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor);
 
 	void UpdateVFX() const;
 	void UpdateMaterial() const;
