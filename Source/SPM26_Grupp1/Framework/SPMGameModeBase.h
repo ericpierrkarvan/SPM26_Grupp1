@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class SPM26_GRUPP1_API ASPMGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()

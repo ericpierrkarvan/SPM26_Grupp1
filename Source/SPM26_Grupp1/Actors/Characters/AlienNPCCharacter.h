@@ -19,14 +19,32 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	// Pushback parameters
+	UPROPERTY(EditAnywhere, Category="Pushback")
+	float PushBackRadius = 150.0f;
 
+	UPROPERTY(EditAnywhere, Category="Pushback")
+	float PushBackCooldown = 0.8f; // how often to reapply
+	
+	UPROPERTY(EditAnywhere, Category="Pushback")
+	float CharacterPushBackStrength = 1000.f;
+	
+	UPROPERTY(EditAnywhere, Category="Pushback")
+	float ObjectPushBackStrength = 700.f;
+	
+	UPROPERTY(EditAnywhere, Category="Pushback")
+	float PushbackHeightArc = 0.6f; // upward adjustment of pushforce
+	
+	float TimeSinceLastPushBack = 0.0f;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 private:
+	void PushBack(AActor* Actor) const;
+	void TryPushBack(float DeltaTime);
+
 
 };
