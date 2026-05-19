@@ -17,6 +17,7 @@ void UUIActionInput::NativeConstruct()
 		ActionWidget->SynchronizeProperties(); //force widget to re-read
 	}
 
+	//RefreshKeyboardBindText();
 	if (bStartHidden) Hide();
 }
 
@@ -79,4 +80,15 @@ FText UUIActionInput::GetCurrentKeyName() const
 	}
 
 	return FText::GetEmpty();
+}
+
+void UUIActionInput::SetDefaultInputAction(UInputAction* InputAction)
+{
+	DefaultInputAction = InputAction;
+}
+
+void UUIActionInput::RefreshKeyboardBindText()
+{
+	FText KeyName = GetCurrentKeyName();
+	OnInputMethodChanged_BP(false, KeyName);
 }

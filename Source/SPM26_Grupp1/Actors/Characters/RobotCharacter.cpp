@@ -237,6 +237,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 
 			if (UProgressGrantingComponent* ProgComp = HeldActor->GetComponentByClass<UProgressGrantingComponent>())
 			{
+				SetInputEnabled(false); //disable movement while we are reading progression prompt
 				TakePicture();
 			}
 

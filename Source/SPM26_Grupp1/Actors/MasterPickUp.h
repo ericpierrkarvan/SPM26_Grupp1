@@ -22,7 +22,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(VisibleAnywhere, Category="Pickup")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Pickup")
 	UPickupComponent* PickupComponent;
 
 	UPROPERTY(VisibleAnywhere, Category="Pickup")

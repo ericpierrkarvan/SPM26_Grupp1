@@ -101,6 +101,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnDeath();
+
+	UFUNCTION(BlueprintCallable)
+	void SetInputEnabled(bool bEnabled);
 protected:
 
 	UPROPERTY()
