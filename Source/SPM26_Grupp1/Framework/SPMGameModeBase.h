@@ -18,6 +18,13 @@ public:
 	UFUNCTION()
 	void RespawnPlayer(AController* Controller);
 	void SpawnPlayersAtStart();
+	
+	// Sound event
+	UFUNCTION(BlueprintImplementableEvent, Category = "Spawning|Sound Events")
+	void SpawnPlayersAtStartBP();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Spawning|Sound Events")
+	void RespawnPlayerBP();
+	
 #if WITH_EDITOR
 	void SwitchKeyboardToPlayer();
 

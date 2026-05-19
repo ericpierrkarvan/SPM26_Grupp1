@@ -23,6 +23,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION(BlueprintImplementableEvent, Category="Deathfield|Sound Events")
+	void DeathByDeathFieldBP();
+	
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
