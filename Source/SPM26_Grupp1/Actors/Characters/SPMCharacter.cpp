@@ -98,6 +98,21 @@ void ASPMCharacter::OnDeath()
 	StopADS();
 }
 
+void ASPMCharacter::SetInputEnabled(bool bEnabled)
+{
+	if (APlayerController* CurrentPlayer = GetViewingPlayerController())
+	{
+		if (bEnabled)
+		{
+			EnableInput(CurrentPlayer);
+		}
+		else
+		{
+			DisableInput(CurrentPlayer);
+		}	
+	}
+}
+
 void ASPMCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -240,7 +255,7 @@ void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
 				GetRootComponent(),
 				FAttachmentTransformRules::KeepWorldTransform
 			);
-
+			SetInputEnabled(false); //disable movement while we are reading progression prompt
 			TakePicture(); //take a picture, it'll last longer
 			bIsPickingUp = false;
 		}
@@ -267,7 +282,7 @@ void ASPMCharacter::ConsumePickup()
 	{
 		ProgressComp->GiveProgress();
 	}
-
+	SetInputEnabled(true);
 	// if (HeldPickupComponent.IsValid())
 	// {
 	// 	HeldPickupComponent->OnDropped();
