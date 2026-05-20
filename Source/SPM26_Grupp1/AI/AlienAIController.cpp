@@ -24,7 +24,6 @@ void AAlienAIController::BeginPlay()
 		if (!PlayerPawn) return;
 		APawn* NPCPawn = GetPawn();
 		if (!NPCPawn) return;
-		UE_LOG(LogTemp, Warning, TEXT("NPC velocity: %s"), *NPCPawn->GetVelocity().ToCompactString());
 		BBC = GetBlackboardComponent();
 		if (!BBC) return;
 		BBC->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
