@@ -20,6 +20,7 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
+#include "Engine/OverlapResult.h"
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
@@ -355,85 +356,105 @@ void ASPMCharacter::ConsumePickup()
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
-	// FVector Start = GetActorLocation() + (GetActorForwardVector() * InteractBoxStartOffset);
-	// FVector End = Start + (GetActorForwardVector() * InteractBoxDistance);
-
+	InteractTimer += DeltaTime;
+	if (InteractTimer < InteractInterval) return;
+	InteractTimer = 0.f;
+	
 	APlayerController* PC = GetViewingPlayerController();
 	if (!PC) return;
-
+	
 	FVector CameraLocation;
 	FRotator CameraRotation;
 	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	FVector CamFwd = CameraRotation.Vector();
+	FVector OwnerLoc = GetActorLocation();
 
-	FVector ForwardDir = CameraRotation.Vector();
-	ForwardDir.Z = 0.f;
-	ForwardDir.Normalize();
-
-	const FQuat BoxRotation = ForwardDir.Rotation().Quaternion();
-	FVector Start = GetActorLocation() + (ForwardDir * InteractBoxStartOffset);
-	FVector End = Start + (ForwardDir * InteractBoxDistance);
-
-	FHitResult HitResult;
-	FCollisionShape BoxShape = FCollisionShape::MakeBox(InteractBoxSize);
-
+	
+	TArray<FOverlapResult> Overlaps;
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(InteractLength);
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 	Params.bTraceComplex = false;
 
-	bool bHit = GetWorld()->SweepSingleByChannel(
-		HitResult,
-		Start,
-		End,
-		BoxRotation,
+	//do a sphere overlap around character
+	GetWorld()->OverlapMultiByChannel(
+		Overlaps,
+		OwnerLoc,
+		FQuat::Identity,
 		ECC_INTERACT,
-		BoxShape,
+		Sphere,
 		Params
 	);
+	
+	UPickupComponent* BestPickup = nullptr;
+	UInteractableComponent* BestInteractable = nullptr;
 
-	if (bDisplayInteractBoxTrace)
+	// minimum score threshold
+	// positive values filters out stuff behind us
+	// since the highest score is a combination of angle + distance
+	// positive threshold values gives us interactables that are either:
+	// at a good angle, or very close - or a combination of these
+	float BestPickupScore = 0.4f;
+	float BestInteractableScore = 0.4f;
+
+	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		//draw at End when no hit, at impact location when hit
-		FVector DrawLocation = bHit ? HitResult.Location : End;
-		FColor DrawColor = bHit ? FColor::Green : FColor::Red;
+		AActor* Actor = Overlap.GetActor();
+		if (!Actor) continue;
+		FVector ActorLoc = Actor->GetActorLocation();
+		
+		FHitResult VisHit;
+		FCollisionQueryParams VisParams;
+		VisParams.AddIgnoredActor(this);
+		VisParams.AddIgnoredActor(Actor);
 
-		DrawDebugBox(
-			GetWorld(),
-			DrawLocation,
-			InteractBoxSize,
-			BoxRotation,
-			DrawColor,
-			false, -1.f
+		bool bVisible = !GetWorld()->LineTraceSingleByChannel(
+			VisHit,
+			CameraLocation,
+			ActorLoc,
+			ECC_Visibility,
+			VisParams
 		);
-	}
 
+		//if we cant see the object then we wont be able to interract with it
+		if (!bVisible) continue;
 
-	UInteractableComponent* NewInteractable = nullptr;
-	CurrentTargetPickup = nullptr;
+		FVector ToActor = (ActorLoc - OwnerLoc).GetSafeNormal();
 
-	if (bHit && HitResult.GetActor())
-	{
-		CurrentTargetPickup = Cast<UPickupComponent>(
-			HitResult.GetActor()->GetComponentByClass(UPickupComponent::StaticClass()));
+		//dot gives us a value between -1 and 1, where 1 is straight forward and -1 is back
+		float Dot = FVector::DotProduct(CamFwd, ToActor);
+		float Distance = FVector::Dist(ActorLoc, OwnerLoc);
+		//distance score where closer = higher score
+		float DistanceScore = 1.f - FMath::Clamp(Distance / InteractLength, 0.f, 1.f);
+		
+		float TotalWeight = InteractAngleWeight + InteractDistanceWeight;
+		float FinalScore = (Dot * InteractAngleWeight + DistanceScore * InteractDistanceWeight) / TotalWeight;
 
-		if (CurrentTargetPickup.IsValid() && !CurrentTargetPickup->CanInteract(this))
+		//pickups:
+		if (UPickupComponent* Pickup = Cast<UPickupComponent>(
+			Actor->GetComponentByClass(UPickupComponent::StaticClass())))
 		{
-			//if we cant interact with the pickup
-			CurrentTargetPickup = nullptr;
+			if (Pickup->CanInteract(this) && FinalScore > BestPickupScore)
+			{
+				BestPickupScore = FinalScore;
+				BestPickup = Pickup;
+			}
 		}
 
-		if (!CurrentTargetPickup.IsValid())
+		//interactables:
+		if (UInteractableComponent* Interactable = Cast<UInteractableComponent>(
+			Actor->GetComponentByClass(UInteractableComponent::StaticClass())))
 		{
-			//we havent seen a pickup actor, lets see if it have a interactable component
-			NewInteractable = Cast<UInteractableComponent>(
-				HitResult.GetActor()->GetComponentByClass(UInteractableComponent::StaticClass()));
-
-			if (NewInteractable && !NewInteractable->CanInteract(this))
+			if (Interactable->CanInteract(this) && FinalScore > BestInteractableScore)
 			{
-				//we see the interactable, but we are not allowed to interact with it
-				NewInteractable = nullptr;
+				BestInteractableScore = FinalScore;
+				BestInteractable = Interactable;
 			}
 		}
 	}
+
+	CurrentTargetPickup = BestPickup;
+	CurrentTargetInteractableComp = BestPickup ? nullptr : BestInteractable;
 
 	//decide which promptable should we display
 	//order: Pickup -> Interactable
@@ -442,17 +463,27 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	{
 		NewPromptable = CurrentTargetPickup.Get();
 	}
-	else if (NewInteractable)
+	else if (CurrentTargetInteractableComp)
 	{
-		NewPromptable = NewInteractable;
+		NewPromptable = CurrentTargetInteractableComp;
 	}
-
-	CurrentTargetInteractableComp = NewInteractable;
 
 	//update HUD with the current promptable
 	if (ASPMHUD* HUD = Cast<ASPMHUD>(PC->GetHUD()))
 	{
 		HUD->SetFocusedPromptable(NewPromptable);
+	}
+
+	if (bDebugShowInteractLength)
+	{
+		DrawDebugSphere(
+			GetWorld(),
+			OwnerLoc,
+			InteractLength,
+			16,
+			FColor::Yellow,
+			false, -1.f
+		);
 	}
 }
 

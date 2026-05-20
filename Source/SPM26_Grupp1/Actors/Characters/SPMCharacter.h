@@ -145,14 +145,17 @@ protected:
 
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
-	bool bDisplayInteractBoxTrace = false;
+	bool bDebugShowInteractLength = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
-	FVector InteractBoxSize = FVector(25.f, 35.f, 40.f);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
-	float InteractBoxDistance = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
-	float InteractBoxStartOffset = 50.f;
+	float InteractLength = 110.f;
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0.01", ClampMax="1.0"))
+	float InteractAngleWeight = 0.7f;
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0.01", ClampMax="1.0"))
+	float InteractDistanceWeight = 0.3f;
 
+	float InteractTimer = 0.f;
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0", ClampMax="1.0"))
+	float InteractInterval = 0.1f;
 	//ADS
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveIn;
