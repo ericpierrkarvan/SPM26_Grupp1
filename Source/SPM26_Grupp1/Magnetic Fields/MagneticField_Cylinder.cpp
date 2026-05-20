@@ -93,7 +93,7 @@ void AMagneticField_Cylinder::Disable()
 	
 	//MagnetVfxComponent->Deactivate();
 	MagnetVfxComponent->SetAsset(EmptyVFX);
-	UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
+	if (EmptyVFX) UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
 	Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//SetActorHiddenInGame(true);
 	
