@@ -3,7 +3,6 @@
 
 #include "DeathField.h"
 
-#include "InterchangeTranslatorBase.h"
 #include "Characters/SPMCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
