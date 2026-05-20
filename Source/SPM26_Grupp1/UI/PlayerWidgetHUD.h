@@ -31,6 +31,10 @@ public:
 	void OnContextActionActivated(const TArray<ETutorialPrompt>& Prompts, bool bActivated);
 	UFUNCTION()
 	void OnADSScanChanged(const TArray<AActor*>& Actors);
+	UFUNCTION()
+	void OnPolaritySwitchUnlocked(bool bUnlocked);
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPolaritySwitchUnlocked_BP(bool bUnlocked);
 	void SetOwningCharacter(AActor* NewCharacter);
 
 	UFUNCTION(BlueprintImplementableEvent)

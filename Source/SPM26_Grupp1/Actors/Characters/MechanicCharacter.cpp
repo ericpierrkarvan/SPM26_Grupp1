@@ -75,6 +75,7 @@ void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 			});
 		}
 		bCanEverChangeMagneticGunPolartiy = Progress->HasFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
+		OnPolaritySwitchUnlocked.Broadcast(bCanEverChangeMagneticGunPolartiy);
 	}
 }
 
