@@ -131,6 +131,8 @@ protected:
 	
 private:	
 	
+	void OnActivationChanged(AActor* Interactor, bool bIsOn);
+	
 	// Components
 	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* Capsule;

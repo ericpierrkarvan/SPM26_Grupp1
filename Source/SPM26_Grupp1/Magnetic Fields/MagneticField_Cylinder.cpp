@@ -713,3 +713,11 @@ int32 AMagneticField_Cylinder::GetPolarityValue() const
 {
 	return Polarity == EPolarity::Positive ? 1 : -1;
 }
+
+void AMagneticField_Cylinder::OnActivationChanged(AActor* Interactor, bool bIsOn)
+{
+	if (bIsOn)
+	{
+		Activate();
+	}
+}
