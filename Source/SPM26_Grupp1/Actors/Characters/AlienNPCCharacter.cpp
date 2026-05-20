@@ -69,6 +69,7 @@ void AAlienNPCCharacter::TryPushBack(float DeltaTime)
 	if (const AAlienAIController* AI = Cast<AAlienAIController>(GetController()))
 	{
 		const UBlackboardComponent* BBC = AI->GetBlackboardComponent();
+		if (!BBC) return;
 		if (!BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"))) return;
 	}
 	

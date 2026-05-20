@@ -29,20 +29,6 @@ void ASPMGameModeBase::SwitchKeyboardToPlayer()
 	SwapPossession();
 }
 
-void ASPMGameModeBase::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	UGameInstance* GI = GetGameInstance();
-	if (GI->GetNumLocalPlayers() < 2)
-	{
-		FString Error;
-		GI->CreateLocalPlayer(1, Error, true);
-	}
-	
-	SpawnPlayersAtStart();
-}
-
 void ASPMGameModeBase::SwapPossession()
 {
 	ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
@@ -84,7 +70,29 @@ void ASPMGameModeBase::SwapPossession()
 }
 #endif
 
-
+void ASPMGameModeBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	UGameInstance* GI = GetGameInstance();
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Error, TEXT("BeginPlay: GameInstance is null!"));
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("BeginPlay: NumLocalPlayers: %d"), GI->GetNumLocalPlayers());
+	
+	if (GI->GetNumLocalPlayers() < 2)
+	{
+		FString Error;
+		ULocalPlayer* NewPlayer = GI->CreateLocalPlayer(1, Error, true);
+		if (!NewPlayer)
+			UE_LOG(LogTemp, Error, TEXT("BeginPlay: Failed to create local player: %s"), *Error);
+	}
+	
+	SpawnPlayersAtStart();
+}
 
 void ASPMGameModeBase::SpawnPlayersAtStart()
 {
@@ -97,10 +105,18 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 	{
 		ULocalPlayer* LocalPlayer = GI->GetLocalPlayers()[i];
 		APlayerController* PlayerController = LocalPlayer->GetPlayerController(GetWorld());
-		if (!PlayerController) continue;
+		if (!PlayerController) 		
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SpawnPlayersAtStart(): PlayerController null"));
+			continue;
+		}
 		
 		AActor* StartSpot = FindPlayerStart(PlayerController);
-		if (!StartSpot) continue;
+		if (!StartSpot)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SpawnPlayersAtStart(): StartSpot null"));
+			continue;
+		}
 		
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -112,8 +128,9 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 		Params);
 
 		PlayerController->Possess(NewPawn);
+		//UE_LOG(LogTemp, Warning, TEXT("New Character Spawned: %s, Actor Location: %s"), *NewPawn->GetName(), *NewPawn->GetActorLocation().ToCompactString());
 	}
 	
-	SpawnPlayersAtStartBP();
+	SpawnPlayersAtStartBP(); // sound event
 }
 
