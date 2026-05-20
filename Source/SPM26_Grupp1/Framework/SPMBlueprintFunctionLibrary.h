@@ -21,6 +21,18 @@ struct FCharacterColors
 	FLinearColor MechanicColorB = FLinearColor::FromSRGBColor(FColor::FromHex("847527FF"));
 };
 
+USTRUCT(BlueprintType)
+struct FPolarityColors
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor Positive = FLinearColor(0.1f, 0.7f, 0.9f, 1.0f);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor Negative = FLinearColor(1.0f, 0.3f, 0.02f, 1.0f);
+};
+
 UCLASS()
 class SPM26_GRUPP1_API USPMBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
@@ -28,4 +40,7 @@ class SPM26_GRUPP1_API USPMBlueprintFunctionLibrary : public UBlueprintFunctionL
 public:
 	UFUNCTION(BlueprintPure, Category = "Color")
 	static FCharacterColors GetCharacterColors();
+
+	UFUNCTION(BlueprintPure, Category = "Color")
+	static FPolarityColors GetPolarityColors();
 };

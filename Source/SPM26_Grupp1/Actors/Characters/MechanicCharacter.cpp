@@ -296,7 +296,7 @@ void AMechanicCharacter::SwitchPolarity_Implementation()
 	if (MagnetGun)
 	{
 		SwitchPolarityTimer = PolaritySwitchCooldown;
-		MagnetGun->SwitchPolarity();
+		MagnetGun->SwitchPolarity(PolaritySwitchCooldown);
 		EPolarity NewPolarity = MagnetGun->GetPolarity();
 		OnPolaritySwitched.Broadcast(NewPolarity, PolaritySwitchCooldown);
 		OnSwitchPolarity(NewPolarity);
