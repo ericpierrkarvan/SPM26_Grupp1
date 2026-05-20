@@ -6,6 +6,7 @@
 #include "RobotCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 class ARobotCharacter;
@@ -41,7 +42,7 @@ void AAlienNPCCharacter::PushBack(AActor* Actor)
 	AwayDirection.Z = PushbackHeightArc; // arc height of pushback
 	AwayDirection.Normalize();
 	
-	if (const ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) Robot->CancelDash();
+	if (const ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) Robot->GetRobotMovementComponent()->CancelDash();
 	
 	if (const ACharacter* Character = Cast<ACharacter>(Actor))
 	{

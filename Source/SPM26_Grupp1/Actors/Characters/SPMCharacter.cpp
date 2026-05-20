@@ -96,6 +96,57 @@ void ASPMCharacter::BeginPlay()
 void ASPMCharacter::OnDeath()
 {
 	StopADS();
+	ActivateRagdoll();
+}
+
+void ASPMCharacter::ActivateRagdoll()
+{
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	GetMesh()->SetCollisionProfileName(TEXT("RAGDOLL"));
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->WakeAllRigidBodies();
+	GetMesh()->bBlendPhysics = true;
+
+	GetSPMMovementComponent()->StopMovementImmediately();
+	GetSPMMovementComponent()->DisableMovement();
+	GetSPMMovementComponent()->SetComponentTickEnabled(false);
+	UE_LOG(LogTemp, Warning, TEXT("Ragdoll physics Activated"));
+}
+
+void ASPMCharacter::DeactivateRagdoll()
+{
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	if (!CapsuleComp) return;
+	
+	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
+	GetMesh()->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
+	GetMesh()->PutAllRigidBodiesToSleep();
+	
+	GetMesh()->bBlendPhysics = false;
+	GetMesh()->SetSimulatePhysics(false);
+	GetMesh()->SetAllBodiesSimulatePhysics(false);
+	
+	GetMesh()->SetEnableGravity(true);
+	GetMesh()->SetLinearDamping(0.01f);
+	GetMesh()->SetAngularDamping(0.05f);
+	
+	GetMesh()->AttachToComponent(CapsuleComp, FAttachmentTransformRules::KeepRelativeTransform);
+	GetMesh()->SetRelativeLocation(FVector(0.f,0.f, -CapsuleComp->GetScaledCapsuleHalfHeight()));
+	GetMesh()->SetRelativeRotation(FRotator(0.f,-90.f,0.f));
+	
+	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Block);
+	CapsuleComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	
+	GetMesh()->SetCollisionProfileName(TEXT("Mesh"));
+	
+	GetSPMMovementComponent()->SetComponentTickEnabled(true);
+	GetSPMMovementComponent()->SetMovementMode(MOVE_Walking);
+	UE_LOG(LogTemp, Warning, TEXT("Ragdoll physics deactivated"));
 }
 
 void ASPMCharacter::SetInputEnabled(bool bEnabled)

@@ -26,7 +26,7 @@ public:
 	float MantleUpOffsetDistance = 30.f;
 
 	UPROPERTY(EditAnywhere, Category = "Mantle")
-	float MantleReachHeight = 50.f;
+	float MantleReachHeight = 55.f;
 
 	UPROPERTY(EditAnywhere, Category = "Mantle")
 	float MantleMinWallSteepnessAngle = 75.f;
@@ -42,11 +42,13 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "DoubleJump")
 	FOnDoubleJump DoubleJumpEvent;
-
-
+	
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
-
+	void MechanicDoubleJump();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
+	float DoubleJumpVelocityMultiplier = 1.4f;
 private:
 	int RootMotionSourceID;
 	TSharedPtr<FRootMotionSource_MoveToForce> RootMotionSource;
@@ -58,4 +60,6 @@ private:
 
 	void InitAnimations();
 	FTimerHandle TimerHandle;
+	
+
 };

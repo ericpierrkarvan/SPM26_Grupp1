@@ -12,8 +12,6 @@
 #include "Components/SphereComponent.h"
 #include "Engine/OverlapResult.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
-#include "SPM26_Grupp1/Actors/Checkpoint.h"
-#include "SPM26_Grupp1/Actors/DeathField.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
@@ -52,8 +50,7 @@ void ARobotCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EIC->BindAction(IA_Dash, ETriggerEvent::Triggered, this, &ARobotCharacter::PerformDash);
-
+		EIC->BindAction(IA_Dash, ETriggerEvent::Triggered, GetRobotMovementComponent(), &URobotMovementComponent::PerformDash);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &ARobotCharacter::OnLaunchPressed);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &ARobotCharacter::OnLaunchReleased);
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Started, this, &ARobotCharacter::OnShootPressed);
@@ -151,15 +148,6 @@ FVector ARobotCharacter::GetLaunchForce(UCharacterMovementComponent* CharMoveCom
 	return TotalHorizontalForce + TotalVerticalForce;
 }
 
-void ARobotCharacter::SmoothRotationWhenDashing(float DeltaSeconds)
-{
-	const FRotator CurrentRotation = GetActorRotation();
-	const FRotator TargetRotation = DashDirection.Rotation();
-	const FRotator SmoothedRotation =
-		FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, DashRotationSpeed);
-	SetActorRotation(SmoothedRotation);
-}
-
 void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 {
 	if (bIsPickingUp && HeldActor)
@@ -253,7 +241,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 
 void ARobotCharacter::OnDeath()
 {
-	CancelDash();
+	GetRobotMovementComponent()->CancelDash();
 	
 	if (!bHavePayload)
 	{
@@ -270,9 +258,6 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
 	CheckMovementState();
 	UpdateADSScan(DeltaSeconds);
-	
-	if (DashTimer > 0)
-		DashTimer -= DeltaSeconds;
 
 	if (bHavePayload && !bIsInLaunchMode)
 	{
@@ -284,8 +269,6 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 		}
 	}
 	
-	if (IsDashing()) SmoothRotationWhenDashing(DeltaSeconds);
-
 	
 	if (bLaunchIsCharging)
 	{
@@ -506,60 +489,6 @@ void ARobotCharacter::PossessedBy(AController* NewController)
 URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 {
 	return Cast<URobotMovementComponent>(GetCharacterMovement());
-}
-
-void ARobotCharacter::PerformDash()
-{
-	if (!CanDash()) return;
-
-	if (!GetRobotMovementComponent()) return;
-
-	if (bIsWithinMagneticField)
-	{
-		MagneticComponent->StartAttractImmunity(ImmunityInSeconds);
-		//StartMagnetizableImmunity(ImmunityInSeconds);
-	}
-	bIsDashing = true;
-
-	FRotator ControlRotation = GetController()->GetControlRotation();
-	FRotator YawRotation{0, ControlRotation.Yaw, 0};
-
-	DashDirection = GetActorForwardVector(); //FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	FVector DashVector = (DashDirection + FVector(0, 0, 0.1f)) * DashPower;
-
-	TSharedPtr<FRootMotionSource_ConstantForce> DashSource = MakeShared<FRootMotionSource_ConstantForce>();
-	DashSource->InstanceName = TEXT("Dash");
-	DashSource->AccumulateMode = ERootMotionAccumulateMode::Override;
-	DashSource->Priority = 5;
-	DashSource->Force = DashVector;
-	DashSource->Duration = DashDuration;
-
-	DashSource->FinishVelocityParams.Mode = ERootMotionFinishVelocityMode::SetVelocity;
-	DashSource->FinishVelocityParams.SetVelocity = DashDirection * (DashPower / 2.f);
-	GetRobotMovementComponent()->OnDashEvent.Broadcast(IsDashing());
-	GetRobotMovementComponent()->ApplyRootMotionSource(DashSource);
-	GetWorld()->GetTimerManager().SetTimer(DashHandle, this, &ARobotCharacter::ResetDashHandle, DashDuration, false);
-	DashTimer = DashCooldown;
-}
-
-void ARobotCharacter::CancelDash() const
-{
-	if (!bIsDashing) return;
-	
-	if (GetRobotMovementComponent()->GetRootMotionSource(TEXT("Dash")))
-	{
-		GetRobotMovementComponent()->RemoveRootMotionSource(TEXT("Dash"));
-	}
-}
-
-bool ARobotCharacter::IsDashing() const
-{
-	return bIsDashing;
-}
-
-bool ARobotCharacter::CanDash() const
-{
-	return !bIsInLaunchMode && DashTimer <= 0;
 }
 
 void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

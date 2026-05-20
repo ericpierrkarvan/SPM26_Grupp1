@@ -85,28 +85,6 @@ void ASPMGameModeBase::SwapPossession()
 #endif
 
 
-void ASPMGameModeBase::RespawnPlayer(AController* Controller)
-{
-	if (!Controller) return;
-
-	ASPMPlayerController* PlayerController = Cast<ASPMPlayerController>(Controller);
-	if (!PlayerController) return;
-
-	FTransform RespawnTransform = PlayerController->GetCheckpointTransform();
-
-	if (APawn* Pawn = PlayerController->GetPawn())
-	{
-		if (ASPMCharacter* SPMChar = Cast<ASPMCharacter>(Pawn))
-		{
-			SPMChar->OnDeath();
-			SPMChar->OnRespawn.Broadcast(true);
-		}
-
-		Pawn->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
-	}
-	
-	RespawnPlayerBP();
-}
 
 void ASPMGameModeBase::SpawnPlayersAtStart()
 {

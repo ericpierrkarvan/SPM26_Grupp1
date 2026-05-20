@@ -25,7 +25,10 @@ enum class ERobotMovementState : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMovementStateChanged, ERobotMovementState, NewState);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible, bool, bCanEverPrimeLaunch);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnLaunchStateChanged, float, Percentage, bool, bVisible, bool,
+                                               bCanEverPrimeLaunch);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADSScanChanged, const TArray<AActor*>&, Actors);
 
 
@@ -41,35 +44,36 @@ class SPM26_GRUPP1_API ARobotCharacter : public ASPMCharacter
 	ARobotCharacter(const FObjectInitializer& ObjectInitializer);
 
 public:
-	
 	// Virtual
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void SwitchPolarity_Implementation() override;
 	virtual void ForceSwitchPolarity();
-	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce, FVector ProjectileVelocity) override;
+	virtual void OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity, float ImpactForce,
+	                                     FVector ProjectileVelocity) override;
 	virtual void OnMovementModeChanged(const EMovementMode PrevMovementMode, const uint8 PreviousCustomMode) override;
 	void CheckFallingTransition();
-	virtual void Landed(const FHitResult& HitResult) override; 
+	virtual void Landed(const FHitResult& HitResult) override;
 
 	// Getters & Setters
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage() const;
 	void SetIsWithinMagneticField(bool bNewValue);
 	bool GetIsWithinMagneticField() const;
+	bool GetIsInLaunchMode() const { return bIsInLaunchMode; }
+	float GetMagneticFieldImmunity() const { return ImmunityInSeconds; }
 	int32 GetPolarityValue() const;
 	virtual EPolarity GetPolarity() const override;
 	FVector GetLaunchForce(UCharacterMovementComponent* CharMoveComp = nullptr) const;
-	
+	UMagneticComponent* GetMagneticComponent() const { return MagneticComponent; }
+
 	// Mechanics
 	void StartRepelImmunity();
-	void CancelDash() const;
 	void ProgressEnablePolaritySwitch();
-	
+
 	// Bools
-	bool IsDashing() const;
 	bool CanBeAffectedByMagneticField() const;
 	bool CanBeRepelled() const;
-	
+
 	// Delegates
 	UPROPERTY(BlueprintAssignable)
 	FOnLaunchStateChanged OnLaunchStateChanged;
@@ -79,6 +83,7 @@ public:
 	FOnADSScanChanged OnADSScanChanged;
 
 	virtual void OnDeath();
+	URobotMovementComponent* GetRobotMovementComponent() const;
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -86,13 +91,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> IMC_Robot;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	UMagneticComponent* MagneticComponent;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch")
 	USphereComponent* PlatformDetectionSphere;
 	UPROPERTY(VisibleAnywhere, Category="HeadLaunch")
@@ -103,11 +108,11 @@ protected:
 
 	//time before the head accepts something as being on its head
 	UPROPERTY(EditAnywhere, Category="HeadLaunch", meta=(ClampMin=0.f, ClampMax=1.f))
-	float PayloadLandingConfirmTime = 0.1f; 
+	float PayloadLandingConfirmTime = 0.1f;
 
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Camera")
 	bool bInvertCameraPitch = false;
-	
+
 	//values equal or lower gets the max range
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
 	float PitchAtMaxRange = 20.f;
@@ -118,12 +123,12 @@ protected:
 
 	//The angle of the launch if camera is at min angle or lower
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=45.f))
-	float LaunchAngleMaxRange = 45.f; 
+	float LaunchAngleMaxRange = 45.f;
 
 	//The angle of the launch if camera is at max angle or greater
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Angle", meta=(ClampMin=0.f, ClampMax=90.f))
 	float LaunchAngleMinRange = 70.f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|DEV")
 	bool bDrawLauncherSphere = false;
 
@@ -140,7 +145,7 @@ protected:
 	//multiplier for force when trying to launch high arcs
 	UPROPERTY(EditAnywhere, Category="HeadLaunch|Power", meta=(ClampMin=0.1f, ClampMax=1.f))
 	float SteepAngleForceScale = 0.6f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "HeadLaunch|Power", meta=(ClampMin=0.f, ClampMax=4.f))
 	float MaxLaunchChargeTime = 2.f;
 
@@ -154,7 +159,7 @@ protected:
 	UFMODAudioComponent* HeadLaunchStartAudioComp;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HeadLaunch|Audio")
 	UFMODAudioComponent* HeadLaunchEndAudioComp;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Audio")
 	UFMODAudioComponent* WalkingAudioComp;
 
@@ -164,7 +169,7 @@ protected:
 	float ADSObjectOnHeadMovementMultiplier = 0.1;
 
 	virtual bool FindPickup() override;
-	
+
 	UPROPERTY(EditAnywhere, Category="Camera|Payload")
 	float PayloadCameraArmLength = 450.f;
 
@@ -185,13 +190,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	UMaterialInterface* CRTMaterial;
-	
+
 	UPROPERTY(EditAnywhere, Category="ADS|CRT")
 	float CRTBlendSpeed = 5.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Launch")
 	bool bCanEverPrimeLaunch = false;
-	
+
 	UPROPERTY(EditAnywhere, Category="ADS")
 	bool bForceADSPayloadMode = true;
 	virtual void StartADS() override;
@@ -203,43 +208,26 @@ protected:
 	bool bDrawScanDebug = false;
 	UPROPERTY(EditAnywhere, Category="Scan")
 	float ScanSphereRadius = 2000.f;
+
 private:
-	URobotMovementComponent* GetRobotMovementComponent() const;
-	FTimerHandle DashHandle;
+	
 	FTimerHandle MagnetizableCooldownHandle;
 	FTimerHandle RepelImmunityHandle;
 	FTimerHandle FallingTimerHandle;
 
-	void PerformDash();
-	bool CanDash() const;
-	void SmoothRotationWhenDashing(float DeltaSeconds);
 	void OnIsPickingUp(float DeltaSeconds);
 	void CheckMovementState();
-	bool bIsDashing = false;
-	void ResetDashHandle(){ bIsDashing = false; }
-	float DashTimer = 0.f;
-	UPROPERTY(EditAnywhere, Category = "Dash")
-	float DashCooldown = 1.0f;
-	
-	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=2000.f))
-	float DashPower = 100.0f;
-	
-	UPROPERTY(EditAnywhere, Category = "Dash", meta=(ClampMin=0.f, ClampMax=10.f))
-	float DashDuration = 0.2f;
-	
-	UPROPERTY(EditAnywhere, Category = "Dash")
-	float DashRotationSpeed = 12.f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float MinimumSpeedToCountAsWalking = 20.f; // only trigger movement audio when above speed
-	
+
 	UPROPERTY(VisibleAnywhere, Category = "Magnet")
 	bool bIsWithinMagneticField = false;
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	float ImmunityInSeconds = 0.2f;
 	UPROPERTY(EditAnywhere, Category = "Magnet")
 	float RepelImmunityInSeconds = 0.7f;
-	
+
 	UFUNCTION()
 	void OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	                            int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -267,8 +255,7 @@ private:
 	bool bLaunchIsCharging = false;
 	bool bHavePayload = false;
 	float PayloadOverlapTime = 0.f;
-	FVector DashDirection;
-	
+
 	float OriginalAirControl;
 	UPROPERTY(EditAnywhere)
 	float LocalAirControlMultiplier = 0.5f;
@@ -278,7 +265,7 @@ private:
 	virtual float GetADSMovementMultiplier() const override;
 
 	bool IsLaunchableObject(AActor* Object) const;
-	
+
 	UPROPERTY()
 	UMaterialInstanceDynamic* CRTMID;
 	float CurrentCRTIntensity = 0.f;
