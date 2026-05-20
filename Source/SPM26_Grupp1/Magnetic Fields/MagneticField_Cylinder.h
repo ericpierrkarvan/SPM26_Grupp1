@@ -31,6 +31,8 @@ public:
 	void SetPolarity(const int32 NewPolarity);
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
+	UNiagaraSystem* GetCurrentVFX() const;
+	void Destroyed();
 	UNiagaraComponent* GetVFXComponent() const;
 	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
@@ -111,9 +113,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraSystem* NegativePolarityVFX;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UNiagaraSystem* EmptyVFX;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
 	UNiagaraComponent* MagnetVfxComponent;
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	bool bIsActive = true;
+
+public:
+	bool IsActive() const;
+	void IsActive(bool bIsActive);
+
+protected:
 	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
 	bool bWasSpawnedByProjectile = false;
 
@@ -129,9 +139,7 @@ protected:
 	TArray<AActor*> ActorsInField;
 	bool bCharacterInsideField = false;
 	
-private:	
-	
-	void OnActivationChanged(AActor* Interactor, bool bIsOn);
+private:
 	
 	// Components
 	UPROPERTY(VisibleAnywhere)
@@ -147,6 +155,9 @@ private:
 	float MaxSpeed = 2000.f;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|General")
 	float SnapOffSet = 100.f; // avoid player inside the wall
+	
+	UPROPERTY(EditAnywhere, Category="AAA_Magnet|General")
+	bool bStartsActive = false;
 	// Center of the magnet's force (from where it pulls/repels)
 	FVector MagnetCenterPoint;
 	
