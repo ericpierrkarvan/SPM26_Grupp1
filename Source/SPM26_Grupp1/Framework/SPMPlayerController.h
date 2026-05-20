@@ -34,13 +34,6 @@ public:
 #if WITH_EDITOR
 	bool bIsSwitchingPlayer = false;
 #endif
-	
-	void SetCheckpoint(ACheckpoint* NewCheckpoint);
-	
-	FTransform GetCheckpointTransform() const;
-	
-	void OnRespawn();
-
 
 	UFUNCTION(BlueprintCallable, Exec, Category="Dev")
 	void EricGiveth();
@@ -67,9 +60,6 @@ protected:
 	TObjectPtr<UInputAction> IA_Interact;
 
 private:
-	UPROPERTY()
-	TObjectPtr<ACheckpoint> LastCheckpoint;
-
 	void OnInteract(const FInputActionValue& Value);
 	void OnEndInteract(const FInputActionValue& Value);
 	UFUNCTION()

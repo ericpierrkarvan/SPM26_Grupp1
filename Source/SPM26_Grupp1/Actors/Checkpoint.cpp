@@ -6,6 +6,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 #include "Dataflow/DataflowSelection.h"
+#include "SPM26_Grupp1/Components/RespawnComponent.h"
 #include "SPM26_Grupp1/Framework/SPMPlayerController.h"
 
 // Sets default values
@@ -46,14 +47,12 @@ void ACheckpoint::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
                             bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (bOneTimeUse && bActivated) return;
-
-	APawn* Pawn = Cast<APawn>(OtherActor);
-	if (!Pawn) return;
 	
-	ASPMPlayerController* Controller = Cast<ASPMPlayerController>(Pawn->GetController());
-	if (!Controller) return;
+	if (!OtherActor) return;
+	URespawnComponent* RespawnComponent = OtherActor->GetComponentByClass<URespawnComponent>();
 	
-	Controller->SetCheckpoint(this);
+	if (!RespawnComponent) return;
+	RespawnComponent->SetCheckpoint(this);
 	
 	bActivated = true;
 	//UE_LOG(LogTemp, Warning, TEXT("Checkpoint Activated"));

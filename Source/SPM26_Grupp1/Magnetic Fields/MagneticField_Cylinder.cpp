@@ -8,6 +8,7 @@
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
@@ -383,8 +384,7 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 {
 	ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor);
 	if (!Robot) return;
-	Robot->CancelDash();
-	
+	Robot->GetRobotMovementComponent()->CancelDash();
 }
 
 void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)

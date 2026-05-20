@@ -25,7 +25,7 @@ void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EIC->BindAction(IA_Shoot, ETriggerEvent::Triggered, this, &AMechanicCharacter::Shoot);
-		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &AMechanicCharacter::MechanicDoubleJump);
+		EIC->BindAction(IA_Jump, ETriggerEvent::Started, GetMechanicMovementComponent(), &UMechanicMovementComponent::MechanicDoubleJump);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Started, this, &AMechanicCharacter::StartADS);
 		EIC->BindAction(IA_ADS, ETriggerEvent::Completed, this, &AMechanicCharacter::StopADS);
 		
@@ -110,23 +110,6 @@ UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() c
 void AMechanicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-void AMechanicCharacter::MechanicDoubleJump()
-{
-	//Bool to check if Mechanic is able to double jump
-	bool CanDoubleJump = !GetMechanicMovementComponent()->IsGrounded()
-		&& GetMechanicMovementComponent()->GetJumpsRemaining() == 1;
-
-	if (CanDoubleJump)
-	{
-		//Launch the character upwards with the force of a normal jump multiplied a little bit to feel more consistent with the first jump
-		float JumpZVelocity = GetMechanicMovementComponent()->JumpZVelocity;
-		LaunchCharacter(FVector(0, 0,
-		                        JumpZVelocity * DoubleJumpVelocityMultiplier), false, true);
-
-		GetMechanicMovementComponent()->DoubleJumpEvent.Broadcast(JumpZVelocity);
-	}
 }
 
 void AMechanicCharacter::EquipWeapon()

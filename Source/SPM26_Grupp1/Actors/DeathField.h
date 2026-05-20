@@ -34,4 +34,22 @@ public:
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, 
+		AActor* OtherActor, 
+		UPrimitiveComponent* OtherOverlappedComponent, 
+		int32 OtherBodyIndex);
+	
+private:
+	TArray<USkeletalMeshComponent*> TrackedRagdolls;
+	
+	UPROPERTY(EditAnywhere, Category="Lava physics")
+	float UpwardsAcceleration = 1500.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Lava Physics")
+	float SurfaceLinearDamping = 20.0f;
 };
+
+
+

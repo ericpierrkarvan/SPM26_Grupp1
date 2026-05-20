@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 
 // Sets default values
 AForcefield::AForcefield()
@@ -106,7 +107,7 @@ void AForcefield::PushBack(AActor* Actor) const
 	if (!Actor) return;
 	const FVector AwayDirection = (Actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 	
-	if (ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) Robot->CancelDash();
+	if (ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) Robot->GetRobotMovementComponent()->CancelDash();
 	
 	if (ACharacter* Character = Cast<ACharacter>(Actor))
 	{

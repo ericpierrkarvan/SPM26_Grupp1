@@ -48,8 +48,6 @@ public:
 	FOnEquipWeapon OnEquipWeapon;
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
-	float DoubleJumpVelocityMultiplier = 1.4f;
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> IMC_Mechanic;
@@ -87,7 +85,6 @@ private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();
 	virtual void BeginPlay() override;
-	void MechanicDoubleJump();
 	void UpdateADSTrace();
 	void Shoot();
 	UFUNCTION(BlueprintCallable)
