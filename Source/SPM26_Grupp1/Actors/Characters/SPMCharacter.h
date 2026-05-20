@@ -38,7 +38,7 @@ enum class ECameraState : uint8
 	Payload  UMETA(DisplayName = "Payload")
 };
 
-
+class URespawnComponent;
 
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
@@ -107,6 +107,11 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetInputEnabled(bool bEnabled);
+	
+	bool IsAlive() const;
+	
+	URespawnComponent* GetRespawnComponent() const;
+
 protected:
 
 	UPROPERTY()
@@ -290,4 +295,12 @@ private:
 	void ResetCoyoteJump();
 	void OnJumpRelease();
 	
+	URespawnComponent* RespawnComponent;
+	
+	FName SavedProfileName;
+	FName SavedMeshProfileName;
+	ECollisionEnabled::Type SavedCollisionEnabled;
+	FCollisionResponseContainer SavedResponses;
+	FTransform RelativeCollisionTransform;
+	FTransform RelativeMeshTransform;
 };
