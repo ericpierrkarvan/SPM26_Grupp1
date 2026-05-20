@@ -46,7 +46,7 @@ public:
 	FOnSurfaceCanSpawnMagneticField OnSurfaceCanSpawnMagneticField;
 	UPROPERTY(BlueprintAssignable)
 	FOnEquipWeapon OnEquipWeapon;
-	
+	virtual void OnDeath() override;
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")

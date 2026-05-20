@@ -42,13 +42,25 @@ public:
 		int32 OtherBodyIndex);
 	
 private:
+	UPROPERTY()
 	TArray<USkeletalMeshComponent*> TrackedRagdolls;
+	
+	UPROPERTY()
+	TArray<UPrimitiveComponent*> BuoyantComponents;
+	
+	UPROPERTY()
+	TArray<AActor*> TrackedActors;
 	
 	UPROPERTY(EditAnywhere, Category="Lava physics")
 	float UpwardsAcceleration = 1500.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Lava Physics")
 	float SurfaceLinearDamping = 20.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Lava Physics")
+	bool ShouldRiseToSurface = false;
+	
+	
 };
 
 

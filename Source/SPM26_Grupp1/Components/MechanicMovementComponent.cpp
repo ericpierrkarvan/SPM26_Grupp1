@@ -19,7 +19,7 @@ void UMechanicMovementComponent::MechanicDoubleJump()
 	//Bool to check if Mechanic is able to double jump
 	bool CanDoubleJump = !IsGrounded()
 		&& GetJumpsRemaining() == 1;
-
+	
 	if (CanDoubleJump)
 	{
 		//Launch the character upwards with the force of a normal jump multiplied a little bit to feel more consistent with the first jump

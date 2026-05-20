@@ -59,6 +59,13 @@ void AMechanicCharacter::StopADS()
 	}
 }
 
+void AMechanicCharacter::OnDeath()
+{
+	Super::OnDeath();
+	StopADS();
+	GetMechanicMovementComponent()->ResetJumpsRemaining();
+}
+
 void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
 	Super::ApplyProgress(Progress);
