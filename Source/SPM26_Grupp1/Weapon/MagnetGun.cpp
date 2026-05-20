@@ -14,6 +14,7 @@ AMagnetGun::AMagnetGun()
 	ProjectileMaxDistance = 10000.f;
 	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMesh"));
 	RootComponent = GunMesh;
+	MuzzleLocation->SetupAttachment(GunMesh);
 	
 	GunVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("GunVFXComponent"));
 	GunVFXComponent->SetupAttachment(RootComponent);

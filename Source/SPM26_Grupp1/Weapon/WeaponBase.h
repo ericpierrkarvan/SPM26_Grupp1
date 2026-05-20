@@ -44,7 +44,9 @@ public:
 	float GetShotsPerSecond() const;
 
 	FVector GetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn);
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	USceneComponent* MuzzleLocation;
 protected:
 	virtual void BeginPlay() override;
 	

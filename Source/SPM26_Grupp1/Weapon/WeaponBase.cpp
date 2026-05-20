@@ -18,6 +18,9 @@ AWeaponBase::AWeaponBase()
 
 	ReloadComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("ReloadAudioComponent"));
 	ReloadComponent->SetupAttachment(RootComponent);
+
+	MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
+	MuzzleLocation->SetupAttachment(RootComponent);
 }
 
 void AWeaponBase::SetCurrentAmmo(int32 NewAmmo)
@@ -64,6 +67,11 @@ FRotator AWeaponBase::SetDirectionOfSpawnedProjectile(FVector TargetLocation, AA
 // Spawn location comes from character's position
 FVector AWeaponBase::GetSpawnLocationOfSpawnedProjectile(AActor* InstigatingPawn)
 {
+	if (MuzzleLocation)
+	{
+		return MuzzleLocation->GetComponentLocation();	
+	}
+	
 	FVector SpawnLocation = InstigatingPawn->GetActorLocation() 
 		+ InstigatingPawn->GetActorForwardVector() * 100.f // forward from player
 		+ FVector(0.f, 0.f, 0.f); // can adjust Z to finetune
