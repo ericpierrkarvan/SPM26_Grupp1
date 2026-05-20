@@ -88,6 +88,8 @@ void AMagneticField_Cylinder::Disable()
 {
 	UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
 	if (!bIsActive) return;
+	if (!MagnetVfxComponent) return;
+	if (!EmptyVFX) return;
 	bIsActive = false;
 	UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
@@ -111,7 +113,7 @@ void AMagneticField_Cylinder::Disable()
 // is triggered upon this destruction
 void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d"), (int32)EndPlayReason);
+	//UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d"), (int32)EndPlayReason);
 	if (Capsule)
 	{
 		Capsule->OnComponentBeginOverlap.RemoveAll(this);
@@ -763,9 +765,9 @@ UNiagaraSystem* AMagneticField_Cylinder::GetCurrentVFX() const
 	return CurrentCachedVFX;
 }
 
+// For debug purposes
 void AMagneticField_Cylinder::Destroyed()
 {
-	
 	Super::Destroyed();
-	UE_LOG(LogTemp, Warning, TEXT("MagneticField Destroyed"));
+	//UE_LOG(LogTemp, Warning, TEXT("MagneticField Destroyed"));
 }
