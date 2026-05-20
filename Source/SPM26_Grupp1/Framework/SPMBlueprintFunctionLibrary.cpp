@@ -7,3 +7,8 @@ FCharacterColors USPMBlueprintFunctionLibrary::GetCharacterColors()
 {
 	return FCharacterColors();
 }
+
+FPolarityColors USPMBlueprintFunctionLibrary::GetPolarityColors()
+{
+	return FPolarityColors();
+}
