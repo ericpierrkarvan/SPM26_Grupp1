@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FMODAudioComponent.h"
+#include "RobotCharacter.h"
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -17,6 +18,7 @@
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
+#include "SPM26_Grupp1/Components/RespawnComponent.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
@@ -59,6 +61,8 @@ ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	GrabAudioComponent = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("GrabAudioComp"));
 	GrabAudioComponent->SetupAttachment(RootComponent);
 	GrabAudioComponent->SetAutoActivate(false);
+
+	RespawnComponent = CreateDefaultSubobject<URespawnComponent>(TEXT("RespawnComponent"));
 }
 
 void ASPMCharacter::OnMagneticProjectileHit(const FHitResult& HitResult, EPolarity ProjectilePolarity,
@@ -91,17 +95,42 @@ void ASPMCharacter::BeginPlay()
 		ApplyProgress(Progress);
 		Progress->OnFlagUnlocked.AddDynamic(this, &ASPMCharacter::HandleFlagUnlocked);
 	}
+
+	SavedProfileName = GetCapsuleComponent()->GetCollisionProfileName();
+	SavedCollisionEnabled = GetCapsuleComponent()->GetCollisionEnabled();
+	SavedResponses = GetCapsuleComponent()->GetCollisionResponseToChannels();
+
+	// Spara även meshens profil
+	if (GetMesh())
+	{
+		SavedMeshProfileName = GetMesh()->GetCollisionProfileName();
+	}
+	
+	RelativeCollisionTransform = GetCapsuleComponent()->GetRelativeTransform();
+	RelativeMeshTransform = GetMesh()->GetRelativeTransform();
 }
 
 void ASPMCharacter::OnDeath()
 {
-	StopADS();
+	if (RespawnComponent->GetIsDead()) return;
 	ActivateRagdoll();
+}
+
+URespawnComponent* ASPMCharacter::GetRespawnComponent() const
+{
+	return RespawnComponent;
+}
+
+bool ASPMCharacter::IsAlive() const
+{
+	if (!RespawnComponent) return false;
+	return !RespawnComponent->GetIsDead();
 }
 
 void ASPMCharacter::ActivateRagdoll()
 {
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+
 	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 
@@ -110,7 +139,7 @@ void ASPMCharacter::ActivateRagdoll()
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->WakeAllRigidBodies();
 	GetMesh()->bBlendPhysics = true;
-
+	
 	GetSPMMovementComponent()->StopMovementImmediately();
 	GetSPMMovementComponent()->DisableMovement();
 	GetSPMMovementComponent()->SetComponentTickEnabled(false);
@@ -120,30 +149,32 @@ void ASPMCharacter::ActivateRagdoll()
 void ASPMCharacter::DeactivateRagdoll()
 {
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
-	if (!CapsuleComp) return;
-	
+	if (!CapsuleComp || !GetMesh()) return;
+
+	FVector RagdollLocation = GetMesh()->GetSocketLocation(TEXT("pelvis"));
+
+	GetMesh()->SetAllBodiesSimulatePhysics(false);
+	GetMesh()->SetSimulatePhysics(false);
+	GetMesh()->bBlendPhysics = false;
+
 	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
 	GetMesh()->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
 	GetMesh()->PutAllRigidBodiesToSleep();
-	
-	GetMesh()->bBlendPhysics = false;
-	GetMesh()->SetSimulatePhysics(false);
-	GetMesh()->SetAllBodiesSimulatePhysics(false);
-	
+
 	GetMesh()->SetEnableGravity(true);
 	GetMesh()->SetLinearDamping(0.01f);
 	GetMesh()->SetAngularDamping(0.05f);
+
+	GetMesh()->SetCollisionProfileName(SavedMeshProfileName);
 	
+	CapsuleComp->SetCollisionProfileName(SavedProfileName);
+	CapsuleComp->SetCollisionEnabled(SavedCollisionEnabled);
+	CapsuleComp->SetCollisionResponseToChannels(SavedResponses);
+	CapsuleComp->SetRelativeTransform(RelativeCollisionTransform);
+
 	GetMesh()->AttachToComponent(CapsuleComp, FAttachmentTransformRules::KeepRelativeTransform);
-	GetMesh()->SetRelativeLocation(FVector(0.f,0.f, -CapsuleComp->GetScaledCapsuleHalfHeight()));
-	GetMesh()->SetRelativeRotation(FRotator(0.f,-90.f,0.f));
-	
-	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Block);
-	CapsuleComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-	
-	GetMesh()->SetCollisionProfileName(TEXT("Mesh"));
-	
+	GetMesh()->SetRelativeTransform(RelativeMeshTransform);
+
 	GetSPMMovementComponent()->SetComponentTickEnabled(true);
 	GetSPMMovementComponent()->SetMovementMode(MOVE_Walking);
 	UE_LOG(LogTemp, Warning, TEXT("Ragdoll physics deactivated"));
@@ -160,7 +191,7 @@ void ASPMCharacter::SetInputEnabled(bool bEnabled)
 		else
 		{
 			DisableInput(CurrentPlayer);
-		}	
+		}
 	}
 }
 

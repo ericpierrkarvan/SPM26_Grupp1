@@ -22,22 +22,27 @@ public:
 	void SetCheckpoint(ACheckpoint* NewCheckpoint);
 	FTransform GetCheckpointTransform() const;
 
+	bool GetIsDead() const { return bIsDead; }
+	void Kill() { bIsDead = true; }
+
 protected:
 	virtual void BeginPlay() override;
-	
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Spawning|Sound Events")
 	void RespawnPlayerBP();
 
 private:
 	FVector OriginalPosition;
-	
+	FRotator OriginalRotation;
+
 	void OnRespawnActor();
-	
+
 	UPROPERTY()
 	TObjectPtr<ACheckpoint> LastCheckpoint;
-	
+
 	UPROPERTY(EditAnywhere)
-	float RespawnDelay = 1.f;
-	
+	float RespawnDelay = 3.f;
+
 	FTimerHandle RespawnTimerHandle;
+	bool bIsDead = false;
 };

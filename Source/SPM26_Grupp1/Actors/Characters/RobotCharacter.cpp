@@ -241,6 +241,7 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 
 void ARobotCharacter::OnDeath()
 {
+	Super::OnDeath();
 	GetRobotMovementComponent()->CancelDash();
 	
 	if (!bHavePayload)

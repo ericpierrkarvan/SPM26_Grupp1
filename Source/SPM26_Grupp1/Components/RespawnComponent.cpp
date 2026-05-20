@@ -17,6 +17,7 @@ void URespawnComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	OriginalPosition = GetOwner()->GetActorLocation();
+	OriginalRotation = GetOwner()->GetActorRotation();
 }
 
 
@@ -29,20 +30,24 @@ void URespawnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void URespawnComponent::Respawn()
 {
-	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, &URespawnComponent::OnRespawnActor, RespawnDelay, false);
+	if (bIsDead) return;
+	
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, &URespawnComponent::OnRespawnActor, RespawnDelay,
+	                                       false);
 }
 
 void URespawnComponent::OnRespawnActor()
 {
 	FTransform RespawnTransform = GetCheckpointTransform();
 
-	if (ASPMCharacter* SPMChar = Cast<ASPMCharacter>(GetOwner()))
+	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
 	{
-		SPMChar->DeactivateRagdoll();
+		Character->DeactivateRagdoll();
 	}
-	
+
 	GetOwner()->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
 	RespawnPlayerBP();
+	bIsDead = false;
 }
 
 void URespawnComponent::SetCheckpoint(ACheckpoint* NewCheckpoint)
@@ -52,14 +57,14 @@ void URespawnComponent::SetCheckpoint(ACheckpoint* NewCheckpoint)
 
 FTransform URespawnComponent::GetCheckpointTransform() const
 {
+	FVector ActorScale = GetOwner()->GetActorScale3D();
+
 	if (LastCheckpoint)
 	{
 		FVector CheckpointLocation = LastCheckpoint->GetActorLocation();
 		FRotator CheckpointRotation = LastCheckpoint->GetActorRotation();
-		FVector ActorScale = GetOwner()->GetActorScale3D();
-
 		return FTransform(CheckpointRotation, CheckpointLocation, ActorScale);
 	}
 
-	return FTransform::Identity;
+	return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
 }
