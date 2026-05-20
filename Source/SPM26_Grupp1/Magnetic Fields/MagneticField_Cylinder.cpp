@@ -2,12 +2,15 @@
 
 
 #include "MagneticField_Cylinder.h"
+
+#include "NiagaraSystem.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/Components/InteractableReceiverComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
@@ -24,6 +27,7 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 	
 	MagnetVfxComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MagnetVFX"));
 	MagnetVfxComponent->SetupAttachment(RootComponent);
+	MagnetVfxComponent->SetAutoDestroy(false);
 
 	Capsule->SetCollisionResponseToChannel(ECC_PROJECTILE, ECR_Ignore);
 	
@@ -36,8 +40,6 @@ AMagneticField_Cylinder::AMagneticField_Cylinder()
 // Called when the game starts or when spawned
 void AMagneticField_Cylinder::BeginPlay()
 {
-	
-	// Blueprint's own separate bindings calls here somehow?
 	Super::BeginPlay(); 
 	
 	Capsule->OnComponentBeginOverlap.RemoveAll(this);
@@ -47,32 +49,61 @@ void AMagneticField_Cylinder::BeginPlay()
 	
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMagneticField_Cylinder::CheckInitialOverlaps);
 	
+	// Handle Static field
+	if (!bWasSpawnedByProjectile)
+	{
+			if (bStartsActive)
+        	{
+        		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
+        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+        		bIsActive = false;
+        		Activate();
+        	}
+        	else
+        	{
+        		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
+        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+        		bIsActive = true;
+        		Disable();
+        	}
+	}
+	
 }
 
 void AMagneticField_Cylinder::Activate()
 {
+	UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
 	if (bIsActive) return;
 	bIsActive = true;
+	UE_LOG(LogTemp, Warning, TEXT("MF::Activate() bool validation ok"));
 	
-	MagnetVfxComponent->Activate();
-	UE_LOG(LogTemp, Warning, TEXT("Magnet VFX activated: %p"), MagnetVfxComponent);
-
+	//MagnetVfxComponent->Activate();
+	MagnetVfxComponent->SetAsset(GetCurrentVFX());
+	UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
+	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SetActorHiddenInGame(false);
 }
 
 void AMagneticField_Cylinder::Disable()
 {
+	UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
 	if (!bIsActive) return;
 	bIsActive = false;
+	UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
-	MagnetVfxComponent->Deactivate();
+	//MagnetVfxComponent->Deactivate();
+	MagnetVfxComponent->SetAsset(EmptyVFX);
+	if (EmptyVFX) UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
+	Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//SetActorHiddenInGame(true);
 	
 	// Restore character movement if inside field when disabled
-	if (TargetCharacter)
-	{
-		RestoreMovement(TargetCharacter);
-		TargetCharacter = nullptr;
-		bHasCrippled = false;
-	}
+	// if (TargetCharacter)
+	// {
+	// 	RestoreMovement(TargetCharacter);
+	// 	TargetCharacter = nullptr;
+	// 	bHasCrippled = false;
+	// }
 
 }
 
@@ -80,6 +111,7 @@ void AMagneticField_Cylinder::Disable()
 // is triggered upon this destruction
 void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d"), (int32)EndPlayReason);
 	if (Capsule)
 	{
 		Capsule->OnComponentBeginOverlap.RemoveAll(this);
@@ -99,7 +131,6 @@ void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AMagneticField_Cylinder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 	if (!bIsActive) return;
 	if (ActorsInField.IsEmpty()) return;
 	
@@ -579,6 +610,16 @@ void AMagneticField_Cylinder::RestoreMovement(const ACharacter* Character) const
 
 }
 
+bool AMagneticField_Cylinder::IsActive() const
+{
+	return bIsActive;
+}
+
+void AMagneticField_Cylinder::IsActive(bool bNewIsActive)
+{
+	this->bIsActive = bIsActive;
+}
+
 // Used in OverlapBegin to tag Robot in/not in field
 void AMagneticField_Cylinder::IfRobotSetWithinMagneticField(const bool bNewValue, AActor* OtherActor)
 {
@@ -712,4 +753,19 @@ EPolarity AMagneticField_Cylinder::GetPolarity() const
 int32 AMagneticField_Cylinder::GetPolarityValue() const
 {
 	return Polarity == EPolarity::Positive ? 1 : -1;
+}
+
+UNiagaraSystem* AMagneticField_Cylinder::GetCurrentVFX() const
+{
+	// Cached because need to set EmptyVFX for some reason
+	UNiagaraSystem* CurrentCachedVFX = (Polarity == EPolarity::Positive) ? PositivePolarityVFX : NegativePolarityVFX;
+	//UNiagaraSystem* CurrentVFX = MagnetVfxComponent->GetAsset();
+	return CurrentCachedVFX;
+}
+
+void AMagneticField_Cylinder::Destroyed()
+{
+	
+	Super::Destroyed();
+	UE_LOG(LogTemp, Warning, TEXT("MagneticField Destroyed"));
 }

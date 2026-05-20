@@ -53,21 +53,28 @@ void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
                                  bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == this) return;
+	if (ActorsInField.Contains(OtherActor)) return;
 	
 	if (!CanPass(OtherActor))
 	{
 		PushedBackBP(); // sound event
 		PushBack(OtherActor);
 	}
-	else PassingThroughBP();
-	UE_LOG(LogTemp, Warning, TEXT("PassingThroughBP()"));
+	else
+	{
+		ActorsInField.Add(OtherActor);
+		PassingThroughBP();
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("PassingThroughBP(): OtherComp is %s"), *OtherComp->GetName());
 }
 
 void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	StopPassingThroughBP();
-	UE_LOG(LogTemp, Warning, TEXT("StopPassingThroughBP()"));
+	ActorsInField.Remove(OtherActor);
+	UE_LOG(LogTemp, Warning, TEXT("StopPassingThroughBP(): OverlappedComponent is %s"), *OverlappedComponent->GetName());
 }
 
 void AForcefield::UpdateVFX() const

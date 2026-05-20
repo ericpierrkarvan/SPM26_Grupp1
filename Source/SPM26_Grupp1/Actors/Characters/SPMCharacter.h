@@ -18,6 +18,7 @@ struct FPlayerProgress;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPolaritySwitchUnlocked, bool, Unlocked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget, EProgressFlag, NewProgress);
 
 class UInteractableComponent;
@@ -64,6 +65,8 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
 	FOnPolaritySwitched OnPolaritySwitched;
+	UPROPERTY(BlueprintAssignable, Category = "Polarity")
+	FOnPolaritySwitchUnlocked OnPolaritySwitchUnlocked;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	virtual EPolarity GetPolarity() const;
 	// Called to bind functionality to input
@@ -150,14 +153,17 @@ protected:
 
 	//Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact|Dev")
-	bool bDisplayInteractBoxTrace = false;
+	bool bDebugShowInteractLength = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
-	FVector InteractBoxSize = FVector(25.f, 35.f, 40.f);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
-	float InteractBoxDistance = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interact")
-	float InteractBoxStartOffset = 50.f;
+	float InteractLength = 110.f;
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0.01", ClampMax="1.0"))
+	float InteractAngleWeight = 0.7f;
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0.01", ClampMax="1.0"))
+	float InteractDistanceWeight = 0.3f;
 
+	float InteractTimer = 0.f;
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0", ClampMax="1.0"))
+	float InteractInterval = 0.1f;
 	//ADS
 	UPROPERTY(EditAnywhere, Category="Camera|ADS")
 	TObjectPtr<UCurveFloat> ADSCurveIn;

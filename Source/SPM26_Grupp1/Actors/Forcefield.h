@@ -72,6 +72,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|Pushback")
 	float ObjectPushBackStrength = 1200.f;
 	
+	UPROPERTY()
+	TArray<AActor*> ActorsInField;
+	
 private:
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

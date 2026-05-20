@@ -30,8 +30,11 @@ void ALevelExitTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor->IsA<ACharacter>()) return;
+	if (ActorsInField.Contains(OtherActor)) return;
+	
 	if (OtherActor->IsA<ARobotCharacter>())
 	{
+		ActorsInField.Add(OtherActor);
 		bIsRobotInTriggerArea = true;
 		RobotEnteredLoadNextLevelTriggerBP();
 	}
@@ -48,7 +51,11 @@ void ALevelExitTrigger::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!OtherActor->IsA<ACharacter>()) return;
-	if (OtherActor->IsA<ARobotCharacter>()) bIsRobotInTriggerArea = false;
+	if (OtherActor->IsA<ARobotCharacter>())
+	{
+		ActorsInField.Remove(OtherActor);
+		bIsRobotInTriggerArea = false;
+	}
 	if (OtherActor->IsA<AMechanicCharacter>()) bIsMechanicInTriggerArea = false;
 	
 	StopCountdown();

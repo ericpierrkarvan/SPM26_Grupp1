@@ -458,6 +458,8 @@ void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
 	if (Progress)
 	{
 		bCanEverSwitchPolarity = Progress->HasFlag(EProgressFlag::RobotCanSwitchPolarity);
+		OnPolaritySwitchUnlocked.Broadcast(bCanEverSwitchPolarity);
+		
 		bCanEverHeadLaunch = Progress->HasFlag(EProgressFlag::RobotCanHeadLaunch);
 
 		if (UCapsuleComponent* Capsule = GetCapsuleComponent())

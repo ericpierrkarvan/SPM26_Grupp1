@@ -46,6 +46,8 @@ private:
 	UBoxComponent* Collider;
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* Mesh;
+	UPROPERTY()
+	TArray<AActor*> ActorsInField;
 	
 	// Level to load when triggered
 	UPROPERTY(EditAnywhere, Category="Level")
