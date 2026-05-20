@@ -18,6 +18,7 @@ struct FPlayerProgress;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPolaritySwitchUnlocked, bool, Unlocked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPictureTaken, UTextureRenderTarget2D*, PickupRenderTarget, EProgressFlag, NewProgress);
 
 class UInteractableComponent;
@@ -64,6 +65,8 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Polarity")
 	FOnPolaritySwitched OnPolaritySwitched;
+	UPROPERTY(BlueprintAssignable, Category = "Polarity")
+	FOnPolaritySwitchUnlocked OnPolaritySwitchUnlocked;
 	UFUNCTION(BlueprintCallable, Category="Polarity")
 	virtual EPolarity GetPolarity() const;
 	// Called to bind functionality to input

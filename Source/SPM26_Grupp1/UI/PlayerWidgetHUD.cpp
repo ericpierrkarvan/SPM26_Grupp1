@@ -29,6 +29,11 @@ void UPlayerWidgetHUD::OnADSScanChanged(const TArray<AActor*>& Actors)
 	OnADSScanUpdated(Actors);
 }
 
+void UPlayerWidgetHUD::OnPolaritySwitchUnlocked(bool bUnlocked)
+{
+	OnPolaritySwitchUnlocked_BP(bUnlocked);
+}
+
 void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 {
 	//only subscribe once
@@ -50,6 +55,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		RobotCharacter->OnPolaritySwitched.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		RobotCharacter->OnPictureTaken.RemoveDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 		RobotCharacter->OnADSScanChanged.RemoveDynamic(this, &UPlayerWidgetHUD::OnADSScanChanged);
+		RobotCharacter->OnPolaritySwitchUnlocked.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitchUnlocked);
 	}
 	if (MechanicCharacter)
 	{
@@ -58,6 +64,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		MechanicCharacter->OnSurfaceCanSpawnMagneticField.RemoveDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
 		MechanicCharacter->OnPictureTaken.RemoveDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 		MechanicCharacter->OnEquipWeapon.RemoveDynamic(this, &UPlayerWidgetHUD::OnEquippedWeapon);
+		MechanicCharacter->OnPolaritySwitchUnlocked.RemoveDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitchUnlocked);
 		
 		if (EquippedMagneticWeapon.IsValid())
 		{
@@ -77,6 +84,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		RobotCharacter->OnPolaritySwitched.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitched);
 		RobotCharacter->OnPictureTaken.AddDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 		RobotCharacter->OnADSScanChanged.AddDynamic(this, &UPlayerWidgetHUD::OnADSScanChanged);
+		RobotCharacter->OnPolaritySwitchUnlocked.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitchUnlocked);
 
 	}
 	else if (MechanicCharacter)
@@ -86,6 +94,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		MechanicCharacter->OnSurfaceCanSpawnMagneticField.AddDynamic(this, &UPlayerWidgetHUD::OnMagneticSurfaceChanged);
 		MechanicCharacter->OnPictureTaken.AddDynamic(this, &UPlayerWidgetHUD::OnProgressPickup);
 		MechanicCharacter->OnEquipWeapon.AddDynamic(this, &UPlayerWidgetHUD::OnEquippedWeapon);
+		MechanicCharacter->OnPolaritySwitchUnlocked.AddDynamic(this, &UPlayerWidgetHUD::OnPolaritySwitchUnlocked);
 		
 		if (MechanicCharacter->GetEquippedWeapon())
 		{

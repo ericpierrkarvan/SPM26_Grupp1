@@ -72,8 +72,11 @@ void ASPMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UISubSystem = GetGameInstance()->GetSubsystem<UUISubSystem>();
+	UGameInstance* GI = GetGameInstance();
+	if (!GI) return;
 
+	UISubSystem = GI->GetSubsystem<UUISubSystem>();
+	
 	if (CameraBoom)
 	{
 		DefaultCameraArmLength = CameraBoom->TargetArmLength;
@@ -89,7 +92,11 @@ void ASPMCharacter::BeginPlay()
 	//apply progress
 	if (UProgressSubsystem* Progress = GetGameInstance()->GetSubsystem<UProgressSubsystem>())
 	{
-		ApplyProgress(Progress);
+		//apply progress next tick to give everything enough time to finish loading
+		GetWorldTimerManager().SetTimerForNextTick([this, Progress]()
+	   {
+		   ApplyProgress(Progress);
+	   });
 		Progress->OnFlagUnlocked.AddDynamic(this, &ASPMCharacter::HandleFlagUnlocked);
 	}
 }
