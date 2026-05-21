@@ -46,8 +46,8 @@ void ADeathField::Tick(float DeltaTime)
 		float SurfaceZ = GetActorLocation().Z + Trigger->GetScaledBoxExtent().Z;
 		float Depth = SurfaceZ - Comp->GetComponentLocation().Z;
 
-		Depth = FMath::Clamp(Depth, 0.f, 75.f);
-		
+		Depth = FMath::Clamp(Depth, 0.f, 500.f);
+
 		float BuoyancyStrength = Depth;
 		FVector Force = FVector(0, 0, BuoyancyStrength * Comp->GetMass());
 
@@ -70,8 +70,8 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	if (OtherOverlappedComponent->IsSimulatingPhysics())
 	{
 		BuoyantComponents.AddUnique(OtherOverlappedComponent);
-		//	OtherOverlappedComponent->SetLinearDamping(3.f);
-		//	OtherOverlappedComponent->SetAngularDamping(2.f);
+		OtherOverlappedComponent->SetLinearDamping(30.f);
+		OtherOverlappedComponent->SetAngularDamping(20.f);
 	}
 
 	TrackedActors.AddUnique(OtherActor);
@@ -81,7 +81,8 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		Character->OnDeath();
 		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
-			//Mesh->SetLinearDamping(30.0f);
+			Mesh->SetLinearDamping(150.0f);
+			Mesh->SetAngularDamping(150.0f);
 			TrackedRagdolls.AddUnique(Mesh);
 			BuoyantComponents.AddUnique(Mesh);
 			DeathByDeathFieldBP();
@@ -108,21 +109,17 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	}
 	BuoyantComponents.Remove(OtherOverlappedComponent);
 	TrackedActors.Remove(OtherActor);
-
+	if (TrackedRagdolls.Contains(Mesh))
+		TrackedRagdolls.Remove(Mesh);
+	OtherOverlappedComponent->SetLinearDamping(0.01f);
+	OtherOverlappedComponent->SetAngularDamping(0.05f);
+	if (Mesh)
+		Mesh->SetLinearDamping(0.01f);
+	
+	
 	float LavaSurfaceZ = GetActorLocation().Z + Trigger->GetScaledBoxExtent().Z;
-
+	
 	if (OtherOverlappedComponent->GetComponentLocation().Z >= LavaSurfaceZ - 50.f)
 	{
-		if (Mesh)
-		{
-			if (TrackedRagdolls.Contains(Mesh))
-				TrackedRagdolls.Remove(Mesh);
-
-			Mesh->SetLinearDamping(0.01f);
-			/*
-			OtherOverlappedComponent->SetLinearDamping(0.01f);
-			OtherOverlappedComponent->SetAngularDamping(0.05f);
-			*/
-		}
 	}
 }
