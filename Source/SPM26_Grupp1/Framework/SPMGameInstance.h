@@ -32,7 +32,7 @@ private:
 	TArray<FName> LevelOrder;
 	
 	FName Level1 = "Crater_Whitebox";
-	FName Level2 = "Ship_Whitebox";
+	FName Level2 = "Level2Base";
 	FName MainMenu = "Startmenue";
 	
 	int32 CurrentLevelIndex = 0;
