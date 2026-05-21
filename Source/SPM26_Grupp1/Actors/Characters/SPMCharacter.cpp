@@ -439,6 +439,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	{
 		AActor* Actor = Overlap.GetActor();
 		if (!Actor) continue;
+		if (!CanInteractWith(Actor)) continue;
 		FVector ActorLoc = Actor->GetActorLocation();
 		
 		FHitResult VisHit;
@@ -698,6 +699,13 @@ void ASPMCharacter::UpdateAimDownSight(float DeltaTime)
 		if (ADSCurveAlpha >= 1.f || ADSCurveAlpha <= 0.f)
 			ADSCurveDirection = 0.f;
 	}
+}
+
+bool ASPMCharacter::CanInteractWith(AActor* Actor)
+{
+	if (!Actor) return false;
+	if (Actor == HeldActor) return false;
+	return true;
 }
 
 // Called every frame

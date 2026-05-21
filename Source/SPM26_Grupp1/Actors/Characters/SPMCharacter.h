@@ -245,7 +245,7 @@ protected:
 
 	virtual bool CanJumpInternal_Implementation() const override;
 	APlayerController* GetViewingPlayerController() const; //method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
-	
+	virtual bool CanInteractWith(AActor* Actor);
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -253,6 +253,7 @@ private:
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
+
 	void LookForInteractables(float DeltaTime);
 	
 

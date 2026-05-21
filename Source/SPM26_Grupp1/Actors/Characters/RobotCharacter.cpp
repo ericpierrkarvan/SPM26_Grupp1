@@ -501,6 +501,8 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (OtherActor == this) return;
 	if (bCanEverHeadLaunch && IsLaunchableObject(OtherActor))
 	{
+		
+		ActorsInDetectionSphere.AddUnique(OtherActor);
 		bHavePayload = true;
 		SetCameraState(ECameraState::Payload);
 		if (UISubSystem)
@@ -519,14 +521,9 @@ void ARobotCharacter::OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, 
 	//might cause bugs if we dont do this
 	if (bIsPickingUp && HeldActor == OtherActor) return;
 
+	ActorsInDetectionSphere.Remove(OtherActor);
 	//do we have more than w/e is leaving us?
-	TArray<AActor*> OverlappingActors;
-	PlatformDetectionSphere->GetOverlappingActors(OverlappingActors);
-
-	//remove ourself
-	OverlappingActors.Remove(this);
-
-	if (OverlappingActors.IsEmpty())
+	if (ActorsInDetectionSphere.IsEmpty())
 	{
 		ExitLaunchMode();
 	}
@@ -908,6 +905,13 @@ void ARobotCharacter::UpdateADSScan(float DeltaSeconds)
 #endif
 	
 	OnADSScanChanged.Broadcast(VisibleActors);
+}
+
+bool ARobotCharacter::CanInteractWith(AActor* Actor)
+{
+	if (!Super::CanInteractWith(Actor)) return false;
+	if (ActorsInDetectionSphere.Contains(Actor)) return false;
+	return true;
 }
 
 bool ARobotCharacter::CanBeAffectedByMagneticField() const
