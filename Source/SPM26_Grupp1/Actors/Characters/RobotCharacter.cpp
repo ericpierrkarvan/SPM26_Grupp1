@@ -260,7 +260,7 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 	CheckMovementState();
 	UpdateADSScan(DeltaSeconds);
 
-	if (bHavePayload && !bIsInLaunchMode)
+	if (bCanEverHeadLaunch && bHavePayload && !bIsInLaunchMode)
 	{
 		PayloadOverlapTime += DeltaSeconds;
 		if (PayloadOverlapTime >= PayloadLandingConfirmTime)
@@ -532,6 +532,7 @@ void ARobotCharacter::OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, 
 void ARobotCharacter::EnterLaunchMode()
 {
 	if (bIsInLaunchMode) return;
+	if (!bCanEverHeadLaunch) return;
 	bIsInLaunchMode = true;
 	StartADS();
 	if (bHavePayload || bForceADSPayloadMode) SetCameraState(ECameraState::Payload);
@@ -655,6 +656,8 @@ void ARobotCharacter::LaunchObject(AActor* Actor, const FVector& LaunchForce)
 
 void ARobotCharacter::OnLaunchPressed()
 {
+	if (!bCanEverHeadLaunch) return;
+	
 	if (!bIsInLaunchMode)
 	{
 		//if we're not in launch mode, then we need to enter it
