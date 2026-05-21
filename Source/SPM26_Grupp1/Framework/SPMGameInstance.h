@@ -20,12 +20,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Instance")
 	void RemoveExtraLocalPlayers();
 	void LoadNextLevel();
+	void SetupLocalMultiplayerInput();
 	
 protected:
 	virtual void Init() override;
 	virtual void HandleInputDeviceConnectionChange(EInputDeviceConnectionState NewConnectionState, FPlatformUserId PlatformUserId, FInputDeviceId InputDeviceId) override;
 private:
-	void SetupLocalMultiplayerInput();
+	
 	
 	UPROPERTY(EditDefaultsOnly, Category="Levels")
 	TArray<FName> LevelOrder;
