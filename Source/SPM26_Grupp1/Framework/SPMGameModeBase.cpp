@@ -95,6 +95,22 @@ void ASPMGameModeBase::BeginPlay()
 	SpawnPlayersAtStart();
 }
 
+void ASPMGameModeBase::OnPostLogin(AController* NewPlayer)
+{
+	Super::OnPostLogin(NewPlayer);
+
+#if !WITH_EDITOR
+	APlayerController* PC0 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 0);
+	APlayerController* PC1 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 1);
+	
+	if (PC0 && PC1)
+	{
+		USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
+		if (GI) GI->SetupLocalMultiplayerInput();
+	}
+#endif
+}
+
 void ASPMGameModeBase::SpawnPlayersAtStart()
 {
 	UGameInstance* GI = GetGameInstance();
