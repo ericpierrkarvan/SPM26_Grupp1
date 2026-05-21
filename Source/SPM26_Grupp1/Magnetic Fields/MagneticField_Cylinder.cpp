@@ -74,8 +74,10 @@ void AMagneticField_Cylinder::Activate()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
 	if (bIsActive) return;
+	if (!MagnetVfxComponent) return;
+	if (!Capsule) return;
 	bIsActive = true;
-	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate() bool validation ok"));
+	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate() validation ok"));
 	
 	//MagnetVfxComponent->Activate();
 	MagnetVfxComponent->SetAsset(GetCurrentVFX());
@@ -90,6 +92,7 @@ void AMagneticField_Cylinder::Disable()
 	if (!bIsActive) return;
 	if (!MagnetVfxComponent) return;
 	if (!EmptyVFX) return;
+	if (!Capsule) return;
 	bIsActive = false;
 	//UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
