@@ -274,4 +274,9 @@ private:
 	bool bCanEverSwitchPolarity = false;
 	bool bCanEverHeadLaunch = false;
 	void UpdateADSScan(float DeltaSeconds);
+
+	UPROPERTY()
+	TArray<AActor*> ActorsInDetectionSphere;
+
+	virtual bool CanInteractWith(AActor* Actor) override;
 };

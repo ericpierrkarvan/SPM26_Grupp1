@@ -432,13 +432,14 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	// since the highest score is a combination of angle + distance
 	// positive threshold values gives us interactables that are either:
 	// at a good angle, or very close - or a combination of these
-	float BestPickupScore = 0.4f;
-	float BestInteractableScore = 0.4f;
+	float BestPickupScore = InteractMinDotThreshold;
+	float BestInteractableScore = InteractMinDotThreshold;
 
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
 		AActor* Actor = Overlap.GetActor();
 		if (!Actor) continue;
+		if (!CanInteractWith(Actor)) continue;
 		FVector ActorLoc = Actor->GetActorLocation();
 		
 		FHitResult VisHit;
@@ -698,6 +699,13 @@ void ASPMCharacter::UpdateAimDownSight(float DeltaTime)
 		if (ADSCurveAlpha >= 1.f || ADSCurveAlpha <= 0.f)
 			ADSCurveDirection = 0.f;
 	}
+}
+
+bool ASPMCharacter::CanInteractWith(AActor* Actor)
+{
+	if (!Actor) return false;
+	if (Actor == HeldActor) return false;
+	return true;
 }
 
 // Called every frame

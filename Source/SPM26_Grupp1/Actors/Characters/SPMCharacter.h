@@ -160,7 +160,9 @@ protected:
 	float InteractAngleWeight = 0.7f;
 	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0.01", ClampMax="1.0"))
 	float InteractDistanceWeight = 0.3f;
-
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="-1.0", ClampMax="1.0"))
+	float InteractMinDotThreshold = -0.4f;
+	
 	float InteractTimer = 0.f;
 	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0", ClampMax="1.0"))
 	float InteractInterval = 0.1f;
@@ -243,7 +245,7 @@ protected:
 
 	virtual bool CanJumpInternal_Implementation() const override;
 	APlayerController* GetViewingPlayerController() const; //method needed to see who is currently viewing the character - since we have "tab" to switch characters in development
-	
+	virtual bool CanInteractWith(AActor* Actor);
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -251,6 +253,7 @@ private:
 
 	void UpdateCamera(float DeltaTime);
 	void UpdateAimDownSight(float DeltaTime);
+
 	void LookForInteractables(float DeltaTime);
 	
 
