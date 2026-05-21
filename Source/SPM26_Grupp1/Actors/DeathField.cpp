@@ -63,7 +63,7 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 	URespawnComponent* RespawnComponent = OtherActor->FindComponentByClass<URespawnComponent>();
 
-	//if (!RespawnComponent) return;
+	if (!RespawnComponent) return;
 
 	if (TrackedActors.Contains(OtherActor)) return;
 
