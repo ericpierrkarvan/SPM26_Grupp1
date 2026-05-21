@@ -415,10 +415,18 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 
 void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
+	
+	//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
+	if (!bWasSpawnedByProjectile) return;
 	if (OtherActor == this) return;
 	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
 	if (!OtherField) return;
+	if (!OtherField->WasSpawnedByProjectile() && bWasSpawnedByProjectile)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("OtherField was Static, this field spawned by projectile. Destroying this: %s"), *GetName());
+		this->Destroy();
+		return;
+	}
 	
 	// If fields attract (Different polarities) -> Decrease size of this and Remove OtherField. If CurrentAmount... = 0, destroy this.
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
