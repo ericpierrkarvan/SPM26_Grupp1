@@ -79,6 +79,7 @@ protected:
 	void IfRobotSetWithinMagneticField(bool bNewValue, AActor* OtherActor);
 	void CalculateRepelStrength(const FVector& CurrentPlayerLocation);
 	void CalculatePullStrength(const FVector& CurrentPlayerLocation);
+	void HandleStaticField();
 	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
 
