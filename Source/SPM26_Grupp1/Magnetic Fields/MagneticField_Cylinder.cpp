@@ -54,14 +54,14 @@ void AMagneticField_Cylinder::BeginPlay()
 	{
 			if (bStartsActive)
         	{
-        		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
+        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
         		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
         		bIsActive = false;
         		Activate();
         	}
         	else
         	{
-        		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
+        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
         		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
         		bIsActive = true;
         		Disable();
@@ -72,40 +72,33 @@ void AMagneticField_Cylinder::BeginPlay()
 
 void AMagneticField_Cylinder::Activate()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
 	if (bIsActive) return;
 	bIsActive = true;
-	UE_LOG(LogTemp, Warning, TEXT("MF::Activate() bool validation ok"));
+	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate() bool validation ok"));
 	
 	//MagnetVfxComponent->Activate();
 	MagnetVfxComponent->SetAsset(GetCurrentVFX());
-	UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	SetActorHiddenInGame(false);
+	//SetActorHiddenInGame(false);
 }
 
 void AMagneticField_Cylinder::Disable()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
 	if (!bIsActive) return;
 	if (!MagnetVfxComponent) return;
 	if (!EmptyVFX) return;
 	bIsActive = false;
-	UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
+	//UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
 	//MagnetVfxComponent->Deactivate();
 	MagnetVfxComponent->SetAsset(EmptyVFX);
-	if (EmptyVFX) UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
 	Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//if (EmptyVFX) UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
+	//if (Capsule) UE_LOG(LogTemp, Warning, TEXT("Disable() Capsule to NoCollision"));
 	//SetActorHiddenInGame(true);
-	
-	// Restore character movement if inside field when disabled
-	// if (TargetCharacter)
-	// {
-	// 	RestoreMovement(TargetCharacter);
-	// 	TargetCharacter = nullptr;
-	// 	bHasCrippled = false;
-	// }
 
 }
 
@@ -113,7 +106,7 @@ void AMagneticField_Cylinder::Disable()
 // is triggered upon this destruction
 void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d"), (int32)EndPlayReason);
+	UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d"), (int32)EndPlayReason);
 	if (Capsule)
 	{
 		Capsule->OnComponentBeginOverlap.RemoveAll(this);
@@ -138,7 +131,7 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 	
 	// Clean up any actors destroyed while in the field
 	//ActorsInField.RemoveAll([](const TWeakObjectPtr<AActor>& Actor) { return !Actor.IsValid(); });
-	ActorsInField.RemoveAll([](const AActor* Actor) { return !IsValid(Actor); });
+	ActorsInField.RemoveAll([](const AActor* Actor){ return !IsValid(Actor); });
 	
 	ApplyMagneticForce(DeltaTime);
 
@@ -423,6 +416,7 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
+	if (OtherActor == this) return;
 	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
 	if (!OtherField) return;
 	

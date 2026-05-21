@@ -66,7 +66,7 @@ void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		PassingThroughBP();
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("PassingThroughBP(): OtherComp is %s"), *OtherComp->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("PassingThroughBP(): OtherComp is %s"), *OtherComp->GetName());
 }
 
 void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -74,7 +74,7 @@ void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 {
 	StopPassingThroughBP();
 	ActorsInField.Remove(OtherActor);
-	UE_LOG(LogTemp, Warning, TEXT("StopPassingThroughBP(): OverlappedComponent is %s"), *OverlappedComponent->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("StopPassingThroughBP(): OverlappedComponent is %s"), *OverlappedComponent->GetName());
 }
 
 void AForcefield::UpdateVFX() const
