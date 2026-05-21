@@ -29,7 +29,7 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-	
+	virtual void OnPostLogin(AController* NewPlayer) override;
 private:
 	int32 ActiveKeyboardPlayer = 0;
 	TWeakObjectPtr<APawn> OriginalPawn0;
