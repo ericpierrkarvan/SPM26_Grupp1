@@ -90,7 +90,7 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 	for (const FInputDeviceId& Dev : AllDevices)
 	{
 		const FPlatformUserId Owner = Mapper.GetUserForInputDevice(Dev);
-		if (Owner.IsValid())  //filter out ghost/invalid devices
+		if (Owner.IsValid() && Dev.GetId() != 0)  //filter out ghost/invalid devices
 		{
 			Gamepads.Add(Dev);
 		}

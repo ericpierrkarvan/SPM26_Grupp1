@@ -13,6 +13,17 @@ void UProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	//force all progress in development
 	DevGiveAllProgress();
 #endif
+
+	//bandaid for playtest devbuild level 2
+	// FTimerHandle DevHandle;
+	// GetWorld()->GetTimerManager().SetTimer(
+	// 	DevHandle,
+	// 	[this]()
+	// 	{
+	// 		DevGiveAllProgress();
+	// 	},
+	// 	0.5f,
+	// 	false);
 }
 
 void UProgressSubsystem::SaveProgress()
