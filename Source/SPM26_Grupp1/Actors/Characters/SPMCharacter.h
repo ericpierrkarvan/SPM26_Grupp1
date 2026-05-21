@@ -160,7 +160,9 @@ protected:
 	float InteractAngleWeight = 0.7f;
 	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0.01", ClampMax="1.0"))
 	float InteractDistanceWeight = 0.3f;
-
+	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="-1.0", ClampMax="1.0"))
+	float InteractMinDotThreshold = -0.4f;
+	
 	float InteractTimer = 0.f;
 	UPROPERTY(EditAnywhere, Category="Interact", meta=(ClampMin="0", ClampMax="1.0"))
 	float InteractInterval = 0.1f;

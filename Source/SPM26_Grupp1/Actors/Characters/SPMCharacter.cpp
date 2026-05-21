@@ -432,8 +432,8 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	// since the highest score is a combination of angle + distance
 	// positive threshold values gives us interactables that are either:
 	// at a good angle, or very close - or a combination of these
-	float BestPickupScore = 0.4f;
-	float BestInteractableScore = 0.4f;
+	float BestPickupScore = InteractMinDotThreshold;
+	float BestInteractableScore = InteractMinDotThreshold;
 
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
