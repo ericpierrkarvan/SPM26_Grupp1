@@ -171,32 +171,46 @@ void ASPMPlayerController::OnPause()
 {
 	const bool bIsPaused = UGameplayStatics::IsGamePaused(this);
 	UGameplayStatics::SetGamePaused(this, !bIsPaused);
-	
+
+	ASPMPlayerController* PC0 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	ASPMPlayerController* PC1 = Cast<ASPMPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 1));
+
 	if (!bIsPaused)
 	{
 		if (PauseMenuHudClass && !PauseMenuWidget)
 		{
 			PauseMenuWidget = CreateWidget<UUserWidget>(this, PauseMenuHudClass);
 		}
-
-		SetInputMode(FInputModeUIOnly());
 		
 		if (PauseMenuWidget && !PauseMenuWidget->IsInViewport())
 		{
 			PauseMenuWidget->AddToViewport();
 		}
+
 		
-		bShowMouseCursor = true;
+		if (PC0)
+		{
+			PC0->SetInputMode(FInputModeUIOnly());
+			PC0->bShowMouseCursor = true;
+		}
+		if (PC1)
+		{
+			PC1->SetInputMode(FInputModeUIOnly());
+			PC1->bShowMouseCursor = true;
+		}
 	}
 	else
 	{
-		if (PauseMenuWidget)
+		if (PC0)
 		{
-			PauseMenuWidget->RemoveFromParent();
+			PC0->SetInputMode(FInputModeGameAndUI());
+			PC0->bShowMouseCursor = false;
 		}
-		
-		SetInputMode(FInputModeGameAndUI());
-		bShowMouseCursor = false;
+		if (PC1)
+		{
+			PC1->SetInputMode(FInputModeGameAndUI());
+			PC1->bShowMouseCursor = false;
+		}
 	}
 	
 }
