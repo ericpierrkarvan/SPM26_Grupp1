@@ -49,52 +49,36 @@ void AMagneticField_Cylinder::BeginPlay()
 	
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMagneticField_Cylinder::CheckInitialOverlaps);
 	
-	// Handle Static field
-	if (!bWasSpawnedByProjectile)
-	{
-			if (bStartsActive)
-        	{
-        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
-        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
-        		bIsActive = false;
-        		Activate();
-        	}
-        	else
-        	{
-        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
-        		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
-        		bIsActive = true;
-        		Disable();
-        	}
-	}
+	// FUCK THIS BUGGY ASS SHIT
+	//if (!bWasSpawnedByProjectile) HandleStaticField();
 	
 }
 
 void AMagneticField_Cylinder::Activate()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
+	UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
 	if (bIsActive) return;
 	if (!MagnetVfxComponent) return;
 	if (!Capsule) return;
 	bIsActive = true;
-	//UE_LOG(LogTemp, Warning, TEXT("MF::Activate() validation ok"));
+	UE_LOG(LogTemp, Warning, TEXT("MF::Activate() validation ok"));
 	
 	//MagnetVfxComponent->Activate();
 	MagnetVfxComponent->SetAsset(GetCurrentVFX());
-	//UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	//SetActorHiddenInGame(false);
 }
 
 void AMagneticField_Cylinder::Disable()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
+	UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
 	if (!bIsActive) return;
 	if (!MagnetVfxComponent) return;
 	if (!EmptyVFX) return;
 	if (!Capsule) return;
 	bIsActive = false;
-	//UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
+	UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
 	//MagnetVfxComponent->Deactivate();
 	MagnetVfxComponent->SetAsset(EmptyVFX);
@@ -109,7 +93,7 @@ void AMagneticField_Cylinder::Disable()
 // is triggered upon this destruction
 void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d"), (int32)EndPlayReason);
+	UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d, Actor name: %s"), (int32)EndPlayReason, *GetName());
 	if (Capsule)
 	{
 		Capsule->OnComponentBeginOverlap.RemoveAll(this);
@@ -706,6 +690,28 @@ void AMagneticField_Cylinder::CheckInitialOverlaps()
 		}
 	}
 
+}
+
+void AMagneticField_Cylinder::HandleStaticField()
+{
+	if (bStartsActive && !bIsActive)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
+		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+		//bIsActive = false;
+		Activate();
+	}
+	else if (!bStartsActive && bIsActive)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
+		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+		//bIsActive = true;
+		Disable();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MF::ERROR -> Neither Activate nor Disable fired at beginplay. StartsActive: %hhd, IsActive: %hhd"), (int32)bStartsActive, (int32)bIsActive); 
+	}
 }
 
 int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
