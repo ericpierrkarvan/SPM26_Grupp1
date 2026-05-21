@@ -74,8 +74,7 @@ void ASPMGameModeBase::SwapPossession()
 void ASPMGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	bPlayersSpawned = false;
+	
 	UGameInstance* GI = GetGameInstance();
 	if (!GI)
 	{
@@ -93,30 +92,7 @@ void ASPMGameModeBase::BeginPlay()
 			UE_LOG(LogTemp, Error, TEXT("BeginPlay: Failed to create local player: %s"), *Error);
 	}
 	
-	
-}
-
-
-
-void ASPMGameModeBase::PostLogin(APlayerController* NewPlayer)
-{
-	Super::PostLogin(NewPlayer);
-
-	APlayerController* PC0 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 0);
-	APlayerController* PC1 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 1);
-
-	//when both controllers are connected, then setup the local multiplayer input
-	if (PC0 && PC1)
-	{
-		USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
-		if (GI) GI->SetupLocalMultiplayerInput();
-
-		if (!bPlayersSpawned)
-		{
-			bPlayersSpawned = true;
-			SpawnPlayersAtStart();
-		}
-	}
+	SpawnPlayersAtStart();
 }
 
 void ASPMGameModeBase::SpawnPlayersAtStart()
