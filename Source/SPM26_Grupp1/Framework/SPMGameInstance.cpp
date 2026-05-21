@@ -73,6 +73,14 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 	{
 		return;
 	}
+
+	//assign kb to player0
+	FInputDeviceId KBDevice = FInputDeviceId::CreateFromInternalId(0);
+	const FPlatformUserId KBOwner = Mapper.GetUserForInputDevice(KBDevice);
+	if (KBOwner != User0)
+	{
+		Mapper.Internal_ChangeInputDeviceUserMapping(KBDevice, User0, KBOwner);
+	}
 	
 	TArray<FInputDeviceId> Gamepads;
 	TArray<FInputDeviceId> AllDevices;
