@@ -28,7 +28,8 @@ public:
 	void StopLoadNextLevelBP();
 
 protected:
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
+	TSoftObjectPtr<UWorld> NextLevel;
 private:
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

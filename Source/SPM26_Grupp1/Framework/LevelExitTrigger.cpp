@@ -4,6 +4,7 @@
 #include "LevelExitTrigger.h"
 
 #include "SPMGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
@@ -87,8 +88,15 @@ void ALevelExitTrigger::StopCountdown()
 
 void ALevelExitTrigger::LoadNextLevel() const
 {
-	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
-	if (GI) GI->LoadNextLevel();
+	if (!NextLevel.IsNull())
+	{
+		UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), NextLevel);
+	}
+	else
+	{
+		USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
+		if (GI) GI->LoadNextLevel();
+	}
 }
 
 
