@@ -70,8 +70,8 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	if (OtherOverlappedComponent->IsSimulatingPhysics())
 	{
 		BuoyantComponents.AddUnique(OtherOverlappedComponent);
-		OtherOverlappedComponent->SetLinearDamping(30.f);
-		OtherOverlappedComponent->SetAngularDamping(20.f);
+		OtherOverlappedComponent->SetLinearDamping(60.f);
+		OtherOverlappedComponent->SetAngularDamping(60.f);
 	}
 
 	TrackedActors.AddUnique(OtherActor);
