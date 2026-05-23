@@ -22,6 +22,12 @@ public:
 	void LoadNextLevel();
 	void SetupLocalMultiplayerInput();
 	
+	UFUNCTION(BlueprintCallable, Category = "Character Customization")
+	void SaveSelectedMaterialIndex(int32 NewIndex);
+	
+	UFUNCTION(BlueprintPure, Category = "Character Customization")
+	int32 GetSelectedMaterialIndex() const { return SelectedMaterialIndex; }
+	
 protected:
 	virtual void Init() override;
 	virtual void HandleInputDeviceConnectionChange(EInputDeviceConnectionState NewConnectionState, FPlatformUserId PlatformUserId, FInputDeviceId InputDeviceId) override;
@@ -36,4 +42,7 @@ private:
 	FName MainMenu = "Startmenue";
 	
 	int32 CurrentLevelIndex = 0;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Character Customization")
+	int32 SelectedMaterialIndex = 0;
 };

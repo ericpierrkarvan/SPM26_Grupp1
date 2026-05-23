@@ -9,6 +9,7 @@
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "Kismet/GamePlayStatics.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
+#include "SPM26_Grupp1/Framework/SPMGameInstance.h"
 #include "SPM26_Grupp1/Material/SPMPhysicalMaterial.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
@@ -16,6 +17,7 @@ AMechanicCharacter::AMechanicCharacter(const FObjectInitializer& ObjectInitializ
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMechanicMovementComponent>(
 		ACharacter::CharacterMovementComponentName))
 {
+	
 }
 
 void AMechanicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -118,6 +120,21 @@ UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() c
 void AMechanicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
+	if (!GI) return;
+
+	if (MaterialOptions.Num() > 0)
+	{
+		int32 SavedIndex = GI->GetSelectedMaterialIndex();
+		
+		SavedIndex = FMath::Clamp(SavedIndex, 0, MaterialOptions.Num() - 1);
+		
+		if (MaterialOptions[SavedIndex])
+		{
+			GetMesh()->SetMaterial(0, MaterialOptions[SavedIndex]);
+		}
+	}
 }
 
 void AMechanicCharacter::EquipWeapon()
