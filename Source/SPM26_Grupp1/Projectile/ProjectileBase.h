@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ProjectileBase.generated.h"
 
+class USphereComponent;
+
 UCLASS(Abstract, Blueprintable)
 class SPM26_GRUPP1_API AProjectileBase : public AActor
 {
@@ -16,6 +18,8 @@ public:
 	AProjectileBase(const FObjectInitializer& ObjectInitializer);
 	virtual float GetProjectileMaxDistance() const;
 	float GetImpactForce() const;
+	void IgnoreActor(AActor* ActorToIgnore);
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Projectile")
 	class UProjectileMovementComponent* ProjectileMovementComp;

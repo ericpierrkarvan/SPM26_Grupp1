@@ -65,7 +65,12 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	float ProjectileMaxDistance;
-
+	//how close do we have to be something to consider changing projectile spawn point
+	UPROPERTY(EditDefaultsOnly, Category="Weapon|Cliff")
+	float MuzzleObstructionThreshold = 200.f;
+	//how far away must w/e the camera is viewing have to be. If muzzle < cam, then maybe we're at a cliff
+	UPROPERTY(EditDefaultsOnly, Category="Weapon|Cliff")
+	float MinCameraTargetDistance = 300.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Ammo")
 	float AmmoRegenDelay = 1.0f;
 

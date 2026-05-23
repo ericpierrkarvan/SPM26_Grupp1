@@ -165,40 +165,24 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController) return false;
 
-	// Ignores own character
 	FCollisionQueryParams CameraCollisionParams;
 	CameraCollisionParams.AddIgnoredActor(this);
-
-
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-	//trace from gun to end, we need material
-	CollisionParams.bReturnPhysicalMaterial = true;
+	CameraCollisionParams.bReturnPhysicalMaterial = true;
+	if (EquippedWeapon) CameraCollisionParams.AddIgnoredActor(EquippedWeapon);
 
 	FVector CameraLocation;
 	FRotator CameraRotation;
 	PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-	//first do a trace from camera so we can see what the player is trying to hit with its crosshair
-	//and use that end point for the second trace/direction when we actually spawn the projectile
 	FVector TraceEnd = GetLineTraceEndPoint(CameraLocation, PlayerController);
-	FHitResult CameraHit;
-	//Todo: prob needs its own trace channel
-	GetWorld()->LineTraceSingleByChannel(CameraHit, CameraLocation, TraceEnd, ECC_Visibility, CameraCollisionParams);
+	
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, CameraLocation, TraceEnd, ECC_Visibility, CameraCollisionParams);
+	OutHit.TraceEnd= TraceEnd;
 
-	//we want to get the end location for the camera trace
-	FVector CameraHitLocation = CameraHit.bBlockingHit ? CameraHit.ImpactPoint : TraceEnd;
-
+	//draw the debug trace from muzzle -> end location
 	FVector GunTraceStart = GetCurrentProjectileSpawnLocation();
-	float MaxRange = GetEquippedWeapon() ? GetEquippedWeapon()->GetMaxShootRange() : 1000.f;
-	FVector GunToTarget = (CameraHitLocation - GunTraceStart).GetSafeNormal() * MaxRange;
-	FVector GunTraceEnd = GunTraceStart + GunToTarget;
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, GunTraceStart, GunTraceEnd, ECC_Visibility,
-	                                                 CollisionParams);
-
-	// Draws the linetrace
-	DrawDebugLine(GetWorld(), GunTraceStart, GunTraceEnd, PolarityColor, false, -1, 0, 1);
+	FVector CameraTarget = OutHit.bBlockingHit ? OutHit.ImpactPoint : TraceEnd;
+	DrawDebugLine(GetWorld(), GunTraceStart, CameraTarget, PolarityColor, false, -1, 0, 1);
 
 	return bHit;
 }
