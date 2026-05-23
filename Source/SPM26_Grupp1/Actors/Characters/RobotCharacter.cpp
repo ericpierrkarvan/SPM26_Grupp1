@@ -182,6 +182,11 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 			{
 				Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 				Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+				HeldActor = nullptr; //once we lifted the character, we are no longer holding it
+				HeldPickupComponent = nullptr;
+				bIsPickingUp = false;
+				PickupAlpha = 0.f;
+				return;
 			}
 			else
 			{
@@ -256,7 +261,6 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
 	CheckMovementState();
 	UpdateADSScan(DeltaSeconds);
 

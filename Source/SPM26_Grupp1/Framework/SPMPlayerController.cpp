@@ -157,7 +157,7 @@ void ASPMPlayerController::OnPromptEnd()
 		 ? PlayerHudWidget->GetCurrentCharacter() 
 		 : Cast<ASPMCharacter>(GetPawn());
 
-	UE_LOG(LogTemp, Warning, TEXT("OnPromptEnd - Using: %s"), *GetNameSafe(Char));
+	
 
 	if (Char)
 	{
