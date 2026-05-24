@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
 #include "AlienAIController.generated.h"
 
 /**
@@ -19,6 +20,7 @@ public:
 	virtual void Tick( float DeltaTime ) override;
 	void HandleMechanicOnLineOfSight(float DeltaTime);
 	void HandleRobotOnLineOfSight(float DeltaTime);
+	void HandleFleeFromRobotOnLineOfSight(float DeltaTime);
 
 private:
 	
@@ -32,6 +34,8 @@ private:
 	APawn* MechanicPawn;
 	UPROPERTY()
 	APawn* RobotPawn;
+	UPROPERTY()
+	AAlienNPCCharacter* NPC;
 	
 	// Throttle variables for path check (don't need every frame)
 	// Mechanic
@@ -47,10 +51,10 @@ private:
 	bool bCachedReachableRobot = false;
 	bool bCanSeeRobot = false;
 	bool bShouldChaseRobot = false;
+	bool bShouldFleeFromRobot = false;
 	
 	// NPC
 	bool bShouldInvestigate = false;
-
 	
 	bool IsPlayerNavReachable(const APawn* Player) const;
 	bool IsLocationNavReachable(const FVector& Location) const;

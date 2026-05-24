@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
 
 void AAlienAIController::BeginPlay()
 {
@@ -14,20 +15,15 @@ void AAlienAIController::BeginPlay()
 	
 	MechanicPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	RobotPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
-	if (!MechanicPawn || !RobotPawn) return;
+	NPC = Cast<AAlienNPCCharacter>(GetPawn());
+	if (!MechanicPawn || !RobotPawn || !NPC) return;
 	
 	if (AIBehavior)
 	{
 		RunBehaviorTree(AIBehavior);
-		
-		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		if (!PlayerPawn) return;
-		APawn* NPCPawn = GetPawn();
-		if (!NPCPawn) return;
 		BBC = GetBlackboardComponent();
 		if (!BBC) return;
-		BBC->SetValueAsVector(TEXT("PlayerLocation"), PlayerPawn->GetActorLocation());
-		BBC->SetValueAsVector(TEXT("StartLocation"), NPCPawn->GetActorLocation());
+		BBC->SetValueAsVector(TEXT("StartLocation"), NPC->GetActorLocation());
 	}
 
 }
@@ -37,11 +33,12 @@ void AAlienAIController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!MechanicPawn || !RobotPawn) return;
 	
-	HandleMechanicOnLineOfSight(DeltaTime);
-	//HandleRobotOnLineOfSight(DeltaTime);
+	if (NPC->IsChasingNPC()) HandleMechanicOnLineOfSight(DeltaTime);
+	if (NPC->IsFleeingNPC()) HandleFleeFromRobotOnLineOfSight(DeltaTime);
 	
 }
 
+// Handles LineOfSight and AI chasing of Mechanic
 void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 {
 	if (LineOfSightTo(MechanicPawn, FVector::ZeroVector))
@@ -59,6 +56,7 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 			BBC->SetValueAsVector(TEXT("MechanicLocation"), MechanicPawn->GetActorLocation());
 			// Can reach, so investigation point is also valid
 			BBC->SetValueAsVector(TEXT("LastKnownMechanicLocation"), MechanicPawn->GetActorLocation());
+			NPC->IsChasingBP();
 		}
 		else
 		{
@@ -66,6 +64,7 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), false);
 			BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
 			BBC->ClearValue(TEXT("MechanicLocation"));
+			NPC->IsPatrollingBP();
 		}
 	}
 	else
@@ -79,6 +78,7 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 		
 		BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
 		BBC->ClearValue(TEXT("MechanicLocation"));
+		NPC->IsPatrollingBP();
 		
 		if (bWasChasing)
 		{
@@ -86,18 +86,21 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 			// position we updated while chasing, check if we can get there
 			const FVector LastKnown = BBC->GetValueAsVector(TEXT("LastKnownMechanicLocation"));
 			bShouldInvestigate = IsLocationNavReachable(LastKnown);
+			if (bShouldInvestigate) NPC->IsInvestigatingBP();
 			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), bShouldInvestigate);
 		}
 	}
 
 }
+
+// Handles LineOfSight and AI chasing of Robot. Currently not working.
 void AAlienAIController::HandleRobotOnLineOfSight(float DeltaTime)
 {
 	if (LineOfSightTo(RobotPawn, FVector::ZeroVector))
 	{
 		bCanSeeRobot = true;
 		ThrottledPathCheckRobot(DeltaTime);
-		bShouldChaseRobot = bCanSeeRobot && bCachedReachableRobot;
+		bShouldFleeFromRobot = bCanSeeRobot && bCachedReachableRobot;
 		SetRobotBBCValuesOnLineOfSight();
 	}
 	else
@@ -105,6 +108,27 @@ void AAlienAIController::HandleRobotOnLineOfSight(float DeltaTime)
 		bCanSeeRobot = false;
 		bShouldChaseRobot = false;
 		ClearRobotBBCValuesOnLostLineOfSight();
+	}
+}
+
+// Handles AI fleeing from Robot.
+void AAlienAIController::HandleFleeFromRobotOnLineOfSight(float DeltaTime)
+{
+	if (LineOfSightTo(RobotPawn, FVector::ZeroVector))
+	{
+		float DistanceToPlayer = FVector::Dist(RobotPawn->GetActorLocation(), NPC->GetActorLocation());
+		bCanSeeRobot = true;
+		ThrottledPathCheckRobot(DeltaTime);
+		bShouldFleeFromRobot = bCanSeeRobot && bCachedReachableRobot && (DistanceToPlayer < NPC->GetSafeDistance());
+		if (bShouldFleeFromRobot) NPC->IsFleeingBP();
+		SetRobotBBCValuesOnLineOfSight();
+	}
+	else
+	{
+		bCanSeeRobot = false;
+		bShouldFleeFromRobot = false;
+		ClearRobotBBCValuesOnLostLineOfSight();
+		NPC->IsPatrollingBP();
 	}
 }
 
@@ -188,6 +212,7 @@ void AAlienAIController::SetRobotBBCValuesOnLineOfSight() const
 {
 	BBC->SetValueAsBool(TEXT("CanSeeRobot"), bCanSeeRobot);
 	BBC->SetValueAsBool(TEXT("ShouldChaseRobot"), bShouldChaseRobot);
+	BBC->SetValueAsBool(TEXT("ShouldFleeFromRobot"), bShouldFleeFromRobot);
 	BBC->SetValueAsVector(TEXT("RobotLocation"), RobotPawn->GetActorLocation());
 	BBC->SetValueAsVector(TEXT("LastKnownRobotLocation"), RobotPawn->GetActorLocation());
 }
@@ -196,4 +221,5 @@ void AAlienAIController::ClearRobotBBCValuesOnLostLineOfSight() const
 	BBC->ClearValue("RobotLocation");
 	BBC->ClearValue("CanSeeRobot");
 	BBC->ClearValue("ShouldChaseRobot");
+	BBC->ClearValue("ShouldFleeFromRobot");
 }
