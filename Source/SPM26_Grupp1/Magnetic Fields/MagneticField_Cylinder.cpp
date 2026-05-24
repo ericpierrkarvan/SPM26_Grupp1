@@ -608,7 +608,7 @@ bool AMagneticField_Cylinder::IsActive() const
 
 void AMagneticField_Cylinder::IsActive(bool bNewIsActive)
 {
-	this->bIsActive = bIsActive;
+	this->bIsActive = bNewIsActive;
 }
 
 // Used in OverlapBegin to tag Robot in/not in field

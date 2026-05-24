@@ -122,7 +122,7 @@ protected:
 
 public:
 	bool IsActive() const;
-	void IsActive(bool bIsActive);
+	void IsActive(bool bNewIsActive);
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
