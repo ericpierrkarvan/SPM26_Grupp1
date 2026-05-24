@@ -5,7 +5,7 @@
 
 #include "AIController.h"
 #include "NavigationSystem.h"
-#include "Actors/Characters/AlienNPCCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 
