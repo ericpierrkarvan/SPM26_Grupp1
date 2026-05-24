@@ -171,21 +171,14 @@ void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
 
 void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* Actor)
 {
-	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
-	//CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
-	//CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
 	CalculateDirection(Actor);
 	Pull(Actor, DeltaTime);
 	CheckDistanceToTargetAndStopMovement(Actor);
-
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 {
-	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
-	//Repel(MagnetCenterPoint, Actor);
 	Repel(Actor);
-
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.
@@ -268,7 +261,6 @@ void AMagneticField_Cylinder::PullActor(const AActor* Actor, const FVector& Pull
 		const FVector PullVelocity = (PullDirection * PullStrength * ActorPullStrengthMultiplier + LatCorrection) * DeltaTime;
 		PrimitiveComp->AddImpulse(PullVelocity, NAME_None, true);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Pulled actor: %s"), *Actor->GetName());
 }
 
 bool AMagneticField_Cylinder::ShouldRepel(const AActor* Actor) const
@@ -722,6 +714,7 @@ int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
 void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 {
 	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
+	UE_LOG(LogTemp, Warning, TEXT("MF::Choosing a Magnetic Sound.")); 
 }
 
 bool AMagneticField_Cylinder::WasSpawnedByProjectile() const
