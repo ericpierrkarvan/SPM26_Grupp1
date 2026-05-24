@@ -28,10 +28,12 @@ void USPMGameInstance::LoadNextLevel()
 	if (LevelOrder.IsValidIndex(CurrentLevelIndex))
 	{
 		UGameplayStatics::OpenLevel(this, LevelOrder[CurrentLevelIndex]);
+		UE_LOG(LogTemp, Warning, TEXT("Loading level: %s"), *LevelOrder[CurrentLevelIndex].ToString())
 	}
 	else
 	{
 		// No more levels, go to main menu
+		UE_LOG(LogTemp, Warning, TEXT("No more levels, loading StartMenue"))
 		UGameplayStatics::OpenLevel(this, FName("Startmenue"));
 	}
 }
