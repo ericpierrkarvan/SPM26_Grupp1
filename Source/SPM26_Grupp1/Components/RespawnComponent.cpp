@@ -43,6 +43,14 @@ void URespawnComponent::OnRespawnActor()
 	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
 	{
 		Character->DeactivateRagdoll();
+
+		if (APlayerController* PC = Cast<APlayerController>(Character->GetController()))
+		{
+			//we might have had lookinput disabled - for example during robot picking up a character
+			//that character have its look input disabled - if we died mid pickup,
+			//then we want to restore the look input
+			PC->SetIgnoreLookInput(false);
+		}
 	}
 
 	GetOwner()->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);

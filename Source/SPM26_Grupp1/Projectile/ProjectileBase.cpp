@@ -29,3 +29,10 @@ float AProjectileBase::GetImpactForce() const
 	return ImpactForce;
 }
 
+void AProjectileBase::IgnoreActor(AActor* ActorToIgnore)
+{
+	if (CollisionComp)
+	{
+		CollisionComp->MoveIgnoreActors.Add(ActorToIgnore);
+	}
+}

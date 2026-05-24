@@ -3,6 +3,7 @@
 
 #include "WeaponBase.h"
 #include "FMODAudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Projectile/ProjectileBase.h"
 
 // Sets default values
@@ -45,17 +46,65 @@ void AWeaponBase::SpawnProjectile(const FHitResult& AimHitResult)
 	// Use controller aim-rotation to respect camera/crosshair direction
 	AController* Controller = InstigatingPawn->GetController();
 	if (!Controller) return;
+
+	FVector CameraOrigin;
+	FRotator CameraRotation;
+	Cast<APlayerController>(Controller)->GetPlayerViewPoint(CameraOrigin, CameraRotation);
 	
-	// Spawn-parameters when eventual Muzzle implemented
-	// FVector SpawnLocation = WeaponMesh->GetSocketLocation("MuzzleSocket");
-	// FRotator SpawnRotation = WeaponMesh->GetSocketRotation("MuzzleSocket");
+	FVector MuzzlePos = GetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
+	FVector SpawnPos = MuzzlePos;
 	
-	FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(AimHitResult.TraceEnd, InstigatingPawn);
-	FVector SpawnLocationOfSpawnedProjectile = GetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
+	FVector CameraTarget = AimHitResult.bBlockingHit ? AimHitResult.ImpactPoint : AimHitResult.TraceEnd;
+
+	//make a trace from muzzle and check if its blocked
+	FCollisionQueryParams MuzzleParams;
+	MuzzleParams.AddIgnoredActor(this);
+	MuzzleParams.AddIgnoredActor(InstigatingPawn);
 	
-	// Assigns spawn parameters and creates the projectile
-	SpawnProjectileInstance(InstigatingPawn, SpawnLocationOfSpawnedProjectile, DirectionOfSpawnedProjectile);
+	FHitResult MuzzleTrace;
+	bool bMuzzleBlocked = GetWorld()->LineTraceSingleByChannel(
+		MuzzleTrace,
+		MuzzlePos,
+		CameraTarget,
+		ECC_Visibility,
+		MuzzleParams);
 	
+	//if the muzzle view hits something & this hit is close,
+	//then we might be at a edge of a cliff, aiming down, trying to shoot over the cliffs edge
+	
+	bool bMuzzleIsClose = bMuzzleBlocked && MuzzleTrace.Distance < MuzzleObstructionThreshold;
+
+	// lets check if our camera is trying to look at something further away
+	
+	float CameraTargetDistance = FVector::Dist(CameraOrigin, CameraTarget);
+	bool bCameraAimingFar = CameraTargetDistance > MinCameraTargetDistance;
+
+	//if both muzzle hit is close & the camera is far away, then we probably are tying
+	//to shot down over a cliff, ie weird angle
+	//if this is the case, then we want to move the spawn location up from the muzzle
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s: muzzleclose = %i camerafar = %i"), *GetClass()->GetName(), bMuzzleIsClose, bCameraAimingFar)
+	if (bMuzzleIsClose && bCameraAimingFar)
+	{
+		//so we might be at a cliff, move the spawn location of the projectile
+		//use the point on the camera trace that is perpendicular to the muzzle location
+		FVector CameraDir = (CameraTarget - CameraOrigin).GetSafeNormal();
+		FVector CamToMuzzle = MuzzlePos - CameraOrigin;
+		float x = FVector::DotProduct(CamToMuzzle, CameraDir);
+		SpawnPos = CameraOrigin + CameraDir * x;
+
+		//nudge it a bit extra up, might help with some specific angles
+		float UpNudge = 20.f;
+		FVector CameraRight = FVector::CrossProduct(CameraDir, FVector::UpVector).GetSafeNormal();
+		FVector CameraUp = FVector::CrossProduct(CameraRight, CameraDir).GetSafeNormal();
+		SpawnPos += CameraUp * UpNudge;
+	}
+	//DrawDebugSphere(GetWorld(), SpawnPos, 15.f, 8, FColor::Red, false, 3.f);
+	//FRotator DirectionOfSpawnedProjectile = SetDirectionOfSpawnedProjectile(AimHitResult.TraceEnd, InstigatingPawn);
+	FRotator DirectionOfSpawnedProjectile = (CameraTarget - SpawnPos).ToOrientationRotator();
+	//FVector SpawnLocationOfSpawnedProjectile = GetSpawnLocationOfSpawnedProjectile(InstigatingPawn);
+	
+	SpawnProjectileInstance(InstigatingPawn, SpawnPos, DirectionOfSpawnedProjectile);
 }
 
 //Rotate the projectile towards the targetlocation
@@ -156,13 +205,23 @@ void AWeaponBase::SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnL
 	Params.Instigator = InstigatingPawn;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	
+	AProjectileBase* Projectile = GetWorld()->SpawnActorDeferred<AProjectileBase>(
+	   ProjectileClass,
+	   FTransform(SpawnRotation, SpawnLocation),
+	   this,
+	   InstigatingPawn,
+	   ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+   );
 	
-	GetWorld()->SpawnActor<AProjectileBase>(
-		ProjectileClass,
-		SpawnLocation,
-		SpawnRotation,
-		Params
-		);
+	if (Projectile)
+	{
+		//ignore pawn and pistol - was getting phys warning when aiming straight down
+		//the projectile was spawning inside character capsule
+		Projectile->IgnoreActor(this);
+		if (InstigatingPawn) Projectile->IgnoreActor(InstigatingPawn);
+
+		UGameplayStatics::FinishSpawningActor(Projectile, FTransform(SpawnRotation, SpawnLocation));
+	}
 }
 
 void AWeaponBase::Shoot_Implementation(const FHitResult &AimHitResult)

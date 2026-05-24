@@ -125,3 +125,7 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 	}
 }
 
+void USPMGameInstance::SaveSelectedMaterialIndex(int32 NewIndex)
+{
+	SelectedMaterialIndex = NewIndex;
+}

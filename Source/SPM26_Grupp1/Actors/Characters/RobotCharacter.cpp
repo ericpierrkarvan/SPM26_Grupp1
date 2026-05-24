@@ -174,6 +174,24 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 		);
 		HeldActor->SetActorRotation(NewRotation, ETeleportType::TeleportPhysics);
 
+		//force the picked up character rotation into looking where we are facing
+		if (ACharacter* Char = Cast<ACharacter>(HeldActor))
+		{
+			if (AController* CharController = Char->GetController())
+			{
+				FRotator TargetControlRotation = PickupStartControlRotation;
+				TargetControlRotation.Yaw = PickupTargetRotation.Yaw;
+				TargetControlRotation.Pitch = PickupTargetPitch;
+
+				const FRotator NewControlRotation = FMath::Lerp(
+					PickupStartControlRotation,
+					TargetControlRotation,
+					PickupAlpha
+				);
+				CharController->SetControlRotation(NewControlRotation);
+			}
+		}
+		
 		if (PickupAlpha >= 1.f)
 		{
 			//if we held a character then we need to restore movementmode and collision
@@ -182,6 +200,15 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 			{
 				Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 				Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+				HeldActor = nullptr; //once we lifted the character, we are no longer holding it
+				HeldPickupComponent = nullptr;
+				bIsPickingUp = false;
+				PickupAlpha = 0.f;
+				if (APlayerController* PC = Cast<APlayerController>(Char->GetController()))
+				{
+					PC->SetIgnoreLookInput(false);
+				}
+				return;
 			}
 			else
 			{
@@ -256,7 +283,6 @@ void ARobotCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
-	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode: %hhd"), MovementState);
 	CheckMovementState();
 	UpdateADSScan(DeltaSeconds);
 
@@ -374,6 +400,17 @@ bool ARobotCharacter::FindPickup()
 	PickupStartRotation = PickupActor->GetActorRotation();
 	PickupTargetRotation = FRotator(0.f, GetActorRotation().Yaw, 0.f);
 
+	//if we are picking up a player, we want to gets its start rotation
+	//so we can lerp its rotation to match where we are viewing
+	if (ACharacter* Char = Cast<ACharacter>(PickupActor))
+	{
+		if (AController* CharController = Char->GetController())
+		{
+			CharController->SetIgnoreLookInput(true);
+			PickupStartControlRotation = CharController->GetControlRotation();
+		}
+	}
+	
 	// Change collision after bounds are stored
 	CurrentTargetPickup->OnPickedUp(this);
 	PlayGrabSound();

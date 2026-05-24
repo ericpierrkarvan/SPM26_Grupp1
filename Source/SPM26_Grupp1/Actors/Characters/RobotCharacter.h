@@ -209,6 +209,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Scan")
 	float ScanSphereRadius = 2000.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
+	float PickupTargetPitch = -7.f;
+	
 private:
 	
 	FTimerHandle MagnetizableCooldownHandle;
@@ -279,4 +282,6 @@ private:
 	TArray<AActor*> ActorsInDetectionSphere;
 
 	virtual bool CanInteractWith(AActor* Actor) override;
+
+	FRotator PickupStartControlRotation = FRotator::ZeroRotator;
 };

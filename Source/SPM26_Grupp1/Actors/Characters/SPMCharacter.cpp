@@ -80,7 +80,7 @@ void ASPMCharacter::BeginPlay()
 	if (!GI) return;
 
 	UISubSystem = GI->GetSubsystem<UUISubSystem>();
-	
+
 	if (CameraBoom)
 	{
 		DefaultCameraArmLength = CameraBoom->TargetArmLength;
@@ -98,9 +98,9 @@ void ASPMCharacter::BeginPlay()
 	{
 		//apply progress next tick to give everything enough time to finish loading
 		GetWorldTimerManager().SetTimerForNextTick([this, Progress]()
-	   {
-		   ApplyProgress(Progress);
-	   });
+		{
+			ApplyProgress(Progress);
+		});
 		Progress->OnFlagUnlocked.AddDynamic(this, &ASPMCharacter::HandleFlagUnlocked);
 	}
 
@@ -113,7 +113,7 @@ void ASPMCharacter::BeginPlay()
 	{
 		SavedMeshProfileName = GetMesh()->GetCollisionProfileName();
 	}
-	
+
 	RelativeCollisionTransform = GetCapsuleComponent()->GetRelativeTransform();
 	RelativeMeshTransform = GetMesh()->GetRelativeTransform();
 }
@@ -147,7 +147,7 @@ void ASPMCharacter::ActivateRagdoll()
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->WakeAllRigidBodies();
 	GetMesh()->bBlendPhysics = true;
-	
+
 	GetSPMMovementComponent()->StopMovementImmediately();
 	GetSPMMovementComponent()->DisableMovement();
 	GetSPMMovementComponent()->SetComponentTickEnabled(false);
@@ -174,7 +174,7 @@ void ASPMCharacter::DeactivateRagdoll()
 	GetMesh()->SetAngularDamping(0.05f);
 
 	GetMesh()->SetCollisionProfileName(SavedMeshProfileName);
-	
+
 	CapsuleComp->SetCollisionProfileName(SavedProfileName);
 	CapsuleComp->SetCollisionEnabled(SavedCollisionEnabled);
 	CapsuleComp->SetCollisionResponseToChannels(SavedResponses);
@@ -397,17 +397,17 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 	InteractTimer += DeltaTime;
 	if (InteractTimer < InteractInterval) return;
 	InteractTimer = 0.f;
-	
+
 	APlayerController* PC = GetViewingPlayerController();
 	if (!PC) return;
-	
+
 	FVector CameraLocation;
 	FRotator CameraRotation;
 	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
 	FVector CamFwd = CameraRotation.Vector();
 	FVector OwnerLoc = GetActorLocation();
 
-	
+
 	TArray<FOverlapResult> Overlaps;
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(InteractLength);
 	FCollisionQueryParams Params;
@@ -423,7 +423,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		Sphere,
 		Params
 	);
-	
+
 	UPickupComponent* BestPickup = nullptr;
 	UInteractableComponent* BestInteractable = nullptr;
 
@@ -441,7 +441,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		if (!Actor) continue;
 		if (!CanInteractWith(Actor)) continue;
 		FVector ActorLoc = Actor->GetActorLocation();
-		
+
 		FHitResult VisHit;
 		FCollisionQueryParams VisParams;
 		VisParams.AddIgnoredActor(this);
@@ -465,7 +465,7 @@ void ASPMCharacter::LookForInteractables(float DeltaTime)
 		float Distance = FVector::Dist(ActorLoc, OwnerLoc);
 		//distance score where closer = higher score
 		float DistanceScore = 1.f - FMath::Clamp(Distance / InteractLength, 0.f, 1.f);
-		
+
 		float TotalWeight = InteractAngleWeight + InteractDistanceWeight;
 		float FinalScore = (Dot * InteractAngleWeight + DistanceScore * InteractDistanceWeight) / TotalWeight;
 

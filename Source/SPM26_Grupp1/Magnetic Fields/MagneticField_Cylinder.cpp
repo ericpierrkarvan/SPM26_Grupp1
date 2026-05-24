@@ -93,7 +93,7 @@ void AMagneticField_Cylinder::Disable()
 // is triggered upon this destruction
 void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d, Actor name: %s"), (int32)EndPlayReason, *GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("MagneticField EndPlay reason: %d, Actor name: %s"), (int32)EndPlayReason, *GetName());
 	if (Capsule)
 	{
 		Capsule->OnComponentBeginOverlap.RemoveAll(this);
@@ -153,7 +153,7 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 	} 
 	else MagnetCenter = CapsuleLocation + CapsuleUp * MagnetCenterPointZOffSet * -PolarityValue;
 	
-	UE_LOG(LogTemp, Warning, TEXT("MagnetCenterPoint location: %s"), *MagnetCenter.ToCompactString());
+	//UE_LOG(LogTemp, Warning, TEXT("MagnetCenterPoint location: %s"), *MagnetCenter.ToCompactString());
 	
 	return MagnetCenter;
 }
