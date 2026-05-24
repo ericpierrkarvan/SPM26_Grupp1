@@ -24,6 +24,7 @@ public:
 
 	bool GetIsDead() const { return bIsDead; }
 	void Kill() { bIsDead = true; }
+	float GetRespawnDelay() const { return RespawnDelay; }
 
 protected:
 	virtual void BeginPlay() override;
