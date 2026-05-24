@@ -696,21 +696,21 @@ void AMagneticField_Cylinder::HandleStaticField()
 {
 	if (bStartsActive && !bIsActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
 		//bIsActive = false;
 		Activate();
 	}
 	else if (!bStartsActive && bIsActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
 		//bIsActive = true;
 		Disable();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MF::ERROR -> Neither Activate nor Disable fired at beginplay. StartsActive: %hhd, IsActive: %hhd"), (int32)bStartsActive, (int32)bIsActive); 
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ERROR -> Neither Activate nor Disable fired at beginplay. StartsActive: %hhd, IsActive: %hhd"), (int32)bStartsActive, (int32)bIsActive); 
 	}
 }
 
