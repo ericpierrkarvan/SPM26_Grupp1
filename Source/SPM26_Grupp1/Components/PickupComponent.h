@@ -61,7 +61,7 @@ private:
 	TSubclassOf<UUserWidget> PromptWidgetClass;
 
 	UPROPERTY()
-	TMap<APlayerController*, UUserWidget*> PromptWidgets;
+	TMap<APlayerController*, TWeakObjectPtr<UUserWidget>> PromptWidgets;
 
 	UPROPERTY(EditAnywhere, Category="Interaction")
 	EInteractionCharacters AllowedCharacterType = EInteractionCharacters::Any;

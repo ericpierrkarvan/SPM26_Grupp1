@@ -54,6 +54,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void OnPause();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")

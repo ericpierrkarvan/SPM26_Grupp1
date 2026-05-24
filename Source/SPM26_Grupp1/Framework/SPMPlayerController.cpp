@@ -60,6 +60,10 @@ void ASPMPlayerController::AcknowledgePossession(class APawn* P)
 		PlayerHudWidget->OnPromptEnd.RemoveDynamic(this, &ASPMPlayerController::OnPromptEnd);
 		
 		PlayerHudWidget->RemoveFromParent();
+
+		if (PlayerHudWidget == MechanicHudWidgetRef) MechanicHudWidgetRef = nullptr;
+		if (PlayerHudWidget == RobotHudWidgetRef) RobotHudWidgetRef = nullptr;
+		
 		PlayerHudWidget = nullptr;
 	}
 	//and create a new widget
@@ -201,14 +205,19 @@ void ASPMPlayerController::OnPause()
 	}
 	else
 	{
+		if (PauseMenuWidget && PauseMenuWidget->IsInViewport())
+		{
+			PauseMenuWidget->RemoveFromParent();
+		}
+		
 		if (PC0)
 		{
-			PC0->SetInputMode(FInputModeGameAndUI());
+			PC0->SetInputMode(FInputModeGameOnly());
 			PC0->bShowMouseCursor = false;
 		}
 		if (PC1)
 		{
-			PC1->SetInputMode(FInputModeGameAndUI());
+			PC1->SetInputMode(FInputModeGameOnly());
 			PC1->bShowMouseCursor = false;
 		}
 	}

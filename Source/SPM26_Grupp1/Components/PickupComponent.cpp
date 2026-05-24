@@ -28,9 +28,9 @@ UUserWidget* UPickupComponent::GetPromptWidget(APlayerController* ForPlayer)
 	if (!PromptWidgetClass || !ForPlayer) return nullptr;
 
 	//if we have already created this promp widget, use that
-	if (UUserWidget** Existing = PromptWidgets.Find(ForPlayer))
+	if (TWeakObjectPtr<UUserWidget>* Existing = PromptWidgets.Find(ForPlayer))
 	{
-		return *Existing;
+		if (Existing->IsValid()) return Existing->Get();
 	}
 
 	//create the promp widget
