@@ -171,21 +171,14 @@ void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
 
 void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* Actor)
 {
-	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
-	//CalculateDirectionAndPull(MagnetCenterPoint, DeltaTime, Actor);
-	//CheckDistanceToTargetAndStopMovement(MagnetCenterPoint, Actor);
 	CalculateDirection(Actor);
 	Pull(Actor, DeltaTime);
 	CheckDistanceToTargetAndStopMovement(Actor);
-
 }
 
 void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
 {
-	//const FVector MagnetCenterPoint = CalculateMagnetCenterPoint(Actor);
-	//Repel(MagnetCenterPoint, Actor);
 	Repel(Actor);
-
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.
@@ -268,7 +261,6 @@ void AMagneticField_Cylinder::PullActor(const AActor* Actor, const FVector& Pull
 		const FVector PullVelocity = (PullDirection * PullStrength * ActorPullStrengthMultiplier + LatCorrection) * DeltaTime;
 		PrimitiveComp->AddImpulse(PullVelocity, NAME_None, true);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Pulled actor: %s"), *Actor->GetName());
 }
 
 bool AMagneticField_Cylinder::ShouldRepel(const AActor* Actor) const
@@ -608,7 +600,7 @@ bool AMagneticField_Cylinder::IsActive() const
 
 void AMagneticField_Cylinder::IsActive(bool bNewIsActive)
 {
-	this->bIsActive = bIsActive;
+	this->bIsActive = bNewIsActive;
 }
 
 // Used in OverlapBegin to tag Robot in/not in field
@@ -696,21 +688,21 @@ void AMagneticField_Cylinder::HandleStaticField()
 {
 	if (bStartsActive && !bIsActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bStartsActive (SHOULD BE 1): %d"), (int32)bStartsActive);
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldActivate -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
 		//bIsActive = false;
 		Activate();
 	}
 	else if (!bStartsActive && bIsActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
-		UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bStartsActive (SHOULD BE 0): %d"), (int32)bStartsActive); 
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ShouldDisable -> bIsActive (SHOULD BE ?): %d"), (int32)bIsActive);
 		//bIsActive = true;
 		Disable();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MF::ERROR -> Neither Activate nor Disable fired at beginplay. StartsActive: %hhd, IsActive: %hhd"), (int32)bStartsActive, (int32)bIsActive); 
+		//UE_LOG(LogTemp, Warning, TEXT("MF::ERROR -> Neither Activate nor Disable fired at beginplay. StartsActive: %hhd, IsActive: %hhd"), (int32)bStartsActive, (int32)bIsActive); 
 	}
 }
 
@@ -722,6 +714,7 @@ int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
 void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 {
 	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
+	UE_LOG(LogTemp, Warning, TEXT("MF::Choosing a Magnetic Sound.")); 
 }
 
 bool AMagneticField_Cylinder::WasSpawnedByProjectile() const
