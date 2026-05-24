@@ -5,11 +5,10 @@
 
 #include "Characters/SPMCharacter.h"
 #include "Components/BoxComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "SPM26_Grupp1/Components/RespawnComponent.h"
-#include "SPM26_Grupp1/Framework/SPMPlayerController.h"
-#include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 // Sets default values
 ADeathField::ADeathField()
@@ -88,7 +87,9 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 			DeathByDeathFieldBP();
 		}
 	}
-
+	
+	SpawnDeathEffect(OtherActor);
+	
 	RespawnComponent->Respawn();
 }
 
@@ -121,5 +122,33 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	
 	if (OtherOverlappedComponent->GetComponentLocation().Z >= LavaSurfaceZ - 50.f)
 	{
+	}
+}
+
+void ADeathField::SpawnDeathEffect(AActor* DeadActor)
+{
+	DeathEffectComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		DeathEffect,
+		DeadActor->GetActorLocation(),
+		DeadActor->GetActorRotation()
+	);
+	
+	if (DeathEffectComp)
+	{
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADeathField::DestroyDeathEffect, 
+			1, false);
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("Death Effect Spawned"));
+}
+
+void ADeathField::DestroyDeathEffect()
+{
+	if (DeathEffectComp)
+	{
+		DeathEffectComp->Deactivate();
+		DeathEffectComp->DestroyComponent();
 	}
 }
