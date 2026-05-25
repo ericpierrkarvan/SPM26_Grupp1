@@ -79,7 +79,6 @@ void ASPMCharacter::BeginPlay()
 	UGameInstance* GI = GetGameInstance();
 	if (!GI) return;
 
-
 	UISubSystem = GI->GetSubsystem<UUISubSystem>();
 
 	if (CameraBoom)

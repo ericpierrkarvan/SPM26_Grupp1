@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/AI/AlienAIController.h"
 
 class ARobotCharacter;
 // Sets default values
@@ -87,3 +88,22 @@ void AAlienNPCCharacter::TryPushBack(float DeltaTime)
 	}
 }
 
+bool AAlienNPCCharacter::IsChasingNPC() const
+{
+	return bIsChasingNPC;
+}
+
+bool AAlienNPCCharacter::IsFleeingNPC() const
+{
+	return bIsFleeingNPC;
+}
+
+float AAlienNPCCharacter::GetFleeDistance() const
+{
+	return FleeDistanceFromPlayer;
+}
+
+float AAlienNPCCharacter::GetSafeDistance() const
+{
+	return SafeDistanceFromPlayer;
+}
