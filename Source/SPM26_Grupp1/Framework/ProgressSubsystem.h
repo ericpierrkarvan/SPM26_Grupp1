@@ -54,6 +54,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LoadProgress();
+	
+	UFUNCTION(BlueprintCallable)
+	void RemoveAllProgress();
 
 	UFUNCTION(BlueprintCallable)
 	void SetFlag(EProgressFlag Flag);

@@ -14,7 +14,7 @@ void UProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 #if WITH_EDITOR
 	//force all progress in development
-	DevGiveAllProgress();
+	//DevGiveAllProgress();
 #endif
 
 	//bandaid for playtest devbuild level 2
@@ -40,24 +40,40 @@ void UProgressSubsystem::SaveProgress()
 	SaveObject->bHasCheckpoint = Progress.bHasCheckpoint;
 	
 	UGameplayStatics::SaveGameToSlot(SaveObject, SaveSlotName, SaveUserIndex);
-	
-	//todo: save to disk
 }
 
 void UProgressSubsystem::LoadProgress()
 {
-	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, SaveUserIndex));
-	
-	if (!SaveObject)
+	if (!UGameplayStatics::DoesSaveGameExist(SaveSlotName, SaveUserIndex))
 	{
 		// No save found, start fresh
 		Progress = FPlayerProgress();
 		return;
 	}
 	
+	USaveGame* RawSave = UGameplayStatics::LoadGameFromSlot(SaveSlotName, SaveUserIndex);
+	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(RawSave);
+	
+	if (!SaveObject)
+	{
+		// Unreal finds an existing save file on disk but its serialized class doesn't match UProgressSaveGame anymore
+		UE_LOG(LogTemp, Warning, TEXT("LoadProgress: Save file incompatible, resetting."));
+		Progress = FPlayerProgress();
+		UGameplayStatics::DeleteGameInSlot(SaveSlotName, SaveUserIndex); // wipe the bad file
+		return;
+	}
+	
 	Progress.UnlockedFlags = TSet<EProgressFlag>(SaveObject->UnlockedFlags);
 	Progress.LastCheckpointTransform = SaveObject->LastCheckpointTransform;
 	Progress.bHasCheckpoint = SaveObject->bHasCheckpoint;
+}
+
+void UProgressSubsystem::RemoveAllProgress()
+{
+	Progress = FPlayerProgress();
+	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(UGameplayStatics::CreateSaveGameObject(UProgressSaveGame::StaticClass()));
+	if (!SaveObject) return;
+	UGameplayStatics::SaveGameToSlot(SaveObject, SaveSlotName, SaveUserIndex);
 }
 
 void UProgressSubsystem::SetFlag(EProgressFlag Flag)
@@ -86,6 +102,7 @@ void UProgressSubsystem::ClearFlag(EProgressFlag Flag)
 void UProgressSubsystem::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 {
 	if (!NewCheckpoint) return;
+	if (!NewCheckpoint->IsMutualCheckpoint()) return;
 	
 	Progress.LastCheckpointTransform = NewCheckpoint->GetActorTransform();
 	Progress.bHasCheckpoint = true;

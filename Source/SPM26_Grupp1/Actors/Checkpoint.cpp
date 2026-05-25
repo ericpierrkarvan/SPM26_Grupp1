@@ -33,7 +33,11 @@ void ACheckpoint::BeginPlay()
 	Super::BeginPlay();
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &ACheckpoint::OnOverlap);
 	
-	
+}
+
+bool ACheckpoint::IsMutualCheckpoint() const
+{
+	return bIsMutualCheckpoint;
 }
 
 // Called every frame

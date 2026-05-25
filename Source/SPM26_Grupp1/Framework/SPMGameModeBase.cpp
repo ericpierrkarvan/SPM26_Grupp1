@@ -1,8 +1,10 @@
 // MyGameMode.cpp
 #include "SPMGameModeBase.h"
 
+#include "ProgressSubsystem.h"
 #include "SPMGameInstance.h"
 #include "SPMPlayerController.h"
+#include "Engine/PlayerStartPIE.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
@@ -126,33 +128,36 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 {
 	UGameInstance* GI = GetGameInstance();
 	if (!GI) return;
+	UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>();
+	if (!PS) return;
+	const FPlayerProgress& Progress = PS->GetProgress();
+	
 	
 	TArray<TSubclassOf<ACharacter>> ClassOrder = { MechanicCharacterClass, RobotCharacterClass };
 	
 	for (int32 i = 0; i < GI->GetLocalPlayers().Num(); i++)
 	{
-		ULocalPlayer* LocalPlayer = GI->GetLocalPlayers()[i];
+		const ULocalPlayer* LocalPlayer = GI->GetLocalPlayers()[i];
 		APlayerController* PlayerController = LocalPlayer->GetPlayerController(GetWorld());
-		if (!PlayerController) 		
-		{
-			UE_LOG(LogTemp, Warning, TEXT("SpawnPlayersAtStart(): PlayerController null"));
-			continue;
-		}
+		if (!PlayerController) continue;
+
+		const AActor* StartSpot = FindPlayerStart(PlayerController);
+		if (!StartSpot)	continue;
 		
-		AActor* StartSpot = FindPlayerStart(PlayerController);
-		if (!StartSpot)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("SpawnPlayersAtStart(): StartSpot null"));
-			continue;
-		}
+		// Respect "Play from here"
+		const bool bUsePIEStart = StartSpot->IsA<APlayerStartPIE>();
 		
+		FTransform SpawnTransform = (Progress.bHasCheckpoint && !bUsePIEStart)
+			? Progress.LastCheckpointTransform 
+			: StartSpot->GetActorTransform();
+				
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		
 		ACharacter* NewPawn = GetWorld()->SpawnActor<ACharacter>(
 		ClassOrder[i],
-		StartSpot->GetActorLocation(),
-		StartSpot->GetActorRotation(),
+		SpawnTransform.GetLocation(),
+		SpawnTransform.Rotator(),
 		Params);
 
 		PlayerController->Possess(NewPawn);
