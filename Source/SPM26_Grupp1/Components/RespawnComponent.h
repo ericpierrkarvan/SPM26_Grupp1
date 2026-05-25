@@ -19,7 +19,7 @@ public:
 	void Respawn();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-	void SetCheckpoint(ACheckpoint* NewCheckpoint);
+	void SetCheckpoint(const ACheckpoint* NewCheckpoint);
 	FTransform GetCheckpointTransform() const;
 
 	bool GetIsDead() const { return bIsDead; }
