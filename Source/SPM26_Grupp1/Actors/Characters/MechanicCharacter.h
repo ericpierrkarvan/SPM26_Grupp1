@@ -95,7 +95,4 @@ private:
 
 	bool bHaveMagneticGun = false;
 	bool bCanEverChangeMagneticGunPolartiy = false;
-
-	UPROPERTY()
-	TArray<UMaterialInterface*> MaterialOptions;
 };
