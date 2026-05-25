@@ -33,17 +33,16 @@ protected:
 	void RespawnPlayerBP();
 
 private:
-	FVector OriginalPosition;
-	FRotator OriginalRotation;
-
 	void OnRespawnActor();
 
 	UPROPERTY()
-	TObjectPtr<ACheckpoint> LastCheckpoint;
+	TObjectPtr<const ACheckpoint> LastCheckpoint;
 
 	UPROPERTY(EditAnywhere)
 	float RespawnDelay = 2.f;
 
+	FVector OriginalPosition;
+	FRotator OriginalRotation;
 	FTimerHandle RespawnTimerHandle;
 	bool bIsDead = false;
 };

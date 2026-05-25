@@ -63,18 +63,31 @@ void URespawnComponent::OnRespawnActor()
 
 void URespawnComponent::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 {
-	if (UGameInstance* GI = GetWorld()->GetGameInstance())
+	LastCheckpoint = NewCheckpoint; // track individual checkpoints
+	
+	// Only update progress/load/save checkpoint if it IsMutualCheckpoint
+	if (NewCheckpoint && NewCheckpoint->IsMutualCheckpoint())
 	{
-		if (UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
-			PS->SetCheckpoint(NewCheckpoint);
+		if (UGameInstance* GI = GetWorld()->GetGameInstance())
+        {
+        	if (UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
+        		PS->SetCheckpoint(NewCheckpoint);
+        }
 	}
-	//LastCheckpoint = NewCheckpoint;
+
 }
 
 FTransform URespawnComponent::GetCheckpointTransform() const
 {
 	const FVector ActorScale = GetOwner()->GetActorScale3D();
+	
+	// individual checkpoint first priority
+	if (LastCheckpoint)
+	{
+		return FTransform(LastCheckpoint->GetActorRotation(), LastCheckpoint->GetActorLocation(), ActorScale);
+	}
 
+	// fallback to last mutual checkpoint from load/save
 	if (UGameInstance* GI = GetWorld()->GetGameInstance())
 	{
 		if (const UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
@@ -89,8 +102,6 @@ FTransform URespawnComponent::GetCheckpointTransform() const
 			}
 		}
 	}
-
-	
 	return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
 }
 

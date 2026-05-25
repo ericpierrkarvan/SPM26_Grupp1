@@ -19,15 +19,21 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category="Checkpoint")
 	TObjectPtr<class UBoxComponent> Trigger;
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category="Checkpoint")
 	TObjectPtr<class UArrowComponent> Arrow;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Checkpoint")
 	bool bOneTimeUse = false;
 	
+	UPROPERTY(EditAnywhere, Category="Checkpoint")
+	bool bIsMutualCheckpoint = true; // if checkpoint is available to both characters, can load game here
+public:
+	bool IsMutualCheckpoint() const;
+
+protected:
 	bool bActivated = false;
 
 public:	
