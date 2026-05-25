@@ -3,10 +3,13 @@
 
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 
+#include "ProgressSaveGame.h"
+#include "Kismet/GameplayStatics.h"
+
 void UProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
+	LoadProgress();
 	UE_LOG(LogTemp, Warning, TEXT("ProgressSubsystem initialized"));
 
 #if WITH_EDITOR
@@ -28,12 +31,33 @@ void UProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UProgressSubsystem::SaveProgress()
 {
+	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(UGameplayStatics::CreateSaveGameObject(UProgressSaveGame::StaticClass()));
+	if (!SaveObject) return;
+	
+	// Conversion TSet->TArray in save object->TSet on load "is a safe/conventional pattern" (something about serialization)
+	SaveObject->UnlockedFlags = Progress.UnlockedFlags.Array();
+	SaveObject->LastCheckpointTransform = Progress.LastCheckpointTransform;
+	SaveObject->bHasCheckpoint = Progress.bHasCheckpoint;
+	
+	UGameplayStatics::SaveGameToSlot(SaveObject, SaveSlotName, SaveUserIndex);
+	
 	//todo: save to disk
 }
 
 void UProgressSubsystem::LoadProgress()
 {
-	//todo: load from disk
+	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, SaveUserIndex));
+	
+	if (!SaveObject)
+	{
+		// No save found, start fresh
+		Progress = FPlayerProgress();
+		return;
+	}
+	
+	Progress.UnlockedFlags = TSet<EProgressFlag>(SaveObject->UnlockedFlags);
+	Progress.LastCheckpointTransform = SaveObject->LastCheckpointTransform;
+	Progress.bHasCheckpoint = SaveObject->bHasCheckpoint;
 }
 
 void UProgressSubsystem::SetFlag(EProgressFlag Flag)
@@ -44,6 +68,7 @@ void UProgressSubsystem::SetFlag(EProgressFlag Flag)
 	if (!bFlagAlreadyUnlocked)
 	{
 		OnFlagUnlocked.Broadcast(Flag);
+		SaveProgress();
 	}
 }
 
@@ -56,6 +81,20 @@ void UProgressSubsystem::ClearFlag(EProgressFlag Flag)
 {
 	Progress.UnlockedFlags.Remove(Flag);
 	OnFlagUnlocked.Broadcast(Flag);
+}
+
+void UProgressSubsystem::SetCheckpoint(const ACheckpoint* NewCheckpoint)
+{
+	if (!NewCheckpoint) return;
+	
+	Progress.LastCheckpointTransform = NewCheckpoint->GetActorTransform();
+	Progress.bHasCheckpoint = true;
+	SaveProgress();
+}
+
+FPlayerProgress UProgressSubsystem::GetProgress() const
+{
+	return Progress;
 }
 
 void UProgressSubsystem::DevGiveAllProgress()

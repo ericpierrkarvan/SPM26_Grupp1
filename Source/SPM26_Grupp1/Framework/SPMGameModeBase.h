@@ -22,6 +22,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Spawning|Sound Events")
 	void SpawnPlayersAtStartBP();
 
+	UFUNCTION(BlueprintCallable)
+	TArray<APlayerController*> GetPlayerControllers();
 #if WITH_EDITOR
 	void SwitchKeyboardToPlayer();
 	void SwapPossession();
@@ -40,4 +42,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AMechanicCharacter> MechanicCharacterClass;
+
+	UPROPERTY()
+	TArray<APlayerController*> PlayerControllers;
 };
