@@ -124,15 +124,15 @@ void AMechanicCharacter::BeginPlay()
 	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
 	if (!GI) return;
 
-	if (MaterialOptions.Num() > 0)
+	if (GI->GetMechanicMaterialOptions().Num() > 0)
 	{
-		int32 SavedIndex = GI->GetSelectedMaterialIndex();
+		int32 SavedIndex = GI->GetSelectedMechanicMaterialIndex();
 		
-		SavedIndex = FMath::Clamp(SavedIndex, 0, MaterialOptions.Num() - 1);
+		SavedIndex = FMath::Clamp(SavedIndex, 0, GI->GetMechanicMaterialOptions().Num() - 1);
 		
-		if (MaterialOptions[SavedIndex])
+		if (GI->GetMechanicMaterialOptions()[SavedIndex])
 		{
-			GetMesh()->SetMaterial(0, MaterialOptions[SavedIndex]);
+			GetMesh()->SetMaterial(0, GI->GetMechanicMaterialOptions()[SavedIndex]);
 		}
 	}
 }
