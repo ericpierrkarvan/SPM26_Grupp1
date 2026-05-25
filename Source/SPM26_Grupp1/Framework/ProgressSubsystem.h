@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "ProgressSubsystem.generated.h"
 
@@ -23,6 +24,12 @@ struct FPlayerProgress
 
 	UPROPERTY(BlueprintReadOnly)
 	TSet<EProgressFlag> UnlockedFlags;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FTransform LastCheckpointTransform; // Transform because pointer to ACheckpoint is meaningless across session
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bHasCheckpoint = false;
 };
 
 /**
@@ -38,6 +45,7 @@ class SPM26_GRUPP1_API UProgressSubsystem : public UGameInstanceSubsystem
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	
 	UPROPERTY(BlueprintAssignable)
 	FOnFlagUnlocked OnFlagUnlocked;
 	
@@ -61,10 +69,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Dev")
 	void DevRemoveAllProgress();
-
+	
+	void SetCheckpoint(const ACheckpoint* NewCheckpoint);
+	FPlayerProgress GetProgress() const;
+	
+	// Can be expanded later if want several save slots
+	const FString SaveSlotName = TEXT("SaveGame");
+	const int32 SaveUserIndex = 0;
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FPlayerProgress Progress;
-	
+
 };

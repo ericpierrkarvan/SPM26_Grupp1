@@ -2,8 +2,11 @@
 
 
 #include "RespawnComponent.h"
+
+#include "Components/ProgressBar.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
+#include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 
 // Sets default values for this component's properties
 URespawnComponent::URespawnComponent()
@@ -58,12 +61,40 @@ void URespawnComponent::OnRespawnActor()
 	bIsDead = false;
 }
 
-void URespawnComponent::SetCheckpoint(ACheckpoint* NewCheckpoint)
+void URespawnComponent::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 {
-	LastCheckpoint = NewCheckpoint;
+	if (UGameInstance* GI = GetWorld()->GetGameInstance())
+	{
+		if (UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
+			PS->SetCheckpoint(NewCheckpoint);
+	}
+	//LastCheckpoint = NewCheckpoint;
 }
 
 FTransform URespawnComponent::GetCheckpointTransform() const
+{
+	const FVector ActorScale = GetOwner()->GetActorScale3D();
+
+	if (UGameInstance* GI = GetWorld()->GetGameInstance())
+	{
+		if (const UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
+		{
+			const FPlayerProgress& Progress = PS->GetProgress();
+			if (Progress.bHasCheckpoint)
+			{
+				return FTransform(
+					Progress.LastCheckpointTransform.GetRotation(), 
+					Progress.LastCheckpointTransform.GetLocation(),
+					ActorScale);
+			}
+		}
+	}
+
+	
+	return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
+}
+
+/*FTransform URespawnComponent::GetCheckpointTransform() const
 {
 	FVector ActorScale = GetOwner()->GetActorScale3D();
 
@@ -73,6 +104,6 @@ FTransform URespawnComponent::GetCheckpointTransform() const
 		FRotator CheckpointRotation = LastCheckpoint->GetActorRotation();
 		return FTransform(CheckpointRotation, CheckpointLocation, ActorScale);
 	}
-
+	
 	return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
-}
+}*/
