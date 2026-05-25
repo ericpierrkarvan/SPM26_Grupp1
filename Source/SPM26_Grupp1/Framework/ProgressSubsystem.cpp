@@ -38,6 +38,7 @@ void UProgressSubsystem::SaveProgress()
 	SaveObject->UnlockedFlags = Progress.UnlockedFlags.Array();
 	SaveObject->LastCheckpointTransform = Progress.LastCheckpointTransform;
 	SaveObject->bHasCheckpoint = Progress.bHasCheckpoint;
+	SaveObject->CurrentLevel = Progress.CurrentLevel;
 	
 	UGameplayStatics::SaveGameToSlot(SaveObject, SaveSlotName, SaveUserIndex);
 }
@@ -66,6 +67,7 @@ void UProgressSubsystem::LoadProgress()
 	Progress.UnlockedFlags = TSet<EProgressFlag>(SaveObject->UnlockedFlags);
 	Progress.LastCheckpointTransform = SaveObject->LastCheckpointTransform;
 	Progress.bHasCheckpoint = SaveObject->bHasCheckpoint;
+	Progress.CurrentLevel = SaveObject->CurrentLevel;
 }
 
 void UProgressSubsystem::RemoveAllProgress()
@@ -110,9 +112,31 @@ void UProgressSubsystem::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 	SaveProgress();
 }
 
+void UProgressSubsystem::SetCurrentLevel(const FString& LevelName)
+{
+	Progress.CurrentLevel = FName(*LevelName);
+	SaveProgress();
+}
+
 FPlayerProgress UProgressSubsystem::GetProgress() const
 {
 	return Progress;
+}
+
+FName UProgressSubsystem::GetProgressCurrentLevel() const
+{
+	return Progress.CurrentLevel;
+}
+
+TSoftObjectPtr<UWorld> UProgressSubsystem::GetProgressCurrentLevelSoftPtr() const
+{
+	if (Progress.CurrentLevel == NAME_None) return nullptr;
+	
+	const FString LevelPath = FString::Printf(TEXT("/Game/Levels/%s.%s"), 
+		*Progress.CurrentLevel.ToString(), 
+		*Progress.CurrentLevel.ToString());
+	
+	return TSoftObjectPtr<UWorld>(FSoftObjectPath(LevelPath));
 }
 
 void UProgressSubsystem::DevGiveAllProgress()

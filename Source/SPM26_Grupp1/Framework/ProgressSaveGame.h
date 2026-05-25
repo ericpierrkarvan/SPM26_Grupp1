@@ -24,4 +24,6 @@ public:
 	bool bHasCheckpoint = false;
 	UPROPERTY()
 	FName CheckpointLevelName = NAME_None;
+	UPROPERTY(BlueprintReadOnly)
+	FName CurrentLevel = NAME_None;
 };

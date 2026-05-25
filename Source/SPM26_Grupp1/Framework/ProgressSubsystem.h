@@ -33,6 +33,9 @@ struct FPlayerProgress
 	
 	UPROPERTY(BlueprintReadOnly)
 	FName CheckpointLevelName = NAME_None; // which level this checkpoint belongs to
+	
+	UPROPERTY(BlueprintReadOnly)
+	FName CurrentLevel = NAME_None;
 };
 
 /**
@@ -52,33 +55,37 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnFlagUnlocked OnFlagUnlocked;
 	
+	// Handle progress
 	UFUNCTION(BlueprintCallable)
 	void SaveProgress();
-
 	UFUNCTION(BlueprintCallable)
 	void LoadProgress();
-	
 	UFUNCTION(BlueprintCallable)
 	void RemoveAllProgress();
 
+	// Handle flags
 	UFUNCTION(BlueprintCallable)
 	void SetFlag(EProgressFlag Flag);
-
 	UFUNCTION(BlueprintCallable)
 	bool HasFlag(EProgressFlag Flag) const;
-
 	UFUNCTION(BlueprintCallable)
 	void ClearFlag(EProgressFlag Flag);
 
+	// Dev stuff
 	UFUNCTION(BlueprintCallable, Category="Dev")
 	void DevGiveAllProgress();
-
 	UFUNCTION(BlueprintCallable, Category="Dev")
 	void DevRemoveAllProgress();
 	
+	// Getters & Setters
 	void SetCheckpoint(const ACheckpoint* NewCheckpoint);
+	void SetCurrentLevel(const FString& LevelName);
 	FPlayerProgress GetProgress() const;
-	
+	UFUNCTION(BlueprintCallable)
+	FName GetProgressCurrentLevel() const;
+	UFUNCTION(BlueprintCallable)
+	TSoftObjectPtr<UWorld> GetProgressCurrentLevelSoftPtr() const;
+
 	// Can be expanded later if want several save slots
 	const FString SaveSlotName = TEXT("SaveGame");
 	const int32 SaveUserIndex = 0;
