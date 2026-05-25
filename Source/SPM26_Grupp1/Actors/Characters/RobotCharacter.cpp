@@ -17,6 +17,7 @@
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
+#include "SPM26_Grupp1/Framework/SPMGameInstance.h"
 #include "SPM26_Grupp1/Interfaces/Scannable.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 
@@ -91,6 +92,22 @@ void ARobotCharacter::BeginPlay()
 		FollowCamera->PostProcessSettings.AddBlendable(CRTMID, 1.f);
 		CRTMID->SetScalarParameterValue(FName("Intensity"), 0.f);
 	}
+	/*
+	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
+	if (!GI) return;
+	
+	if (GI->GetRobotMaterialOptions().Num() > 0)
+	{
+		int32 SavedIndex = GI->GetSelectedRobotMaterialIndex();
+		
+		SavedIndex = FMath::Clamp(SavedIndex, 0, GI->GetRobotMaterialOptions().Num() - 1);
+		
+		if (GI->GetRobotMaterialOptions()[SavedIndex])
+		{
+			GetMesh()->SetMaterial(0, GI->GetRobotMaterialOptions()[SavedIndex]);
+		}
+	}
+	*/
 }
 
 bool ARobotCharacter::CanJumpInternal_Implementation() const

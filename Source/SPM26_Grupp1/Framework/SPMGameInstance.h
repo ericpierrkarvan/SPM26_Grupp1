@@ -23,11 +23,22 @@ public:
 	void SetupLocalMultiplayerInput();
 	
 	UFUNCTION(BlueprintCallable, Category = "Character Customization")
-	void SaveSelectedMaterialIndex(int32 NewIndex);
+	void SaveSelectedMechanicMaterialIndex(int32 NewIndex);
 	
-	UFUNCTION(BlueprintPure, Category = "Character Customization")
-	int32 GetSelectedMaterialIndex() const { return SelectedMaterialIndex; }
+	UFUNCTION(BlueprintCallable, Category = "Character Customization")
+	void SaveSelectedRobotMaterialIndex(int32 NewIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Character Customization")
+	int32 GetSelectedMechanicMaterialIndex() const { return SelectedMechanicMaterialIndex; }
 	
+	UFUNCTION(BlueprintCallable, Category = "Character Customization")
+	int32 GetSelectedRobotMaterialIndex() const { return SelectedRobotMaterialIndex; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Character Customization")
+	TArray<UMaterialInterface*> GetMechanicMaterialOptions() const { return MechanicMaterialOptions; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Character Customization")
+	TArray<UMaterialInterface*> GetRobotMaterialOptions() const { return RobotMaterialOptions; }
 protected:
 	virtual void Init() override;
 	virtual void HandleInputDeviceConnectionChange(EInputDeviceConnectionState NewConnectionState, FPlatformUserId PlatformUserId, FInputDeviceId InputDeviceId) override;
@@ -44,5 +55,16 @@ private:
 	int32 CurrentLevelIndex = 0;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Character Customization")
-	int32 SelectedMaterialIndex = 0;
+	int32 SelectedMechanicMaterialIndex = 0;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Character Customization")
+	int32 SelectedRobotMaterialIndex = 0;
+	
+	UPROPERTY(EditAnywhere)
+	TArray<UMaterialInterface*> MechanicMaterialOptions;
+	
+	UPROPERTY(EditAnywhere)
+	TArray<UMaterialInterface*> RobotMaterialOptions;
+	
+	
 };
