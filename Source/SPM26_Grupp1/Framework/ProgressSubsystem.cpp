@@ -106,6 +106,7 @@ void UProgressSubsystem::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 	
 	Progress.LastCheckpointTransform = NewCheckpoint->GetActorTransform();
 	Progress.bHasCheckpoint = true;
+	Progress.CheckpointLevelName = FName(*GetWorld()->GetMapName());
 	SaveProgress();
 }
 

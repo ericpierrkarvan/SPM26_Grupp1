@@ -95,10 +95,14 @@ FTransform URespawnComponent::GetCheckpointTransform() const
 			const FPlayerProgress& Progress = PS->GetProgress();
 			if (Progress.bHasCheckpoint)
 			{
-				return FTransform(
-					Progress.LastCheckpointTransform.GetRotation(), 
-					Progress.LastCheckpointTransform.GetLocation(),
-					ActorScale);
+				const FName CurrentLevel = FName(*GetWorld()->GetMapName());
+				if (CurrentLevel == Progress.CheckpointLevelName) // Validate checkpoint belongs to current level
+				{
+                    return FTransform(
+                    	Progress.LastCheckpointTransform.GetRotation(), 
+                    	Progress.LastCheckpointTransform.GetLocation(),
+                    	ActorScale);
+				}
 			}
 		}
 	}

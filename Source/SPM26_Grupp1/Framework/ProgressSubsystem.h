@@ -30,6 +30,9 @@ struct FPlayerProgress
 	
 	UPROPERTY(BlueprintReadOnly)
 	bool bHasCheckpoint = false;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FName CheckpointLevelName = NAME_None; // which level this checkpoint belongs to
 };
 
 /**

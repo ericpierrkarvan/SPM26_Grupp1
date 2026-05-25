@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "ProgressSubsystem.h"
 #include "GameFramework/SaveGame.h"
-#include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "ProgressSaveGame.generated.h"
 
 /**
@@ -23,4 +22,6 @@ public:
 	FTransform LastCheckpointTransform;
 	UPROPERTY()
 	bool bHasCheckpoint = false;
+	UPROPERTY()
+	FName CheckpointLevelName = NAME_None;
 };
