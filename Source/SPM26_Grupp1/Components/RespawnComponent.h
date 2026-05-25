@@ -42,7 +42,7 @@ private:
 	TObjectPtr<ACheckpoint> LastCheckpoint;
 
 	UPROPERTY(EditAnywhere)
-	float RespawnDelay = 3.f;
+	float RespawnDelay = 2.f;
 
 	FTimerHandle RespawnTimerHandle;
 	bool bIsDead = false;
