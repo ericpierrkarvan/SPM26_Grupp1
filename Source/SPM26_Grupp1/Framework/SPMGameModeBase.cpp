@@ -7,12 +7,12 @@
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
-#if WITH_EDITOR
 TArray<APlayerController*> ASPMGameModeBase::GetPlayerControllers()
 {
 	return PlayerControllers;
 }
 
+#if WITH_EDITOR
 void ASPMGameModeBase::SwitchKeyboardToPlayer()
 {
 	// Cache originals on first switch
