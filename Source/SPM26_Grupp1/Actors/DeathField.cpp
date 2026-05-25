@@ -71,8 +71,8 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	if (OtherOverlappedComponent->IsSimulatingPhysics())
 	{
 		BuoyantComponents.AddUnique(OtherOverlappedComponent);
-		OtherOverlappedComponent->SetLinearDamping(60.f);
-		OtherOverlappedComponent->SetAngularDamping(60.f);
+		OtherOverlappedComponent->SetLinearDamping(15.f);
+		OtherOverlappedComponent->SetAngularDamping(15.f);
 	}
 
 	TrackedActors.AddUnique(OtherActor);
@@ -82,15 +82,14 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		Character->OnDeath();
 		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
-			if (AMechanicCharacter* Mechanic = Cast<AMechanicCharacter>(Character))
+			for (FBodyInstance* Body : Mesh->Bodies)
 			{
-				Mesh->SetLinearDamping(90.0f);
-				Mesh->SetAngularDamping(90.0f);
-			}
-			else if (ARobotCharacter* Robot = Cast<ARobotCharacter>(Character))
-			{
-				Mesh->SetLinearDamping(20.0f);
-				Mesh->SetAngularDamping(20.0f);
+				if (!Body) continue;
+
+				Body->LinearDamping = 20.f;
+				Body->AngularDamping = 20.f;
+
+				Body->UpdateDampingProperties();
 			}
 			TrackedRagdolls.AddUnique(Mesh);
 			BuoyantComponents.AddUnique(Mesh);
@@ -124,8 +123,15 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		TrackedRagdolls.Remove(Mesh);
 	OtherOverlappedComponent->SetLinearDamping(0.01f);
 	OtherOverlappedComponent->SetAngularDamping(0.05f);
-	if (Mesh)
-		Mesh->SetLinearDamping(0.01f);
+	for (FBodyInstance* Body : Mesh->Bodies)
+	{
+		if (!Body) continue;
+
+		Body->LinearDamping = 0.01f;
+		Body->AngularDamping = 0.05f;
+
+		Body->UpdateDampingProperties();
+	}
 
 
 	float LavaSurfaceZ = GetActorLocation().Z + Trigger->GetScaledBoxExtent().Z;
@@ -137,18 +143,28 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 
 void ADeathField::SpawnDeathEffect(AActor* DeadActor)
 {
-	DeathEffectComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		GetWorld(),
-		DeathEffect,
-		DeadActor->GetActorLocation(),
-		DeadActor->GetActorRotation()
+	if (!DeadActor) return;
+
+	USceneComponent* AttachComp = DeadActor->GetRootComponent();
+
+	if (!AttachComp) return;
+	
+	
+	DeathEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		DeathEffect,                         
+		AttachComp,                          
+		NAME_None,                           
+		FVector::ZeroVector,                 
+		FRotator::ZeroRotator,               
+		EAttachLocation::KeepRelativeOffset,
+		true                                 
 	);
 
 	if (DeathEffectComp)
 	{
 		FTimerHandle TimerHandle;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADeathField::DestroyDeathEffect,
-		                                1, false);
+		                                2, false);
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Death Effect Spawned"));
