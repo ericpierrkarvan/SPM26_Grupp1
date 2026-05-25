@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "NiagaraComponent.h"
 #include "ProjectileBase.h"
+#include "Components/PointLightComponent.h"
 #include "SPM26_Grupp1/Magnetic Fields/MagneticField_Cylinder.h"
 #include "Proj_MagneticCylinder.generated.h"
 
@@ -35,13 +36,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Projectile")
 	float SpawnedMagneticFieldDuration = 10.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Magnet|VFX")
-	UNiagaraSystem* MagnetVfxAsset;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Magnet|Material")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile|Material")
 	UMaterialInstance* PositiveProjMaterial;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Magnet|Material")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile|Material")
 	UMaterialInstance* NegativeProjMaterial;
+	
+	// Light
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile|Light")
+	UPointLightComponent* ProjectileLight;
+	// Designer-tweakable colors, visible in the Blueprint viewport
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile|Light")
+	FLinearColor PositiveLightColor = FLinearColor(0.1f, 0.4f, 1.0f); // Blue
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile|Light")
+	FLinearColor NegativeLightColor = FLinearColor(1.0f, 0.2f, 0.1f); // Red
+	UPROPERTY(EditAnywhere, Category = "Projectile|Light")
+	float LightIntensity = 2000.f;
+	UPROPERTY(EditAnywhere, Category = "Projectile|Light")
+	float AttenuationRadius = 300.f;
 	
 	int32 ProjectilePolarity;
 	EPolarity ProjPolarity = EPolarity::None;

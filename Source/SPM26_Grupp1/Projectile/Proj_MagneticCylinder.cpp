@@ -29,6 +29,12 @@ AProj_MagneticCylinder::AProj_MagneticCylinder(const FObjectInitializer& ObjectI
 	ProjectileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ProjectileMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	
+	// Light
+	ProjectileLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("LightComponent"));
+	ProjectileLight->SetupAttachment(ProjectileMesh);
+	ProjectileLight->SetIntensity(LightIntensity);
+	ProjectileLight->SetAttenuationRadius(AttenuationRadius);
 
 	//we need to get the material for when the projectile stops, ie it hits something
 	ProjectileMesh->bReturnMaterialOnMove = true;
@@ -55,6 +61,7 @@ void AProj_MagneticCylinder::BeginPlay()
 	ProjectilePolarity = GetOwner<AMagnetGun>()->GetPolarityValue();
 	ProjPolarity = GetOwner<AMagnetGun>()->GetPolarity();
 	ProjPolarity == EPolarity::Positive ? ProjectileMesh->SetMaterial(0, PositiveProjMaterial) : ProjectileMesh->SetMaterial(0, NegativeProjMaterial);
+	ProjPolarity == EPolarity::Positive ? ProjectileLight->SetLightColor(PositiveLightColor) : ProjectileLight->SetLightColor(NegativeLightColor);
 	
 }
 
