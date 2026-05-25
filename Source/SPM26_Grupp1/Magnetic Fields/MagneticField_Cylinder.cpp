@@ -100,10 +100,11 @@ void AMagneticField_Cylinder::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Capsule->OnComponentEndOverlap.RemoveAll(this);
 	}
 	
-	if (TargetCharacter)
+	for (AActor* Actor : ActorsInField)
 	{
-		RestoreMovement(TargetCharacter);
-		TargetCharacter = nullptr;
+		if (!Cast<ARobotCharacter>(Actor)) continue;
+		RestoreMovement(Cast<ARobotCharacter>(Actor));	
+		//UE_LOG(LogTemp, Warning, TEXT("MF::EndPlay RestoreMovement of Robot: %s"), *Cast<ARobotCharacter>(Actor)->GetName());
 	}
 	
 	Super::EndPlay(EndPlayReason);
@@ -400,6 +401,7 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	if (OtherActor == this) return;
 	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
 	if (!OtherField) return;
+	
 	if (!OtherField->WasSpawnedByProjectile() && bWasSpawnedByProjectile)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("OtherField was Static, this field spawned by projectile. Destroying this: %s"), *GetName());
@@ -410,23 +412,20 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	// If fields attract (Different polarities) -> Decrease size of this and Remove OtherField. If CurrentAmount... = 0, destroy this.
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> ShouldAttract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
-		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> OtherFieldCurrentAmount: %hhd, thisCurrentAmount: %hhd"), OtherField->GetCurrentAmountOfSummarizedField(), this->GetCurrentAmountOfSummarizedField());
 		CurrentAmountOfSummarizedField = FMath::Max(CurrentAmountOfSummarizedField, OtherField->GetCurrentAmountOfSummarizedField());
+		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap(): Fields attract, destroying OtherField: %s"), *OtherField->GetName());
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField--;
 		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
+		
 		if (CurrentAmountOfSummarizedField <= 0) this->Destroy();
-		else
-		{
-			this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
-			// this->SetLifeSpan(MagneticFieldDuration);
-		}
+		else this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
+		
 	}
+	
 	// If fields don't attract (Same polarities) -> Increase size of this, reset its lifespan, Remove OtherField.
 	else
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() -> Should NOT Attract! OtherField: %hhd, this: %hhd"), OtherField->GetPolarity(), this->GetPolarity());
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField++;
 		CurrentAmountOfSummarizedField = FMath::Clamp(CurrentAmountOfSummarizedField, 0, MaxAmountOfSummarizedField);
@@ -460,13 +459,11 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	TargetCharacter = Character;
 	
 	if (ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)) && Cast<ACharacter>(OtherActor))
-	{
 		SetCharacterAttractParameters(Character);
-	}
+	
 	else if (ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
-	{
 		SetActorAttractParameters(OtherActor);
-	}
+	
 	
 }
 // Validates the input, nulls etc
@@ -497,7 +494,7 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	if (Character && ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
 	{
 		RestoreMovement(Character);
-		UE_LOG(LogTemp, Warning, TEXT("Restored movement of character: %s"), *Character->GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("Restored movement of character: %s"), *Character->GetName());
 	}
 	if (Cast<ARobotCharacter>(Character)) StopListenToRobot(Character);
 	bCharacterInsideField = false;
@@ -527,10 +524,10 @@ void AMagneticField_Cylinder::StopListenToRobot(ACharacter* Character)
 void AMagneticField_Cylinder::SetCharacterAttractParameters(ACharacter* Character)
 {
 	if (!Character) return;
-	UE_LOG(LogTemp, Warning, TEXT("Field polarity: %s, Other polarity: %s, Should attract? %d"), 
+	/*UE_LOG(LogTemp, Warning, TEXT("Field polarity: %s, Other polarity: %s, Should attract? %d"), 
 		*UEnum::GetValueAsString(Polarity), 
 		*UEnum::GetValueAsString(GetObjectPolarity(Character)), 
-		ShouldAttract(Polarity, GetObjectPolarity(Character)));
+		ShouldAttract(Polarity, GetObjectPolarity(Character)));*/
 	
 	// Gravity = 0 in magnet field while pulling
 	Character->GetCharacterMovement()->GravityScale = 0;
@@ -588,8 +585,8 @@ void AMagneticField_Cylinder::RestoreMovement(const ACharacter* Character) const
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %s, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
-	*MovementComponent->GetMovementName(), MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
+	//UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %s, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
+	//*MovementComponent->GetMovementName(), MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
 
 }
 
@@ -714,7 +711,6 @@ int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
 void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 {
 	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
-	UE_LOG(LogTemp, Warning, TEXT("MF::Choosing a Magnetic Sound.")); 
 }
 
 bool AMagneticField_Cylinder::WasSpawnedByProjectile() const
