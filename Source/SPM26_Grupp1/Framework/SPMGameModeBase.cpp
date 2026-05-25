@@ -8,6 +8,11 @@
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
 #if WITH_EDITOR
+TArray<APlayerController*> ASPMGameModeBase::GetPlayerControllers()
+{
+	return PlayerControllers;
+}
+
 void ASPMGameModeBase::SwitchKeyboardToPlayer()
 {
 	// Cache originals on first switch
@@ -98,6 +103,12 @@ void ASPMGameModeBase::BeginPlay()
 void ASPMGameModeBase::OnPostLogin(AController* NewPlayer)
 {
 	Super::OnPostLogin(NewPlayer);
+
+	APlayerController* PCNew = Cast<APlayerController>(NewPlayer);
+	if (PCNew)
+	{
+		PlayerControllers.AddUnique(PCNew);
+	}
 
 #if !WITH_EDITOR
 	APlayerController* PC0 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 0);
