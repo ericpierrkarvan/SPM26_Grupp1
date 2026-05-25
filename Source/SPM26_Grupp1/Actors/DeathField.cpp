@@ -9,6 +9,8 @@
 #include "SPM26_Grupp1/Components/RespawnComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Characters/MechanicCharacter.h"
+#include "Characters/RobotCharacter.h"
 
 // Sets default values
 ADeathField::ADeathField()
@@ -80,16 +82,24 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		Character->OnDeath();
 		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
-			Mesh->SetLinearDamping(150.0f);
-			Mesh->SetAngularDamping(150.0f);
+			if (AMechanicCharacter* Mechanic = Cast<AMechanicCharacter>(Character))
+			{
+				Mesh->SetLinearDamping(90.0f);
+				Mesh->SetAngularDamping(90.0f);
+			}
+			else if (ARobotCharacter* Robot = Cast<ARobotCharacter>(Character))
+			{
+				Mesh->SetLinearDamping(20.0f);
+				Mesh->SetAngularDamping(20.0f);
+			}
 			TrackedRagdolls.AddUnique(Mesh);
 			BuoyantComponents.AddUnique(Mesh);
 			DeathByDeathFieldBP();
 		}
 	}
-	
+
 	SpawnDeathEffect(OtherActor);
-	
+
 	RespawnComponent->Respawn();
 }
 
@@ -116,10 +126,10 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	OtherOverlappedComponent->SetAngularDamping(0.05f);
 	if (Mesh)
 		Mesh->SetLinearDamping(0.01f);
-	
-	
+
+
 	float LavaSurfaceZ = GetActorLocation().Z + Trigger->GetScaledBoxExtent().Z;
-	
+
 	if (OtherOverlappedComponent->GetComponentLocation().Z >= LavaSurfaceZ - 50.f)
 	{
 	}
@@ -133,14 +143,14 @@ void ADeathField::SpawnDeathEffect(AActor* DeadActor)
 		DeadActor->GetActorLocation(),
 		DeadActor->GetActorRotation()
 	);
-	
+
 	if (DeathEffectComp)
 	{
 		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADeathField::DestroyDeathEffect, 
-			1, false);
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADeathField::DestroyDeathEffect,
+		                                1, false);
 	}
-	
+
 	UE_LOG(LogTemp, Warning, TEXT("Death Effect Spawned"));
 }
 
