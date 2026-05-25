@@ -123,14 +123,17 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		TrackedRagdolls.Remove(Mesh);
 	OtherOverlappedComponent->SetLinearDamping(0.01f);
 	OtherOverlappedComponent->SetAngularDamping(0.05f);
-	for (FBodyInstance* Body : Mesh->Bodies)
+	if (Mesh)
 	{
-		if (!Body) continue;
+		for (FBodyInstance* Body : Mesh->Bodies)
+		{
+			if (!Body) continue;
 
-		Body->LinearDamping = 0.01f;
-		Body->AngularDamping = 0.05f;
+			Body->LinearDamping = 0.01f;
+			Body->AngularDamping = 0.05f;
 
-		Body->UpdateDampingProperties();
+			Body->UpdateDampingProperties();
+		}
 	}
 
 
@@ -148,16 +151,16 @@ void ADeathField::SpawnDeathEffect(AActor* DeadActor)
 	USceneComponent* AttachComp = DeadActor->GetRootComponent();
 
 	if (!AttachComp) return;
-	
-	
+
+
 	DeathEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		DeathEffect,                         
-		AttachComp,                          
-		NAME_None,                           
-		FVector::ZeroVector,                 
-		FRotator::ZeroRotator,               
+		DeathEffect,
+		AttachComp,
+		NAME_None,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
 		EAttachLocation::KeepRelativeOffset,
-		true                                 
+		true
 	);
 
 	if (DeathEffectComp)
