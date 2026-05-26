@@ -2,13 +2,11 @@
 
 
 #include "AlienNPCCharacter.h"
-
 #include "RobotCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "SPM26_Grupp1/AI/AlienAIController.h"
 
 class ARobotCharacter;
 // Sets default values
@@ -24,7 +22,10 @@ AAlienNPCCharacter::AAlienNPCCharacter()
 void AAlienNPCCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	if (AAlienAIController* AIController = Cast<AAlienAIController>(GetController()))
+		AIController->OnAIStateChanged.AddDynamic(this, &AAlienNPCCharacter::OnAIStateChanged);
+	
 }
 
 // Called every frame
@@ -85,6 +86,17 @@ void AAlienNPCCharacter::TryPushBack(float DeltaTime)
 			PushBack(Actor);
 			TimeSinceLastPushBack = 0.f;
 		}
+	}
+}
+
+void AAlienNPCCharacter::OnAIStateChanged(EAlienAIState NewState)
+{
+	switch (NewState)
+	{
+	case EAlienAIState::Chasing: IsChasingBP(); break;
+	case EAlienAIState::Patrolling: IsPatrollingBP(); break;
+	case EAlienAIState::Investigating: IsInvestigatingBP(); break;
+	case EAlienAIState::Fleeing: IsFleeingBP();	break;
 	}
 }
 

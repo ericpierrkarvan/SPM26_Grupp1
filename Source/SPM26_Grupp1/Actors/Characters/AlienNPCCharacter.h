@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "SPM26_Grupp1/AI/AlienAIController.h"
 #include "AlienNPCCharacter.generated.h"
 
 UCLASS()
@@ -86,6 +87,6 @@ protected:
 private:
 	void PushBack(AActor* Actor);
 	void TryPushBack(float DeltaTime);
-
-
+	UFUNCTION()
+	void OnAIStateChanged(EAlienAIState NewState);
 };
