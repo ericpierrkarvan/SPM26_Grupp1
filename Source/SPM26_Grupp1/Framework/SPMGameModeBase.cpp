@@ -143,11 +143,12 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 
 		const AActor* StartSpot = FindPlayerStart(PlayerController);
 		if (!StartSpot)	continue;
+
+		const bool bUsePIEStart = StartSpot->IsA<APlayerStartPIE>(); // Respect "Play from here"
+		const FName CurrentLevel = FName(*GetWorld()->GetMapName());
+		const bool bIsCheckPointValid = Progress.bHasCheckpoint && Progress.CheckpointLevelName == CurrentLevel;
 		
-		// Respect "Play from here"
-		const bool bUsePIEStart = StartSpot->IsA<APlayerStartPIE>();
-		
-		FTransform SpawnTransform = (Progress.bHasCheckpoint && !bUsePIEStart)
+		FTransform SpawnTransform = (bIsCheckPointValid && !bUsePIEStart)
 			? Progress.LastCheckpointTransform 
 			: StartSpot->GetActorTransform();
 				

@@ -2,7 +2,6 @@
 
 
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
-
 #include "ProgressSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -34,10 +33,8 @@ void UProgressSubsystem::SaveProgress()
 	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(UGameplayStatics::CreateSaveGameObject(UProgressSaveGame::StaticClass()));
 	if (!SaveObject) return;
 	
-	// Conversion TSet->TArray in save object->TSet on load "is a safe/conventional pattern" (something about serialization)
-	SaveObject->UnlockedFlags = Progress.UnlockedFlags.Array();
-	SaveObject->LastCheckpointTransform = Progress.LastCheckpointTransform;
-	SaveObject->bHasCheckpoint = Progress.bHasCheckpoint;
+	SetCurrentLevel(GetWorld()->GetMapName());
+	UpdateSaveObject(SaveObject);
 	
 	UGameplayStatics::SaveGameToSlot(SaveObject, SaveSlotName, SaveUserIndex);
 }
@@ -63,9 +60,7 @@ void UProgressSubsystem::LoadProgress()
 		return;
 	}
 	
-	Progress.UnlockedFlags = TSet<EProgressFlag>(SaveObject->UnlockedFlags);
-	Progress.LastCheckpointTransform = SaveObject->LastCheckpointTransform;
-	Progress.bHasCheckpoint = SaveObject->bHasCheckpoint;
+	LoadProgressObject(SaveObject);
 }
 
 void UProgressSubsystem::RemoveAllProgress()
@@ -104,14 +99,70 @@ void UProgressSubsystem::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 	if (!NewCheckpoint) return;
 	if (!NewCheckpoint->IsMutualCheckpoint()) return;
 	
+	const FString CurrentLevel = GetWorld()->GetMapName();
 	Progress.LastCheckpointTransform = NewCheckpoint->GetActorTransform();
 	Progress.bHasCheckpoint = true;
+	Progress.CheckpointLevelName = FName(*CurrentLevel);
+
 	SaveProgress();
+}
+
+void UProgressSubsystem::SetCurrentLevel(const FString& LevelName)
+{
+	Progress.CurrentLevel = FName(*LevelName);
+}
+
+void UProgressSubsystem::SetMechanicCosmetic(UMaterialInstance* NewMaterial)
+{
+	Progress.MechanicMaterial = NewMaterial;
 }
 
 FPlayerProgress UProgressSubsystem::GetProgress() const
 {
 	return Progress;
+}
+
+FName UProgressSubsystem::GetProgressCurrentLevel() const
+{
+	return Progress.CurrentLevel;
+}
+
+TSoftObjectPtr<UWorld> UProgressSubsystem::GetProgressCurrentLevelSoftPtr() const
+{
+	if (Progress.CurrentLevel == NAME_None)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Checking Progress. Progress.CurrentLevel = NAME_None."));
+		return nullptr;
+	}
+	
+	const FString LevelPath = FString::Printf(TEXT("/Game/Levels/Levels/%s.%s"), 
+		*Progress.CurrentLevel.ToString(), 
+		*Progress.CurrentLevel.ToString());
+	
+	UE_LOG(LogTemp, Warning, TEXT("Progress.CurrentLevel LevelPath: %s"), *LevelPath);
+	
+	return TSoftObjectPtr<UWorld>(FSoftObjectPath(LevelPath));
+}
+
+// Update with Progress' flags, checkpoints etc
+void UProgressSubsystem::UpdateSaveObject(UProgressSaveGame* SaveObject) const
+{
+	// Conversion TSet->TArray in save object->TSet on load "is a safe/conventional pattern" (something about serialization)
+	SaveObject->UnlockedFlags = Progress.UnlockedFlags.Array();
+	SaveObject->LastCheckpointTransform = Progress.LastCheckpointTransform;
+	SaveObject->bHasCheckpoint = Progress.bHasCheckpoint;
+	SaveObject->CurrentLevel = Progress.CurrentLevel;
+	SaveObject->MechanicMaterial = Progress.MechanicMaterial;
+}
+
+// Load flags, checkpoints etc into Progress
+void UProgressSubsystem::LoadProgressObject(UProgressSaveGame* SaveObject)
+{
+	Progress.UnlockedFlags = TSet<EProgressFlag>(SaveObject->UnlockedFlags);
+	Progress.LastCheckpointTransform = SaveObject->LastCheckpointTransform;
+	Progress.bHasCheckpoint = SaveObject->bHasCheckpoint;
+	Progress.CurrentLevel = SaveObject->CurrentLevel;
+	Progress.MechanicMaterial = SaveObject->MechanicMaterial;
 }
 
 void UProgressSubsystem::DevGiveAllProgress()
