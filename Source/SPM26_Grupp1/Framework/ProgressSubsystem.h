@@ -3,19 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ProgressSaveGame.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "ProgressSubsystem.generated.h"
-
-UENUM(BlueprintType)
-enum class EProgressFlag : uint8 //add flag to DevGiveAllProgress if you add/remove
-{
-	MagneticGunUnlocked UMETA(DisplayName = "Mechanic Has Magnetic Gun"),
-	MagneticGunCanSwitchPolarity UMETA(DisplayName = "Magnetic Gun Can Switch Polarity"),
-	RobotCanSwitchPolarity UMETA(DisplayName = "Robot Can Switch Polarity"),
-	RobotCanHeadLaunch UMETA(DisplayName = "Robot Can Head Launch"),
-	None UMETA(DisplayName = "None"),
-};
 
 USTRUCT(BlueprintType)
 struct FPlayerProgress
@@ -36,6 +27,9 @@ struct FPlayerProgress
 	
 	UPROPERTY(BlueprintReadOnly)
 	FName CurrentLevel = NAME_None;
+	
+	UPROPERTY(BlueprintReadOnly)
+	UMaterialInstance* MechanicMaterial = nullptr;
 };
 
 /**
@@ -82,6 +76,8 @@ public:
 	void SetCurrentLevel(const FString& LevelName);
 	FPlayerProgress GetProgress() const;
 	UFUNCTION(BlueprintCallable)
+	void SetMechanicCosmetic(UMaterialInstance* NewMaterial);
+	UFUNCTION(BlueprintCallable)
 	FName GetProgressCurrentLevel() const;
 	UFUNCTION(BlueprintCallable)
 	TSoftObjectPtr<UWorld> GetProgressCurrentLevelSoftPtr() const;
@@ -93,5 +89,9 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FPlayerProgress Progress;
+	
+private:
+	void UpdateSaveObject(UProgressSaveGame* SaveObject) const;
+	void LoadProgressObject(UProgressSaveGame* SaveObject);
 
 };

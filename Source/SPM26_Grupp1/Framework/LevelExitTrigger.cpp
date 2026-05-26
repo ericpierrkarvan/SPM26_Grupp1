@@ -90,8 +90,9 @@ void ALevelExitTrigger::StopCountdown()
 void ALevelExitTrigger::LoadNextLevel() const
 {
 	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
-	if (UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
-		PS->SetCurrentLevel(NextLevel.GetAssetName());
+	UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>();
+	if (PS) PS->SetCurrentLevel(NextLevel.GetAssetName());
+	PS->SaveProgress();
 	if (!NextLevel.IsNull())
 	{
 		UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), NextLevel);
@@ -100,6 +101,8 @@ void ALevelExitTrigger::LoadNextLevel() const
 	{
 		if (GI) GI->LoadNextLevel();
 	}
+	
+	
 }
 
 

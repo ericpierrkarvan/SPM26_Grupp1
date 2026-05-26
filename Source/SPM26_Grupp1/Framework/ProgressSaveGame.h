@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ProgressSubsystem.h"
 #include "GameFramework/SaveGame.h"
+#include "SPM26_Grupp1/Enum/ProgressFlag.h"
 #include "ProgressSaveGame.generated.h"
 
 /**
@@ -24,6 +24,8 @@ public:
 	bool bHasCheckpoint = false;
 	UPROPERTY()
 	FName CheckpointLevelName = NAME_None;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	FName CurrentLevel = NAME_None;
+	UPROPERTY()
+	UMaterialInstance* MechanicMaterial = nullptr;
 };
