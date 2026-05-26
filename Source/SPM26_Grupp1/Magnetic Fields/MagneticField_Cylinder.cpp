@@ -226,8 +226,8 @@ void AMagneticField_Cylinder::Pull(AActor* Actor, const float DeltaTime)
 	if (!Actor) return;
 	const FVector PullDirection = CalculateDirection(Actor);
 	const FVector LatCorrection = LateralCorrection(Actor);
-	// Pull Character
 	const ACharacter* Character = Cast<ACharacter>(Actor);
+	
 	if (Character)
 	{
 		PullCharacter(Character, LatCorrection, PullDirection, DeltaTime);
@@ -268,7 +268,6 @@ void AMagneticField_Cylinder::PullActor(const AActor* Actor, const FVector& Pull
 bool AMagneticField_Cylinder::ShouldRepel(const AActor* Actor) const
 {
 	if (!Actor) return false;
-	
 	UMagneticComponent* MagComp = Actor->FindComponentByClass<UMagneticComponent>();
 	if (!MagComp) return false;
 	if (!MagComp->CanBeRepelled()) return false;
@@ -291,6 +290,8 @@ void AMagneticField_Cylinder::Repel(AActor* Actor)
 void AMagneticField_Cylinder::RepelCharacter(ACharacter* Character)
 {
 	if (!Character) return;
+	UMagneticComponent* MagComp = Character->FindComponentByClass<UMagneticComponent>();
+	if (!MagComp) return;
 	
 	FVector CurrentPlayerLocation = Character->GetActorLocation();
 	const FVector RepelDirection = (CurrentPlayerLocation - MagnetCenterPoint).GetSafeNormal();
@@ -298,13 +299,14 @@ void AMagneticField_Cylinder::RepelCharacter(ACharacter* Character)
 	FVector LaunchVelocity = GenerateSimpleFVectorForRepel(Character);
 	
 	Character->LaunchCharacter(LaunchVelocity * RepelDirection, true, true);
+	OnMagneticRepulsionBP(Character);
+	UE_LOG(LogTemp, Warning, TEXT("Repelling character. Triggered OnMagneticRepulsionBP"));
 }
 
 // Repel an Actor using AddImpulse, if it has a MagneticComponent.
-void AMagneticField_Cylinder::RepelActor(const AActor* Actor)
+void AMagneticField_Cylinder::RepelActor(AActor* Actor)
 {
 	if (!Actor) return;
-	
 	UMagneticComponent* MagComp = Actor->FindComponentByClass<UMagneticComponent>();
 	if (!MagComp) return;
 	
@@ -317,6 +319,7 @@ void AMagneticField_Cylinder::RepelActor(const AActor* Actor)
 	if (PrimitiveComp && PrimitiveComp->IsSimulatingPhysics())
 	{
 		PrimitiveComp->AddImpulse(RepelDirection * Strength, NAME_None, true);
+		OnMagneticRepulsionBP(Actor);
 	}
 }
 
@@ -717,7 +720,9 @@ int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
 
 void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 {
-	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
+	if (GetObjectPolarity(Actor) != Polarity) OnMagneticPullBP(Actor);
+	
+	//GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
 	
 	//bool bShouldAttract = ShouldAttract(Polarity, GetObjectPolarity(Actor));
 	//if (bShouldAttract) OnMagneticPullBP(Actor);

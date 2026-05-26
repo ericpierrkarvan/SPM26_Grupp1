@@ -70,7 +70,7 @@ protected:
 	bool ShouldRepel(const AActor* Actor) const;
 	void Repel(AActor* Actor);
 	void RepelCharacter(ACharacter* Character);
-	void RepelActor(const AActor* Actor);
+	void RepelActor(AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
 	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
 	FVector CalculateDirection(const AActor* Actor);
