@@ -25,7 +25,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Pickup")
 	UPickupComponent* PickupComponent;
 
-	UPROPERTY(VisibleAnywhere, Category="Pickup")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Pickup")
 	UStaticMeshComponent* MeshComponent;
 public:	
 	// Called every frame
