@@ -56,7 +56,8 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 			BBC->SetValueAsVector(TEXT("MechanicLocation"), MechanicPawn->GetActorLocation());
 			// Can reach, so investigation point is also valid
 			BBC->SetValueAsVector(TEXT("LastKnownMechanicLocation"), MechanicPawn->GetActorLocation());
-			NPC->IsChasingBP();
+			
+			SetAIState(EAlienAIState::Chasing);
 		}
 		else
 		{
@@ -64,7 +65,8 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), false);
 			BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
 			BBC->ClearValue(TEXT("MechanicLocation"));
-			NPC->IsPatrollingBP();
+			
+			SetAIState(EAlienAIState::Patrolling);
 		}
 	}
 	else
@@ -78,7 +80,8 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 		
 		BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
 		BBC->ClearValue(TEXT("MechanicLocation"));
-		NPC->IsPatrollingBP();
+		
+		SetAIState(EAlienAIState::Patrolling);
 		
 		if (bWasChasing)
 		{
@@ -86,8 +89,9 @@ void AAlienAIController::HandleMechanicOnLineOfSight(float DeltaTime)
 			// position we updated while chasing, check if we can get there
 			const FVector LastKnown = BBC->GetValueAsVector(TEXT("LastKnownMechanicLocation"));
 			bShouldInvestigate = IsLocationNavReachable(LastKnown);
-			if (bShouldInvestigate) NPC->IsInvestigatingBP();
 			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), bShouldInvestigate);
+			
+			if (bShouldInvestigate) SetAIState(EAlienAIState::Investigating);
 		}
 	}
 
@@ -120,7 +124,7 @@ void AAlienAIController::HandleFleeFromRobotOnLineOfSight(float DeltaTime)
 		bCanSeeRobot = true;
 		ThrottledPathCheckRobot(DeltaTime);
 		bShouldFleeFromRobot = bCanSeeRobot && bCachedReachableRobot && (DistanceToPlayer < NPC->GetSafeDistance());
-		if (bShouldFleeFromRobot) NPC->IsFleeingBP();
+		if (bShouldFleeFromRobot) if (bShouldInvestigate) SetAIState(EAlienAIState::Fleeing);
 		SetRobotBBCValuesOnLineOfSight();
 	}
 	else
@@ -128,7 +132,7 @@ void AAlienAIController::HandleFleeFromRobotOnLineOfSight(float DeltaTime)
 		bCanSeeRobot = false;
 		bShouldFleeFromRobot = false;
 		ClearRobotBBCValuesOnLostLineOfSight();
-		NPC->IsPatrollingBP();
+		if (bShouldInvestigate) SetAIState(EAlienAIState::Patrolling);
 	}
 }
 
@@ -222,4 +226,11 @@ void AAlienAIController::ClearRobotBBCValuesOnLostLineOfSight() const
 	BBC->ClearValue("CanSeeRobot");
 	BBC->ClearValue("ShouldChaseRobot");
 	BBC->ClearValue("ShouldFleeFromRobot");
+}
+
+void AAlienAIController::SetAIState(const EAlienAIState NewState)
+{
+	if (CurrentAIState == NewState) return;
+	CurrentAIState = NewState;
+	OnAIStateChanged.Broadcast(CurrentAIState);
 }
