@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
+#include "SPM26_Grupp1/Enum/AlienAIState.h"
 #include "AlienAIController.generated.h"
 
-/**
- * 
- */
+class AAlienNPCCharacter;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAIStateChanged, EAlienAIState, NewState);
+
 UCLASS()
 class SPM26_GRUPP1_API AAlienAIController : public AAIController
 {
@@ -21,6 +22,9 @@ public:
 	void HandleMechanicOnLineOfSight(float DeltaTime);
 	void HandleRobotOnLineOfSight(float DeltaTime);
 	void HandleFleeFromRobotOnLineOfSight(float DeltaTime);
+	
+	UPROPERTY(BlueprintAssignable, Category = "AI")
+	FOnAIStateChanged OnAIStateChanged;
 
 private:
 	
@@ -55,6 +59,7 @@ private:
 	
 	// NPC
 	bool bShouldInvestigate = false;
+	EAlienAIState CurrentAIState = EAlienAIState::Patrolling;
 	
 	bool IsPlayerNavReachable(const APawn* Player) const;
 	bool IsLocationNavReachable(const FVector& Location) const;
@@ -64,4 +69,5 @@ private:
 	void ClearMechanicBBCValuesOnLostLineOfSight() const;
 	void SetRobotBBCValuesOnLineOfSight() const;
 	void ClearRobotBBCValuesOnLostLineOfSight() const;
+	void SetAIState(EAlienAIState NewState);
 };
