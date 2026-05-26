@@ -125,7 +125,12 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 	}
 }
 
-void USPMGameInstance::SaveSelectedMaterialIndex(int32 NewIndex)
+void USPMGameInstance::SaveSelectedMechanicMaterialIndex(int32 NewIndex)
 {
-	SelectedMaterialIndex = NewIndex;
+	SelectedMechanicMaterialIndex = NewIndex;
+}
+
+void USPMGameInstance::SaveSelectedRobotMaterialIndex(int32 NewIndex)
+{
+	SelectedRobotMaterialIndex = NewIndex;
 }
