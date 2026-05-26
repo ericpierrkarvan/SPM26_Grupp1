@@ -39,6 +39,8 @@ public:
 	int32 GetCurrentAmountOfSummarizedField() const;
 	bool WasSpawnedByProjectile() const;
 	void SetSpawnedByProjectile(bool bNewWasSpawnedByProjectile);
+	AActor* GetAttachedToActor() const;
+	void SetAttachedToActor(AActor* NewAttachedToActor);
 	
 	void ChooseMagneticSoundBasedOnPolarity(AActor* Actor);
 
@@ -127,17 +129,21 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
 	bool bWasSpawnedByProjectile = false;
-
-protected:
+	
+	// Polarity
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AAA_Magnet|Polarity")
 	EPolarity Polarity;
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|Polarity")
 	int32 PolarityValue = 1;
 	
-	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
-	//TArray<TWeakObjectPtr<AActor>> ActorsInField;
+	// Actor
 	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
 	TArray<AActor*> ActorsInField;
+	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
+	AActor* AttachedToActor = nullptr;
+
+protected:
+	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
 	bool bCharacterInsideField = false;
 	
 private:
@@ -197,8 +203,6 @@ private:
 	UPROPERTY(EditAnywhere, Category="AAA_Magnet|CombineField")
 	int32 MaxAmountOfSummarizedField = 2;
 	int32 CurrentAmountOfSummarizedField = 1;
-
-
 	
 	// Used for crippling/restoring character movement
 	float OriginalSpeed = 600;

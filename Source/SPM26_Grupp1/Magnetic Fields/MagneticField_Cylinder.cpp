@@ -125,6 +125,30 @@ void AMagneticField_Cylinder::Tick(float DeltaTime)
 
 }
 
+void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
+{
+	for (AActor* Actor : ActorsInField)
+	{
+		if (!IsValid(Actor)) continue;
+		if (Actor == AttachedToActor) continue;
+		const EPolarity OtherPolarity = GetObjectPolarity(Actor);
+		
+		ShouldAttract(this->Polarity, OtherPolarity) ? ApplyMagneticPull(DeltaTime, Actor) : ApplyMagneticRepulsion(Actor);
+	}
+}
+
+void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* Actor)
+{
+	CalculateDirection(Actor);
+	Pull(Actor, DeltaTime);
+	CheckDistanceToTargetAndStopMovement(Actor);
+}
+
+void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
+{
+	Repel(Actor);
+}
+
 // Calculates center point where objects are pulled toward/repelled from (top of capsule).
 FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 {
@@ -157,29 +181,6 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 	//UE_LOG(LogTemp, Warning, TEXT("MagnetCenterPoint location: %s"), *MagnetCenter.ToCompactString());
 	
 	return MagnetCenter;
-}
-
-void AMagneticField_Cylinder::ApplyMagneticForce(const float DeltaTime)
-{
-	for (AActor* Actor : ActorsInField)
-	{
-		if (!IsValid(Actor)) continue;
-		const EPolarity OtherPolarity = GetObjectPolarity(Actor);
-		
-		ShouldAttract(this->Polarity, OtherPolarity) ? ApplyMagneticPull(DeltaTime, Actor) : ApplyMagneticRepulsion(Actor);
-	}
-}
-
-void AMagneticField_Cylinder::ApplyMagneticPull(const float DeltaTime, AActor* Actor)
-{
-	CalculateDirection(Actor);
-	Pull(Actor, DeltaTime);
-	CheckDistanceToTargetAndStopMovement(Actor);
-}
-
-void AMagneticField_Cylinder::ApplyMagneticRepulsion(AActor* Actor)
-{
-	Repel(Actor);
 }
 
 // Checks distance to MagnetCenterPoint (where magnet pulls/repels from). If less than, stop movement.
@@ -524,10 +525,6 @@ void AMagneticField_Cylinder::StopListenToRobot(ACharacter* Character)
 void AMagneticField_Cylinder::SetCharacterAttractParameters(ACharacter* Character)
 {
 	if (!Character) return;
-	/*UE_LOG(LogTemp, Warning, TEXT("Field polarity: %s, Other polarity: %s, Should attract? %d"), 
-		*UEnum::GetValueAsString(Polarity), 
-		*UEnum::GetValueAsString(GetObjectPolarity(Character)), 
-		ShouldAttract(Polarity, GetObjectPolarity(Character)));*/
 	
 	// Gravity = 0 in magnet field while pulling
 	Character->GetCharacterMovement()->GravityScale = 0;
@@ -598,6 +595,16 @@ bool AMagneticField_Cylinder::IsActive() const
 void AMagneticField_Cylinder::IsActive(bool bNewIsActive)
 {
 	this->bIsActive = bNewIsActive;
+}
+
+AActor* AMagneticField_Cylinder::GetAttachedToActor() const
+{
+	return AttachedToActor;
+}
+
+void AMagneticField_Cylinder::SetAttachedToActor(AActor* NewAttachedToActor)
+{
+	this->AttachedToActor = NewAttachedToActor;
 }
 
 // Used in OverlapBegin to tag Robot in/not in field
@@ -711,6 +718,11 @@ int32 AMagneticField_Cylinder::GetCurrentAmountOfSummarizedField() const
 void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 {
 	GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
+	
+	//bool bShouldAttract = ShouldAttract(Polarity, GetObjectPolarity(Actor));
+	//if (bShouldAttract) OnMagneticPullBP(Actor);
+	//if (!bShouldAttract) OnMagneticRepulsionBP(Actor);
+	
 }
 
 bool AMagneticField_Cylinder::WasSpawnedByProjectile() const

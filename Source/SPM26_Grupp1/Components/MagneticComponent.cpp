@@ -55,6 +55,7 @@ void UMagneticComponent::PlayPullSound() const
 void UMagneticComponent::PlayRepelSound() const
 {
 	if (!MagneticRepelAudioComp) return;
+	if (!bCanBeRepelled) return;
 	MagneticRepelAudioComp->Play();
 }
 

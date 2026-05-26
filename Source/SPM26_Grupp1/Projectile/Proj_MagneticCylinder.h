@@ -82,5 +82,8 @@ protected:
 	void RegisterFieldInMechanicArray(AActor* Field) const;
 
 private:
+	bool ShouldAttachFieldToHitObject(const FHitResult& ImpactResult) const;
+	void AttachFieldToObject(const FHitResult& ImpactResult, AMagneticField_Cylinder* Field);
+	
 	FVector LastVelocity = FVector::ZeroVector;
 };

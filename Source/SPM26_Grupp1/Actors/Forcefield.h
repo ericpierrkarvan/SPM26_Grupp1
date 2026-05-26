@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NiagaraComponent.h"
 #include "GameFramework/Actor.h"
 #include "Forcefield.generated.h"
 
@@ -43,18 +42,6 @@ public:
 	UBoxComponent* Collider;
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* Mesh;
-	
-	// VFX
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|VFX")
-	UNiagaraComponent* ActiveVfxComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|VFX")
-	UNiagaraSystem* RobotCanPassVFX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|VFX")
-	UNiagaraSystem* MechanicCanPassVFX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|VFX")
-	UNiagaraSystem* BothCanPassVFX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Forcefield|VFX")
-	UNiagaraSystem* NoneCanPassVFX;
 
 	// Materials
 	UPROPERTY(EditAnywhere, Category="Forcefield|Materials")
@@ -81,7 +68,6 @@ private:
 					UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 					bool bFromSweep, const FHitResult& SweepResult);
 
-	void UpdateVFX() const;
 	void UpdateMaterial() const;
 	void PushBack(AActor* Actor) const;
 	
