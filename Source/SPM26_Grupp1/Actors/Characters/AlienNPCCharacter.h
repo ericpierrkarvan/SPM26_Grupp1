@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FMODAudioComponent.h"
 #include "NiagaraSystem.h"
 #include "GameFramework/Character.h"
-#include "PhysicsEngine/RadialForceComponent.h"
 #include "SPM26_Grupp1/AI/AlienAIController.h"
+#include "SPM26_Grupp1/Components/PatrolComponent.h"
 #include "AlienNPCCharacter.generated.h"
 
 UCLASS()
@@ -20,8 +21,6 @@ public:
 	
 	bool IsChasingNPC() const;
 	bool IsFleeingNPC() const;
-	float GetFleeDistance() const;
-	float GetSafeDistance() const;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -33,55 +32,33 @@ public:
 	
 	// Events
 	UFUNCTION(BlueprintImplementableEvent)
-	void IsInvestigatingBP();
-	UFUNCTION(BlueprintImplementableEvent)
 	void IsPatrollingBP();
 	UFUNCTION(BlueprintImplementableEvent)
-	void IsChasingBP();
+	static void IsChasingBP();
 	UFUNCTION(BlueprintImplementableEvent)
-	void IsFleeingBP();
+	static void IsInvestigatingBP();
+	UFUNCTION(BlueprintImplementableEvent)
+	static void IsFleeingBP();
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	// Pushback parameters
-	UPROPERTY(EditAnywhere, Category="Pushback")
-	float PushBackRadius = 300.0f;
-	UPROPERTY(EditAnywhere, Category="Pushback")
-	float PushBackCooldown = 0.8f; // how often to reapply
-	UPROPERTY(EditAnywhere, Category="Pushback")
-	float PushbackStrength = 1500.f;
-	UPROPERTY(EditAnywhere, Category="Pushback")
-	float PushbackHeightArc = 0.6f; // upward adjustment of pushforce
-	float TimeSinceLastPushBack = 0.0f;
-	//UPROPERTY(EditAnywhere, Category="Pushback")
-	//float CharacterPushBackStrength = 1000.f;
-	//UPROPERTY(EditAnywhere, Category="Pushback")
-	//float ObjectPushBackStrength = 700.f;
-	
 	// VFX
 	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
-	UNiagaraComponent* PushBackVFXComponent;
+	UNiagaraComponent* ModeVFXComponent;
 	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
-	UNiagaraSystem* PushBackVFX;
-	
-	// Flee parameters
-	// How far to flee to
-	UPROPERTY(EditAnywhere, Category="Flee")
-	float FleeDistanceFromPlayer = 450.f;
-	
-	// Minimum acceptable distance from the player
-	UPROPERTY(EditAnywhere, Category="Flee")
-	float SafeDistanceFromPlayer = 300.f;
+	UNiagaraSystem* InvestigatingVFX;
+	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UNiagaraSystem* PatrollingVFX;
+	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UNiagaraSystem* ChasingVFX;
+	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UNiagaraSystem* FleeingVFX;
 	
 	// Speed
 	UPROPERTY(EditAnywhere, Category="Speed")
 	float PatrolSpeed = 400.f;
-	UPROPERTY(EditAnywhere, Category="Speed")
-	float ChaseSpeed = 600.f;
-	UPROPERTY(EditAnywhere, Category="Speed")
-	float FleeSpeed = 450.f;
 	
 	// "Type" of NPC
 	UPROPERTY(EditAnywhere)
@@ -89,15 +66,20 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bIsFleeingNPC;
 	
-	// Radial pushback
+	// Mesh & Collision
 	UPROPERTY(EditAnywhere)
-	URadialForceComponent* RadialForceComponent;
+	UStaticMeshComponent* Mesh = nullptr;
+	UPROPERTY(EditAnywhere)
+	UCapsuleComponent* CapsuleComp = nullptr;
 	
+	// PatrolComp
+	UPROPERTY(EditAnywhere)
+	UPatrolComponent* PatrolComp = nullptr;
+	
+	// FMOD
+	UPROPERTY(EditAnywhere)
+	UFMODAudioComponent* CurrentAudio;
 private:
-	void PushBack(AActor* Actor);
-	void TryPushBack(float DeltaTime);
-	void TriggerRadialPushback(float DeltaTime);
-	void PlayPushBackVFX() const;
 	UFUNCTION()
 	void OnAIStateChanged(EAlienAIState NewState);
 };

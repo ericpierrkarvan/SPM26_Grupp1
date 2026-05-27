@@ -2,13 +2,8 @@
 
 
 #include "AlienNPCCharacter.h"
-
 #include "NiagaraComponent.h"
 #include "RobotCharacter.h"
-#include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "SPM26_Grupp1/Components/RobotMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 class ARobotCharacter;
 // Sets default values
@@ -17,16 +12,9 @@ AAlienNPCCharacter::AAlienNPCCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	PushBackVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PushBackVFXComponent"));
-	PushBackVFXComponent->SetupAttachment(RootComponent);
+	ModeVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ModeVFXComponent"));
+	ModeVFXComponent->SetupAttachment(RootComponent);
 	
-	RadialForceComponent = CreateDefaultSubobject<URadialForceComponent>(TEXT("RadialForceComponent"));
-	RadialForceComponent->SetupAttachment(RootComponent);
-	RadialForceComponent->Radius = PushBackRadius;
-	RadialForceComponent->ImpulseStrength = PushbackStrength;
-	RadialForceComponent->bImpulseVelChange = true;  // Mass-independent
-	RadialForceComponent->bAutoActivate = false;
-	RadialForceComponent->bIgnoreOwningActor = true;  // Don't push self
 }
 
 // Called when the game starts or when spawned
@@ -43,113 +31,41 @@ void AAlienNPCCharacter::BeginPlay()
 void AAlienNPCCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	//TryPushBack(DeltaTime);
-	TriggerRadialPushback(DeltaTime);
 
 }
 
-void AAlienNPCCharacter::PushBack(AActor* Actor)
-{
-	if (!Actor) return;
-	FVector AwayDirection = (Actor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	AwayDirection.Z = PushbackHeightArc; // arc height of pushback
-	AwayDirection.Normalize();
-	
-	if (const ARobotCharacter* Robot = Cast<ARobotCharacter>(Actor)) Robot->GetRobotMovementComponent()->CancelDash();
-	
-	if (const ACharacter* Character = Cast<ACharacter>(Actor))
-	{
-		Character->GetCharacterMovement()->AddImpulse(AwayDirection * PushbackStrength, true);
-		PlayPushBackVFX();
-		PushedBackCharacterBP();
-	}
-	else
-	{
-		UPrimitiveComponent* PrimitiveComp = Actor->FindComponentByClass<UPrimitiveComponent>();
-		if (PrimitiveComp && PrimitiveComp->IsSimulatingPhysics())
-		{
-			PrimitiveComp->AddImpulse(AwayDirection * PushbackStrength, NAME_None, true);
-			PushedBackObjectBP();
-		}
-	}
-}
 
-void AAlienNPCCharacter::TryPushBack(float DeltaTime)
-{
-	TimeSinceLastPushBack += DeltaTime;
-	if (TimeSinceLastPushBack < PushBackCooldown) return;
-	
-	// Push during chase
-	if (const AAlienAIController* AI = Cast<AAlienAIController>(GetController()))
-	{
-		const UBlackboardComponent* BBC = AI->GetBlackboardComponent();
-		if (!BBC) return;
-		if (!BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"))) return;
-	}
-	
-	TArray<AActor*> NearbyActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacter::StaticClass(), NearbyActors);
-	
-	for (AActor* Actor : NearbyActors)
-	{
-		if (Actor == this) continue;
-		if (FVector::Dist(GetActorLocation(), Actor->GetActorLocation()) < PushBackRadius)
-		{
-			PushBack(Actor);
-			TimeSinceLastPushBack = 0.f;
-		}
-	}
-}
-
-void AAlienNPCCharacter::TriggerRadialPushback(float DeltaTime)
-{
-	TimeSinceLastPushBack += DeltaTime;
-	if (TimeSinceLastPushBack < PushBackCooldown) return;
-	
-	// Push during chase
-	if (const AAlienAIController* AI = Cast<AAlienAIController>(GetController()))
-	{
-		const UBlackboardComponent* BBC = AI->GetBlackboardComponent();
-		if (!BBC) return;
-		if (!BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"))) return;
-	}
-	
-	TArray<AActor*> NearbyActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacter::StaticClass(), NearbyActors);
-	for (AActor* Actor : NearbyActors)
-	{
-		if (Actor == this) continue;
-		
-		FVector AwayDirection = (Actor->GetActorLocation() - GetActorLocation());
-		const float Distance = AwayDirection.Size();
-		if (Distance > RadialForceComponent->Radius) continue;
-
-		const float Falloff = 1.f - FMath::Clamp(Distance / RadialForceComponent->Radius, 0.f, 1.f);
-		AwayDirection.Normalize();
-		AwayDirection.Z = PushbackHeightArc; // arc height of pushback
-		UE_LOG(LogTemp, Warning, TEXT("NPC::RadialPushback - Force: %s"), *(AwayDirection * Falloff * RadialForceComponent->ImpulseStrength).ToCompactString());
-		Cast<ACharacter>(Actor)->GetCharacterMovement()->AddImpulse(AwayDirection * Falloff * RadialForceComponent->ImpulseStrength, true);
-		PushedBackCharacterBP();
-		PlayPushBackVFX();
-	}
-	TimeSinceLastPushBack = 0.f;
-	
-}
-
-void AAlienNPCCharacter::PlayPushBackVFX() const
-{
-	if (PushBackVFXComponent) PushBackVFXComponent->ActivateSystem(true);
-}
 
 void AAlienNPCCharacter::OnAIStateChanged(EAlienAIState NewState)
 {
+	if (!ModeVFXComponent) return;
 	switch (NewState)
 	{
-	case EAlienAIState::Chasing: IsChasingBP(); break;
-	case EAlienAIState::Patrolling: IsPatrollingBP(); break;
-	case EAlienAIState::Investigating: IsInvestigatingBP(); break;
-	case EAlienAIState::Fleeing: IsFleeingBP();	break;
+	case EAlienAIState::Chasing:
+		{
+			IsChasingBP(); 
+			ModeVFXComponent->SetAsset(ChasingVFX); 
+			break;
+		}
+	case EAlienAIState::Investigating: 		
+		{
+			IsInvestigatingBP();
+			ModeVFXComponent->SetAsset(InvestigatingVFX); 
+			break;
+		}
+	case EAlienAIState::Patrolling:
+		{
+			IsPatrollingBP(); 
+			ModeVFXComponent->SetAsset(PatrollingVFX); 
+			break;
+		}
+
+	case EAlienAIState::Fleeing: 		
+		{
+			IsFleeingBP(); 
+			ModeVFXComponent->SetAsset(FleeingVFX); 
+			break;
+		}
 	}
 }
 
@@ -163,12 +79,3 @@ bool AAlienNPCCharacter::IsFleeingNPC() const
 	return bIsFleeingNPC;
 }
 
-float AAlienNPCCharacter::GetFleeDistance() const
-{
-	return FleeDistanceFromPlayer;
-}
-
-float AAlienNPCCharacter::GetSafeDistance() const
-{
-	return SafeDistanceFromPlayer;
-}

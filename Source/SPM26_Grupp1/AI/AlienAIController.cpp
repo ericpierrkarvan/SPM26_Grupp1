@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/FleeingAlienNPC.h"
 #include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
 
 void AAlienAIController::BeginPlay()
@@ -118,12 +119,14 @@ void AAlienAIController::HandleRobotOnLineOfSight(float DeltaTime)
 // Handles AI fleeing from Robot.
 void AAlienAIController::HandleFleeFromRobotOnLineOfSight(float DeltaTime)
 {
+	AFleeingAlienNPC* FleeingNPC = Cast<AFleeingAlienNPC>(NPC);
+	if (!FleeingNPC) return;
 	if (LineOfSightTo(RobotPawn, FVector::ZeroVector))
 	{
 		float DistanceToPlayer = FVector::Dist(RobotPawn->GetActorLocation(), NPC->GetActorLocation());
 		bCanSeeRobot = true;
 		ThrottledPathCheckRobot(DeltaTime);
-		bShouldFleeFromRobot = bCanSeeRobot && bCachedReachableRobot && (DistanceToPlayer < NPC->GetSafeDistance());
+		bShouldFleeFromRobot = bCanSeeRobot && bCachedReachableRobot && (DistanceToPlayer < FleeingNPC->GetSafeDistance());
 		if (bShouldFleeFromRobot) if (bShouldInvestigate) SetAIState(EAlienAIState::Fleeing);
 		SetRobotBBCValuesOnLineOfSight();
 	}
