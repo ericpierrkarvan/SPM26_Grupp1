@@ -38,6 +38,21 @@ void USPMGameInstance::LoadNextLevel()
 	}
 }
 
+void USPMGameInstance::LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad)
+{
+	LevelAfterCutscene = LevelToLoad;
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		UGameplayStatics::OpenLevelBySoftObjectPtr(World, CutSceneLevel);
+	}
+}
+
+TSoftObjectPtr<UWorld> USPMGameInstance::GetLevelAfterCutscene()
+{
+	return LevelAfterCutscene;
+}
+
 void USPMGameInstance::Init()
 {
 	Super::Init();

@@ -20,6 +20,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Instance")
 	void RemoveExtraLocalPlayers();
 	void LoadNextLevel();
+	void LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad);
+
+	UFUNCTION(BlueprintCallable, Category = "Game Instance")
+	TSoftObjectPtr<UWorld> GetLevelAfterCutscene();
+	
 	void SetupLocalMultiplayerInput();
 	
 	UFUNCTION(BlueprintCallable, Category = "Character Customization")
@@ -42,6 +47,9 @@ public:
 protected:
 	virtual void Init() override;
 	virtual void HandleInputDeviceConnectionChange(EInputDeviceConnectionState NewConnectionState, FPlatformUserId PlatformUserId, FInputDeviceId InputDeviceId) override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
+	TSoftObjectPtr<UWorld> CutSceneLevel;
+	
 private:
 	
 	
@@ -66,5 +74,5 @@ private:
 	UPROPERTY(EditAnywhere)
 	TArray<UMaterialInterface*> RobotMaterialOptions;
 	
-	
+	TSoftObjectPtr<UWorld> LevelAfterCutscene;
 };
