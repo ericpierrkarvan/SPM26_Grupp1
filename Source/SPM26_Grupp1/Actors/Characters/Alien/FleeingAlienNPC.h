@@ -27,13 +27,16 @@ public:
 	UPROPERTY(EditAnywhere, Category="Flee")
 	float SafeDistanceFromPlayer = 300.f; // Minimum acceptable distance from the player
 	UPROPERTY(EditAnywhere, Category="Speed")
-	float FleeSpeed = 450.f;
+	float FleeSpeed = 500.f;
+	
+	// VFX
+	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UNiagaraSystem* FleeingVFX;
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
-private:
-	
+	virtual void OnEnterFleeingState() override;
+	virtual void OnEnterPatrollingState() override;
 	
 };

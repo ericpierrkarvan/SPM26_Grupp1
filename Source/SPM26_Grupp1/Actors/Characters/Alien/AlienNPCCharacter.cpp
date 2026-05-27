@@ -3,20 +3,25 @@
 
 #include "AlienNPCCharacter.h"
 #include "NiagaraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 class ARobotCharacter;
-// Sets default values
 AAlienNPCCharacter::AAlienNPCCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
 	ModeVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ModeVFXComponent"));
 	ModeVFXComponent->SetupAttachment(RootComponent);
 	
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	StaticMesh->SetupAttachment(RootComponent);
+	
+	PatrolComp = CreateDefaultSubobject<UPatrolComponent>(TEXT("PatrolComp"));
+	
+	CurrentAudio = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("CurrentAudio"));
+	
 }
 
-// Called when the game starts or when spawned
 void AAlienNPCCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -24,16 +29,16 @@ void AAlienNPCCharacter::BeginPlay()
 	if (AAlienAIController* AIController = Cast<AAlienAIController>(GetController()))
 		AIController->OnAIStateChanged.AddDynamic(this, &AAlienNPCCharacter::OnAIStateChanged);
 	
+	MovComp = GetCharacterMovement();
+	MovComp->MaxWalkSpeed = PatrolSpeed;
+	
 }
 
-// Called every frame
 void AAlienNPCCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
-
-
 
 void AAlienNPCCharacter::OnAIStateChanged(EAlienAIState NewState)
 {
@@ -42,30 +47,48 @@ void AAlienNPCCharacter::OnAIStateChanged(EAlienAIState NewState)
 	{
 	case EAlienAIState::Chasing:
 		{
-			IsChasingBP(); 
-			ModeVFXComponent->SetAsset(ChasingVFX); 
+			OnEnterChasingState();
 			break;
 		}
 	case EAlienAIState::Investigating: 		
 		{
-			IsInvestigatingBP();
-			ModeVFXComponent->SetAsset(InvestigatingVFX); 
+			OnEnterInvestigatingState();
 			break;
 		}
 	case EAlienAIState::Patrolling:
 		{
-			IsPatrollingBP(); 
-			ModeVFXComponent->SetAsset(PatrollingVFX); 
+			OnEnterPatrollingState();
 			break;
 		}
 
 	case EAlienAIState::Fleeing: 		
 		{
-			IsFleeingBP(); 
-			ModeVFXComponent->SetAsset(FleeingVFX); 
+			OnEnterFleeingState();
 			break;
 		}
 	}
+}
+
+void AAlienNPCCharacter::OnEnterPatrollingState()
+{
+	ModeVFXComponent->SetAsset(PatrollingVFX); 
+	MovComp->MaxWalkSpeed = PatrolSpeed;
+	IsPatrollingBP(); 
+}
+
+void AAlienNPCCharacter::OnEnterInvestigatingState()
+{
+	IsInvestigatingBP();
+}
+
+void AAlienNPCCharacter::OnEnterChasingState()
+{
+	IsChasingBP();
+}
+
+void AAlienNPCCharacter::OnEnterFleeingState()
+{
+	IsFleeingBP();
 }
 
 bool AAlienNPCCharacter::IsChasingNPC() const
@@ -77,4 +100,3 @@ bool AAlienNPCCharacter::IsFleeingNPC() const
 {
 	return bIsFleeingNPC;
 }
-

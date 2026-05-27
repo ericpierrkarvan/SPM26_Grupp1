@@ -21,11 +21,6 @@ public:
 	
 	bool IsChasingNPC() const;
 	bool IsFleeingNPC() const;
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void PushedBackCharacterBP();
-	UFUNCTION(BlueprintImplementableEvent)
-	void PushedBackObjectBP();
 	
 	// Events
 	UFUNCTION(BlueprintImplementableEvent)
@@ -41,22 +36,20 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnEnterPatrollingState();
+	virtual void OnEnterInvestigatingState();
+	virtual void OnEnterChasingState();
+	virtual void OnEnterFleeingState();
 	
 	// VFX
 	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
 	UNiagaraComponent* ModeVFXComponent;
 	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
-	UNiagaraSystem* InvestigatingVFX;
-	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
 	UNiagaraSystem* PatrollingVFX;
-	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
-	UNiagaraSystem* ChasingVFX;
-	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
-	UNiagaraSystem* FleeingVFX;
 	
 	// Speed
 	UPROPERTY(EditAnywhere, Category="Speed")
-	float PatrolSpeed = 400.f;
+	float PatrolSpeed = 300.f;
 	
 	// "Type" of NPC
 	UPROPERTY(EditAnywhere)
@@ -64,16 +57,20 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bIsFleeingNPC;
 	
-	// Collision
-	UPROPERTY(EditAnywhere)
+	// Mesh & Collision
+	UPROPERTY()
+	UStaticMeshComponent* StaticMesh;
+	UPROPERTY()
 	UCapsuleComponent* CapsuleComp = nullptr;
 	
-	// PatrolComp
-	UPROPERTY(EditAnywhere)
+	// Components
+	UPROPERTY()
 	UPatrolComponent* PatrolComp = nullptr;
+	UPROPERTY()
+	UCharacterMovementComponent* MovComp = nullptr;
 	
 	// FMOD
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UFMODAudioComponent* CurrentAudio;
 private:
 	UFUNCTION()

@@ -2,6 +2,8 @@
 
 
 #include "FleeingAlienNPC.h"
+#include "NiagaraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AFleeingAlienNPC::AFleeingAlienNPC()
 {
@@ -16,6 +18,18 @@ void AFleeingAlienNPC::BeginPlay()
 void AFleeingAlienNPC::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AFleeingAlienNPC::OnEnterFleeingState()
+{
+	Super::OnEnterFleeingState();
+	ModeVFXComponent->SetAsset(FleeingVFX); 
+	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
+}
+
+void AFleeingAlienNPC::OnEnterPatrollingState()
+{
+	Super::OnEnterPatrollingState();
 }
 
 float AFleeingAlienNPC::GetFleeDistance() const

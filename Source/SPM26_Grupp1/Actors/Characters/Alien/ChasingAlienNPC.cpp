@@ -24,6 +24,8 @@ AChasingAlienNPC::AChasingAlienNPC()
 void AChasingAlienNPC::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	TriggerRadialPushback(DeltaTime);
 }
 
 void AChasingAlienNPC::BeginPlay()
@@ -70,3 +72,22 @@ void AChasingAlienNPC::PlayPushBackVFX() const
 	if (PushBackVFXComponent) PushBackVFXComponent->ActivateSystem(true);
 }
 
+void AChasingAlienNPC::OnEnterPatrollingState()
+{
+	Super::OnEnterPatrollingState();
+	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
+}
+
+void AChasingAlienNPC::OnEnterInvestigatingState()
+{
+	Super::OnEnterInvestigatingState();
+	GetCharacterMovement()->MaxWalkSpeed = InvestigateSpeed;
+	ModeVFXComponent->SetAsset(InvestigatingVFX); 
+}
+
+void AChasingAlienNPC::OnEnterChasingState()
+{
+	Super::OnEnterChasingState();
+	GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
+	ModeVFXComponent->SetAsset(ChasingVFX);
+}
