@@ -50,24 +50,21 @@ void AMagneticField_Cylinder::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMagneticField_Cylinder::CheckInitialOverlaps);
 	
 	// FUCK THIS BUGGY ASS SHIT
-	//if (!bWasSpawnedByProjectile) HandleStaticField();
+	if (!bWasSpawnedByProjectile) HandleStaticField();
 	
 }
 
 void AMagneticField_Cylinder::Activate()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
 	if (bIsActive) return;
 	if (!MagnetVfxComponent) return;
 	if (!Capsule) return;
 	bIsActive = true;
-	UE_LOG(LogTemp, Warning, TEXT("MF::Activate() validation ok"));
 	
-	//MagnetVfxComponent->Activate();
-	MagnetVfxComponent->SetAsset(GetCurrentVFX());
-	UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
+	MagnetVfxComponent->Activate();
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	//SetActorHiddenInGame(false);
+	//MagnetVfxComponent->SetAsset(GetCurrentVFX());
+
 }
 
 void AMagneticField_Cylinder::Disable()
@@ -75,17 +72,14 @@ void AMagneticField_Cylinder::Disable()
 	UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
 	if (!bIsActive) return;
 	if (!MagnetVfxComponent) return;
-	if (!EmptyVFX) return;
+	//if (!EmptyVFX) return;
 	if (!Capsule) return;
 	bIsActive = false;
 	UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
-	//MagnetVfxComponent->Deactivate();
-	MagnetVfxComponent->SetAsset(EmptyVFX);
+	MagnetVfxComponent->Deactivate();
 	Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//if (EmptyVFX) UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
-	//if (Capsule) UE_LOG(LogTemp, Warning, TEXT("Disable() Capsule to NoCollision"));
-	//SetActorHiddenInGame(true);
+	//MagnetVfxComponent->SetAsset(EmptyVFX);
 
 }
 
@@ -154,11 +148,9 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 {
 	if (!Actor) return FVector::ZeroVector;
 	
-	// const float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
 	const float ActorHalfHeight = Actor->GetSimpleCollisionHalfHeight();
 	
 	// Offset so character aligns correctly in capsule collider
-	// MagnetTarget = Top of capsule
 	// CapsuleUp gets local up axis (regardless of orientation)
 	const FVector CapsuleUp = Capsule->GetUpVector();
 	const FVector CapsuleLocation = Capsule->GetComponentLocation();
