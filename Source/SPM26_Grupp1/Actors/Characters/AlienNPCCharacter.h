@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "NiagaraSystem.h"
 #include "GameFramework/Character.h"
+#include "PhysicsEngine/RadialForceComponent.h"
 #include "SPM26_Grupp1/AI/AlienAIController.h"
 #include "AlienNPCCharacter.generated.h"
 
@@ -46,21 +47,23 @@ protected:
 	
 	// Pushback parameters
 	UPROPERTY(EditAnywhere, Category="Pushback")
-	float PushBackRadius = 150.0f;
+	float PushBackRadius = 300.0f;
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float PushBackCooldown = 0.8f; // how often to reapply
 	UPROPERTY(EditAnywhere, Category="Pushback")
-	float CharacterPushBackStrength = 1000.f;
-	UPROPERTY(EditAnywhere, Category="Pushback")
-	float ObjectPushBackStrength = 700.f;
+	float PushbackStrength = 1500.f;
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float PushbackHeightArc = 0.6f; // upward adjustment of pushforce
 	float TimeSinceLastPushBack = 0.0f;
+	//UPROPERTY(EditAnywhere, Category="Pushback")
+	//float CharacterPushBackStrength = 1000.f;
+	//UPROPERTY(EditAnywhere, Category="Pushback")
+	//float ObjectPushBackStrength = 700.f;
 	
 	// VFX
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
 	UNiagaraComponent* PushBackVFXComponent;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
 	UNiagaraSystem* PushBackVFX;
 	
 	// Flee parameters
@@ -86,9 +89,14 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bIsFleeingNPC;
 	
+	// Radial pushback
+	UPROPERTY(EditAnywhere)
+	URadialForceComponent* RadialForceComponent;
+	
 private:
 	void PushBack(AActor* Actor);
 	void TryPushBack(float DeltaTime);
+	void TriggerRadialPushback(float DeltaTime);
 	void PlayPushBackVFX() const;
 	UFUNCTION()
 	void OnAIStateChanged(EAlienAIState NewState);
