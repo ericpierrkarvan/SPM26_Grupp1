@@ -145,6 +145,7 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 				RegisterFieldInMechanicArray(Field);
 				AlignSpawnedMagneticField(Field, ImpactResult, SpawnLocation);
 				AlignMagneticFieldVFX(Capsule, ImpactResult, SpawnLocation, ProjectilePolarity, Field);
+				if (ShouldAttachFieldToHitObject(ImpactResult)) AttachFieldToObject(ImpactResult, Field);
 				
 				Field->InitializeFieldDuration(SpawnedMagneticFieldDuration);
 				UGameplayStatics::FinishSpawningActor(Field, FTransform(SpawnRotation, SpawnLocation)); // BeginPlay fires here
@@ -368,6 +369,31 @@ void AProj_MagneticCylinder::RegisterFieldInMechanicArray(AActor* Field) const
 	{
 		MechanicCharacter->AddMagneticField(Field);
 	}
+}
+
+bool AProj_MagneticCylinder::ShouldAttachFieldToHitObject(const FHitResult& ImpactResult) const
+{
+	const AActor* HitActor = ImpactResult.GetActor();
+	if (!IsValid(HitActor)) return false;
+	if (HitActor == this) return false;
+	
+	const UPrimitiveComponent* HitComp = ImpactResult.GetComponent();
+	if (!HitComp) return false;
+	
+	//bool bHitAMovableObject = HitComp->Mobility == EComponentMobility::Movable;
+	bool bIsSimulatingPhysics = HitComp->IsSimulatingPhysics(); // simulate physics imply movable
+	const bool bIsCharacter = Cast<ACharacter>(HitActor) != nullptr;
+	
+	return !bIsCharacter && bIsSimulatingPhysics;
+}
+
+// 
+void AProj_MagneticCylinder::AttachFieldToObject(const FHitResult& ImpactResult, AMagneticField_Cylinder* Field)
+{
+	AActor* HitActor = ImpactResult.GetActor();
+	if (!IsValid(HitActor)) return;
+	Field->SetAttachedToActor(HitActor);
+	Field->AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
 }
 
 

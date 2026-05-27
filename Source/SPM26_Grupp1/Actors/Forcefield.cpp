@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 
-// Sets default values
 AForcefield::AForcefield()
 {
 	Collider = CreateDefaultSubobject<UBoxComponent>("Collider");
@@ -20,15 +19,9 @@ AForcefield::AForcefield()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	Mesh->SetCollisionProfileName("NoCollision");
 	Mesh->SetupAttachment(RootComponent);
-	
-	ActiveVfxComponent = CreateDefaultSubobject<UNiagaraComponent>("ActiveVfxComponent");
-	ActiveVfxComponent->SetupAttachment(RootComponent);
 
 }
 
-
-
-// Called when the game starts or when spawned
 void AForcefield::BeginPlay()
 {
 	Super::BeginPlay();
@@ -36,7 +29,6 @@ void AForcefield::BeginPlay()
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &AForcefield::OnOverlapBegin);
 	Collider->OnComponentEndOverlap.AddDynamic(this, &AForcefield::OnOverlapEnd);
 	UpdateMaterial();
-	//UpdateVFX();
 }
 
 bool AForcefield::CanPass(const AActor* Actor)
@@ -65,8 +57,6 @@ void AForcefield::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		ActorsInField.Add(OtherActor);
 		PassingThroughBP();
 	}
-	
-	//UE_LOG(LogTemp, Warning, TEXT("PassingThroughBP(): OtherComp is %s"), *OtherComp->GetName());
 }
 
 void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -74,23 +64,6 @@ void AForcefield::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 {
 	StopPassingThroughBP();
 	ActorsInField.Remove(OtherActor);
-	//UE_LOG(LogTemp, Warning, TEXT("StopPassingThroughBP(): OverlappedComponent is %s"), *OverlappedComponent->GetName());
-}
-
-void AForcefield::UpdateVFX() const
-{
-	UNiagaraSystem* DesiredVFX;
-	
-	if (bRobotCanPass && bMechanicCanPass)	DesiredVFX = BothCanPassVFX;
-	else if (bRobotCanPass)					DesiredVFX = RobotCanPassVFX;
-	else if (bMechanicCanPass)				DesiredVFX = MechanicCanPassVFX;
-	else									DesiredVFX = NoneCanPassVFX;
-	
-	if (DesiredVFX && ActiveVfxComponent)
-	{
-		ActiveVfxComponent->SetAsset(DesiredVFX);
-		ActiveVfxComponent->ActivateSystem(true);
-	}
 }
 
 void AForcefield::UpdateMaterial() const
