@@ -86,7 +86,12 @@ FTransform URespawnComponent::GetCheckpointTransform() const
 	{
 		return FTransform(LastCheckpoint->GetActorRotation(), LastCheckpoint->GetActorLocation(), ActorScale);
 	}
-
+	
+	if (!Cast<ASPMCharacter>(GetOwner()))
+	{
+		return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
+	}
+	
 	// fallback to last mutual checkpoint from load/save
 	if (UGameInstance* GI = GetWorld()->GetGameInstance())
 	{

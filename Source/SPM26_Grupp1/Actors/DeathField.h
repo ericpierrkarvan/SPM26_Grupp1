@@ -42,13 +42,16 @@ public:
 	                  UPrimitiveComponent* OtherOverlappedComponent,
 	                  int32 OtherBodyIndex);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lava Physics")
+	bool ShouldRiseToSurface = false;
+	
 private:
 	UPROPERTY()
 	TArray<USkeletalMeshComponent*> TrackedRagdolls;
 
 	UPROPERTY()
 	TArray<UPrimitiveComponent*> BuoyantComponents;
-
+	
 	UPROPERTY()
 	TArray<AActor*> TrackedActors;
 
@@ -58,13 +61,13 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Lava Physics")
 	float SurfaceLinearDamping = 20.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Lava Physics")
-	bool ShouldRiseToSurface = false;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	class UNiagaraSystem* DeathEffect;
-
+	
 	class UNiagaraComponent* DeathEffectComp;
 	void SpawnDeathEffect(AActor* DeadActor);
 	void DestroyDeathEffect();
+	
+	
 };

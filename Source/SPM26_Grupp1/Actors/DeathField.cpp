@@ -68,13 +68,14 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 	if (TrackedActors.Contains(OtherActor)) return;
 
-	if (OtherOverlappedComponent->IsSimulatingPhysics())
+	if (OtherOverlappedComponent->IsSimulatingPhysics() && ShouldRiseToSurface)
 	{
 		BuoyantComponents.AddUnique(OtherOverlappedComponent);
-		OtherOverlappedComponent->SetLinearDamping(15.f);
-		OtherOverlappedComponent->SetAngularDamping(15.f);
+		
+		OtherOverlappedComponent->SetLinearDamping(10.f);
+		OtherOverlappedComponent->SetAngularDamping(10.f);
 	}
-
+	
 	TrackedActors.AddUnique(OtherActor);
 
 	if (ASPMCharacter* Character = Cast<ASPMCharacter>(OtherActor))
@@ -82,22 +83,28 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		Character->OnDeath();
 		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
-			for (FBodyInstance* Body : Mesh->Bodies)
+			if (ShouldRiseToSurface)
 			{
-				if (!Body) continue;
+				for (FBodyInstance* Body : Mesh->Bodies)
+				{
+					if (!Body) continue;
+					
+					Body->LinearDamping = 15.f;
+					Body->AngularDamping = 15.f;
 
-				Body->LinearDamping = 20.f;
-				Body->AngularDamping = 20.f;
-
-				Body->UpdateDampingProperties();
+					Body->UpdateDampingProperties();
+				}
 			}
 			TrackedRagdolls.AddUnique(Mesh);
-			BuoyantComponents.AddUnique(Mesh);
+			if (ShouldRiseToSurface)
+				BuoyantComponents.AddUnique(Mesh);
+
 			DeathByDeathFieldBP();
 		}
 	}
 
-	SpawnDeathEffect(OtherActor);
+	if (ShouldRiseToSurface)
+		SpawnDeathEffect(OtherActor);
 
 	RespawnComponent->Respawn();
 }
@@ -117,8 +124,11 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			if (!Mesh || !TrackedRagdolls.Contains(Mesh)) return;
 		}
 	}
-	BuoyantComponents.Remove(OtherOverlappedComponent);
 	TrackedActors.Remove(OtherActor);
+	
+	if (BuoyantComponents.Contains(OtherOverlappedComponent))
+		BuoyantComponents.Remove(OtherOverlappedComponent);
+
 	if (TrackedRagdolls.Contains(Mesh))
 		TrackedRagdolls.Remove(Mesh);
 	OtherOverlappedComponent->SetLinearDamping(0.01f);
@@ -135,7 +145,6 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			Body->UpdateDampingProperties();
 		}
 	}
-
 
 	float LavaSurfaceZ = GetActorLocation().Z + Trigger->GetScaledBoxExtent().Z;
 
@@ -162,13 +171,14 @@ void ADeathField::SpawnDeathEffect(AActor* DeadActor)
 		EAttachLocation::KeepRelativeOffset,
 		true
 	);
-
+	/*
 	if (DeathEffectComp)
 	{
 		FTimerHandle TimerHandle;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADeathField::DestroyDeathEffect,
 		                                2, false);
 	}
+	*/
 
 	UE_LOG(LogTemp, Warning, TEXT("Death Effect Spawned"));
 }

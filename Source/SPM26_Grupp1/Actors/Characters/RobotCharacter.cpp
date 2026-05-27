@@ -1066,7 +1066,7 @@ void ARobotCharacter::Landed(const FHitResult& HitResult)
 	
 	float ImpactForce = FMath::Abs(GetVelocity().Z);
 	
-	
+	UE_LOG(LogTemp, Warning, TEXT("LANDED"));
 	OnMovementStateChanged.Broadcast(ERobotMovementState::Landing);
 }
 
