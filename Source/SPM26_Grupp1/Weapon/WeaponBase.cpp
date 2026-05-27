@@ -226,16 +226,12 @@ void AWeaponBase::SpawnProjectileInstance(APawn* InstigatingPawn, FVector SpawnL
 
 void AWeaponBase::Shoot_Implementation(const FHitResult &AimHitResult)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Shoot_Implementation called. ProjectileClass: %s, Instigator: %s"),
-	//	ProjectileClass ? *ProjectileClass->GetName() : TEXT("NULL"),
-	//	GetInstigator() ? *GetInstigator()->GetName() : TEXT("NULL"));
 	if (CanShoot_Implementation())
 	{
 		SpawnProjectile(AimHitResult);
 		bCanShoot = false;
 		SetCurrentAmmo(iCurrentAmmo - 1);
 		
-
 		TimeSinceLastShot = 0.f;
 		TimeSinceLastRegen = 0.f;
 		OnWeaponFired.Broadcast();
