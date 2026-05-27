@@ -25,15 +25,25 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "AI")
 	FOnAIStateChanged OnAIStateChanged;
-
-private:
 	
+protected:
+	bool IsPlayerNavReachable(const APawn* Player) const;
+	bool IsLocationNavReachable(const FVector& Location) const;
+	void ThrottledPathCheckMechanic(float DeltaTime);
+	void ThrottledPathCheckRobot(float DeltaTime);
+	void SetMechanicBBCValuesOnLineOfSight() const;
+	void ClearMechanicBBCValuesOnLostLineOfSight() const;
+	void SetRobotBBCValuesOnLineOfSight() const;
+	void ClearRobotBBCValuesOnLostLineOfSight() const;
+	void SetAIState(EAlienAIState NewState);
+	
+	// AI
 	UPROPERTY(EditAnywhere)
 	UBehaviorTree* AIBehavior;
-	
 	UPROPERTY(EditAnywhere)
 	UBlackboardComponent* BBC;
 	
+	// Pawns
 	UPROPERTY()
 	APawn* MechanicPawn;
 	UPROPERTY()
@@ -60,14 +70,5 @@ private:
 	// NPC
 	bool bShouldInvestigate = false;
 	EAlienAIState CurrentAIState = EAlienAIState::Patrolling;
-	
-	bool IsPlayerNavReachable(const APawn* Player) const;
-	bool IsLocationNavReachable(const FVector& Location) const;
-	void ThrottledPathCheckMechanic(float DeltaTime);
-	void ThrottledPathCheckRobot(float DeltaTime);
-	void SetMechanicBBCValuesOnLineOfSight() const;
-	void ClearMechanicBBCValuesOnLostLineOfSight() const;
-	void SetRobotBBCValuesOnLineOfSight() const;
-	void ClearRobotBBCValuesOnLostLineOfSight() const;
-	void SetAIState(EAlienAIState NewState);
+
 };
