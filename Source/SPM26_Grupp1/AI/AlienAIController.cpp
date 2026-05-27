@@ -7,8 +7,8 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "SPM26_Grupp1/FleeingAlienNPC.h"
-#include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/Alien/AlienNPCCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h"
 
 void AAlienAIController::BeginPlay()
 {

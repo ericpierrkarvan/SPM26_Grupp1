@@ -22,9 +22,6 @@ public:
 	bool IsChasingNPC() const;
 	bool IsFleeingNPC() const;
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
 	UFUNCTION(BlueprintImplementableEvent)
 	void PushedBackCharacterBP();
 	UFUNCTION(BlueprintImplementableEvent)
@@ -34,15 +31,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void IsPatrollingBP();
 	UFUNCTION(BlueprintImplementableEvent)
-	static void IsChasingBP();
+	void IsChasingBP();
 	UFUNCTION(BlueprintImplementableEvent)
-	static void IsInvestigatingBP();
+	void IsInvestigatingBP();
 	UFUNCTION(BlueprintImplementableEvent)
-	static void IsFleeingBP();
+	void IsFleeingBP();
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	
 	// VFX
 	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
@@ -66,9 +64,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bIsFleeingNPC;
 	
-	// Mesh & Collision
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* Mesh = nullptr;
+	// Collision
 	UPROPERTY(EditAnywhere)
 	UCapsuleComponent* CapsuleComp = nullptr;
 	

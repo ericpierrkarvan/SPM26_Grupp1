@@ -3,7 +3,6 @@
 
 #include "AlienNPCCharacter.h"
 #include "NiagaraComponent.h"
-#include "RobotCharacter.h"
 
 class ARobotCharacter;
 // Sets default values

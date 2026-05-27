@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AlienNPCCharacter.h"
 #include "NiagaraSystem.h"
-#include "Actors/Characters/AlienNPCCharacter.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 #include "ChasingAlienNPC.generated.h"
 

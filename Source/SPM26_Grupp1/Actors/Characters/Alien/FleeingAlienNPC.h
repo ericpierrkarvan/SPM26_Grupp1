@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actors/Characters/AlienNPCCharacter.h"
+#include "AlienNPCCharacter.h"
 #include "FleeingAlienNPC.generated.h"
 
 /**
