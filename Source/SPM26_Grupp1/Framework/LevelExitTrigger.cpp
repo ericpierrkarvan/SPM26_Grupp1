@@ -95,7 +95,13 @@ void ALevelExitTrigger::LoadNextLevel() const
 	PS->SaveProgress();
 	if (!NextLevel.IsNull())
 	{
-		UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), NextLevel);
+		if (GI)
+		{
+			GI->LoadLevel(NextLevel, true);
+		}else
+		{
+			UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), NextLevel);
+		}
 	}
 	else
 	{

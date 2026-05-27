@@ -25,7 +25,7 @@ public:
 	UPROPERTY()
 	FName CheckpointLevelName = NAME_None;
 	UPROPERTY()
-	FName CurrentLevel = NAME_None;
+	FName CurrentLevel = FName("Startmenue");
 	UPROPERTY()
 	UMaterialInstance* MechanicMaterial = nullptr;
 };
