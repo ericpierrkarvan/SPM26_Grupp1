@@ -795,6 +795,7 @@ void ASPMCharacter::ResetCoyoteJump()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
 	bCanCoyoteJump = false;
+	GetSPMMovementComponent()->DecrementJumpCount();
 }
 
 void ASPMCharacter::OnJumpRelease()
