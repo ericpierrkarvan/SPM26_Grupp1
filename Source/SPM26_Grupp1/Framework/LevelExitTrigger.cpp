@@ -97,7 +97,7 @@ void ALevelExitTrigger::LoadNextLevel() const
 	{
 		if (GI)
 		{
-			GI->LoadLevel(NextLevel);
+			GI->LoadLevel(NextLevel, true);
 		}else
 		{
 			UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), NextLevel);

@@ -20,11 +20,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game Instance")
 	void RemoveExtraLocalPlayers();
 	void LoadNextLevel();
-	void LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad);
+	UFUNCTION(BlueprintCallable, Category = "Game Instance")
+	void LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad, bool ShowCutsceneLevel);
 
 	UFUNCTION(BlueprintCallable, Category = "Game Instance")
 	TSoftObjectPtr<UWorld> GetLevelAfterCutscene();
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Game Instance")
+	bool GetShowCutsceneOnLevelChange();
+	UFUNCTION(BlueprintCallable, Category = "Game Instance")
+	void SetShowCutsceneOnLevelChange(bool NewValue);
 	void SetupLocalMultiplayerInput();
 	
 	UFUNCTION(BlueprintCallable, Category = "Character Customization")
@@ -75,4 +80,6 @@ private:
 	TArray<UMaterialInterface*> RobotMaterialOptions;
 	
 	TSoftObjectPtr<UWorld> LevelAfterCutscene;
+	//show cutscene on level change
+	bool bShowCutsceneOnLevelChange = true;
 };

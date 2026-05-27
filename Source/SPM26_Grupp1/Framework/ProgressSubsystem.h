@@ -26,7 +26,7 @@ struct FPlayerProgress
 	FName CheckpointLevelName = NAME_None; // which level this checkpoint belongs to
 	
 	UPROPERTY(BlueprintReadOnly)
-	FName CurrentLevel = NAME_None;
+	FName CurrentLevel = FName("StartMenu");
 	
 	UPROPERTY(BlueprintReadOnly)
 	UMaterialInstance* MechanicMaterial = nullptr;

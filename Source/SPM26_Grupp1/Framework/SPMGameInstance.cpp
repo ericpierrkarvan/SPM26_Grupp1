@@ -38,9 +38,11 @@ void USPMGameInstance::LoadNextLevel()
 	}
 }
 
-void USPMGameInstance::LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad)
+void USPMGameInstance::LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad, bool ShowCutsceneLevel)
 {
 	LevelAfterCutscene = LevelToLoad;
+	SetShowCutsceneOnLevelChange(ShowCutsceneLevel);
+	
 	UWorld* World = GetWorld();
 	if (World)
 	{
@@ -51,6 +53,16 @@ void USPMGameInstance::LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad)
 TSoftObjectPtr<UWorld> USPMGameInstance::GetLevelAfterCutscene()
 {
 	return LevelAfterCutscene;
+}
+
+bool USPMGameInstance::GetShowCutsceneOnLevelChange()
+{
+	return bShowCutsceneOnLevelChange;
+}
+
+void USPMGameInstance::SetShowCutsceneOnLevelChange(bool NewValue)
+{
+	bShowCutsceneOnLevelChange = NewValue;
 }
 
 void USPMGameInstance::Init()
