@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraSystem.h"
 #include "GameFramework/Character.h"
 #include "SPM26_Grupp1/AI/AlienAIController.h"
 #include "AlienNPCCharacter.generated.h"
@@ -46,20 +47,21 @@ protected:
 	// Pushback parameters
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float PushBackRadius = 150.0f;
-
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float PushBackCooldown = 0.8f; // how often to reapply
-	
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float CharacterPushBackStrength = 1000.f;
-	
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float ObjectPushBackStrength = 700.f;
-	
 	UPROPERTY(EditAnywhere, Category="Pushback")
 	float PushbackHeightArc = 0.6f; // upward adjustment of pushforce
-	
 	float TimeSinceLastPushBack = 0.0f;
+	
+	// VFX
+	UPROPERTY(EditAnywhere)
+	UNiagaraComponent* PushBackVFXComponent;
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* PushBackVFX;
 	
 	// Flee parameters
 	// How far to flee to
@@ -87,6 +89,7 @@ protected:
 private:
 	void PushBack(AActor* Actor);
 	void TryPushBack(float DeltaTime);
+	void PlayPushBackVFX() const;
 	UFUNCTION()
 	void OnAIStateChanged(EAlienAIState NewState);
 };

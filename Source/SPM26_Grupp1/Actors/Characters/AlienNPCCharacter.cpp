@@ -2,6 +2,8 @@
 
 
 #include "AlienNPCCharacter.h"
+
+#include "NiagaraComponent.h"
 #include "RobotCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -14,7 +16,8 @@ AAlienNPCCharacter::AAlienNPCCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
+	PushBackVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PushBackVFXComponent"));
 
 }
 
@@ -49,6 +52,7 @@ void AAlienNPCCharacter::PushBack(AActor* Actor)
 	if (const ACharacter* Character = Cast<ACharacter>(Actor))
 	{
 		Character->GetCharacterMovement()->AddImpulse(AwayDirection * CharacterPushBackStrength, true);
+		PlayPushBackVFX();
 		PushedBackCharacterBP();
 	}
 	else
@@ -87,6 +91,11 @@ void AAlienNPCCharacter::TryPushBack(float DeltaTime)
 			TimeSinceLastPushBack = 0.f;
 		}
 	}
+}
+
+void AAlienNPCCharacter::PlayPushBackVFX() const
+{
+	if (PushBackVFXComponent) PushBackVFXComponent->Activate(true);
 }
 
 void AAlienNPCCharacter::OnAIStateChanged(EAlienAIState NewState)
