@@ -43,7 +43,7 @@ void AChasingAlienNPC::TriggerRadialPushback(float DeltaTime)
 	{
 		const UBlackboardComponent* BBC = AI->GetBlackboardComponent();
 		if (!BBC) return;
-		if (!BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"))) return;
+		if (!BBC->IsVectorValueSet(TEXT("ChaseTargetLocation"))) return; // Only trigger pushback if has chase target
 	}
 	
 	TArray<AActor*> NearbyActors;

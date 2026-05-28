@@ -2,74 +2,92 @@
 
 
 #include "ChasingAIController.h"
+
+#include "EngineUtils.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 void AChasingAIController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	for (TActorIterator<APawn> Iterator(GetWorld()); Iterator; ++Iterator)
+	{
+		if (Iterator->IsPlayerControlled())
+		{
+			FPlayerPerceptionState State;
+			State.Pawn = *Iterator;
+			TrackedPlayers.Add(State);
+		}
+	}
 }
 
 void AChasingAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	for (FPlayerPerceptionState& State : TrackedPlayers) HandlePlayerLineOfSight(State, DeltaTime);
+	
+	FPlayerPerceptionState* BestTarget = nullptr;
+	float ClosestDistance = FLT_MAX;
+	
+	for (FPlayerPerceptionState& State : TrackedPlayers)
+	{
+		if (!State.bShouldChase) continue;
+		float Dist = FVector::Dist(GetPawn()->GetActorLocation(), State.Pawn->GetActorLocation());
+		if (Dist < ClosestDistance)
+		{
+			ClosestDistance = Dist;
+			BestTarget = &State;
+		}
+	}
+	if (BestTarget)
+	{
+		bShouldInvestigate = false;
+		
+		if (ProjectToNav(BestTarget->Pawn->GetActorLocation(), ProjectedLocation)) 
+			BBC->SetValueAsVector(TEXT("ChaseTargetLocation"), ProjectedLocation.Location);
+		else 
+			BBC->SetValueAsVector(TEXT("ChaseTargetLocation"), BestTarget->Pawn->GetActorLocation());
+		
+		BBC->SetValueAsVector(TEXT("LastKnownPlayerLocation"), BestTarget->LastKnownPlayerLocation);
+		SetAIState(EAlienAIState::Chasing);
+	}
+	else if (!bShouldInvestigate)
+	{
+		BBC->ClearValue(TEXT("ChaseTargetLocation"));
+		SetAIState(EAlienAIState::Patrolling);
+	}
 }
 
-// Handles LineOfSight and AI chasing of Mechanic
-void AChasingAIController::HandlePlayerLineOfSight(float DeltaTime)
+// Handles LineOfSight and AI chasing of player
+void AChasingAIController::HandlePlayerLineOfSight(FPlayerPerceptionState& State, float DeltaTime)
 {
-	if (LineOfSightTo(MechanicPawn, FVector::ZeroVector))
+	if (!State.Pawn) return;
+	
+	if (LineOfSightTo(State.Pawn, FVector::ZeroVector))
 	{
-		bCanSeeMechanic = true;
-		ThrottledPathCheckMechanic(DeltaTime);
-		bShouldChaseMechanic = bCanSeeMechanic && bCachedReachableMechanic;
+		State.bCanSee = true;
+		ThrottledPathCheck(State, DeltaTime);
+		State.bShouldChase = State.bCanSee && State.bCachedReachable;
 		
-		if (bShouldChaseMechanic)
-		{
-			bShouldInvestigate = false;
-			BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), true);
-			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), false);
-			// MechanicLocation is Target for Chase MoveTo
-			BBC->SetValueAsVector(TEXT("MechanicLocation"), MechanicPawn->GetActorLocation());
-			// Can reach, so investigation point is also valid
-			BBC->SetValueAsVector(TEXT("LastKnownMechanicLocation"), MechanicPawn->GetActorLocation());
-			
-			SetAIState(EAlienAIState::Chasing);
-		}
-		else
-		{
-			// Can see but can't reach, don't chase, don't investigate
-			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), false);
-			BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
-			BBC->ClearValue(TEXT("MechanicLocation"));
-			
-			SetAIState(EAlienAIState::Patrolling);
-		}
+		if (State.bShouldChase) State.LastKnownPlayerLocation = State.Pawn->GetActorLocation();
 	}
 	else
 	{
-		const bool bWasChasing = BBC->GetValueAsBool(TEXT("ShouldChaseMechanic"));
+		const bool bWasChasing = State.bShouldChase;
 		
-		bCanSeeMechanic = false;
-		bShouldChaseMechanic = false;
-		TimeSinceLastReachabilityCheckMechanic = ReachabilityCheckIntervalMechanic;
-		bCachedReachableMechanic = false;
-		
-		BBC->SetValueAsBool(TEXT("ShouldChaseMechanic"), false);
-		BBC->ClearValue(TEXT("MechanicLocation"));
-		
-		SetAIState(EAlienAIState::Patrolling);
+		State.bCanSee = false;
+		State.bShouldChase = false;
+		State.bCachedReachable = false;
+		State.TimeSinceLastReliabilityCheck = ReachabilityCheckInterval;
 		
 		if (bWasChasing)
 		{
-			// Just lost LOS — LastKnownMechanicLocation still holds the last
-			// position we updated while chasing, check if we can get there
-			const FVector LastKnown = BBC->GetValueAsVector(TEXT("LastKnownMechanicLocation"));
-			bShouldInvestigate = IsLocationNavReachable(LastKnown);
+			bShouldInvestigate = IsLocationNavReachable(State.LastKnownPlayerLocation);
+			BBC->ClearValue(TEXT("ChaseTargetLocation"));
 			BBC->SetValueAsBool(TEXT("ShouldInvestigate"), bShouldInvestigate);
-			
+			BBC->SetValueAsVector(TEXT("LastKnownPlayerLocation"), State.LastKnownPlayerLocation);
 			if (bShouldInvestigate) SetAIState(EAlienAIState::Investigating);
 		}
 	}
-
 }
 
