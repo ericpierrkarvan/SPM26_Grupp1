@@ -12,6 +12,7 @@
 #include "Components/SphereComponent.h"
 #include "Engine/OverlapResult.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
@@ -968,6 +969,14 @@ bool ARobotCharacter::CanInteractWith(AActor* Actor)
 {
 	if (!Super::CanInteractWith(Actor)) return false;
 	if (ActorsInDetectionSphere.Contains(Actor)) return false;
+
+	if (!bCanEverHeadLaunch)
+	{
+		//if we havent unlocked headlaunch, we only want to interact with buttons and progress
+		const bool bHasInteractable = Actor->GetComponentByClass(UInteractableComponent::StaticClass()) != nullptr;
+		const bool bHasProgression = Actor->GetComponentByClass(UProgressGrantingComponent::StaticClass()) != nullptr;
+		return bHasInteractable || bHasProgression;
+	}
 	return true;
 }
 
