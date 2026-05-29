@@ -12,6 +12,7 @@ struct FPlayerPerceptionState
 	bool bCanSee = false;
 	bool bCanReach = false;
 	bool bShouldChase = false;
+	bool bShouldFlee = false; 
 	bool bCachedReachable = false;
 	FVector LastKnownPlayerLocation = FVector::ZeroVector;
 	float TimeSinceLastReliabilityCheck = 0.f;

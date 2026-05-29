@@ -23,9 +23,9 @@ public:
 
 	// Flee parameters
 	UPROPERTY(EditAnywhere, Category="Flee")
-	float FleeDistanceFromPlayer = 450.f; // How far to flee to
+	float FleeDistanceFromPlayer = 900.f; // How far to flee to
 	UPROPERTY(EditAnywhere, Category="Flee")
-	float SafeDistanceFromPlayer = 300.f; // Minimum acceptable distance from the player
+	float SafeDistanceFromPlayer = 600.f; // Minimum acceptable distance from the player
 	UPROPERTY(EditAnywhere, Category="Speed")
 	float FleeSpeed = 500.f;
 	

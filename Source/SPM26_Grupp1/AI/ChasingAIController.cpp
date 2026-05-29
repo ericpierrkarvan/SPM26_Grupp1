@@ -2,7 +2,6 @@
 
 
 #include "ChasingAIController.h"
-
 #include "EngineUtils.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -25,8 +24,8 @@ void AChasingAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	for (FPlayerPerceptionState& State : TrackedPlayers) HandlePlayerLineOfSight(State, DeltaTime);
-	
-	FPlayerPerceptionState* BestTarget = nullptr;
+
+	const FPlayerPerceptionState* BestTarget = nullptr;
 	float ClosestDistance = FLT_MAX;
 	
 	for (FPlayerPerceptionState& State : TrackedPlayers)
