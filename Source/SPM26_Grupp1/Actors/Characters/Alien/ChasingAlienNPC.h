@@ -22,6 +22,7 @@ public:
 	// Events
 	UFUNCTION(BlueprintImplementableEvent)
 	void AlienPushBackBP();
+	void DealDamage(const ACharacter* Character);
 	
 protected:
 	virtual void BeginPlay() override;

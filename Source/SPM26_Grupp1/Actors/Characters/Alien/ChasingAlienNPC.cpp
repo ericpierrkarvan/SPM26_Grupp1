@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Components/HealthComponent.h"
 
 AChasingAlienNPC::AChasingAlienNPC()
 {
@@ -62,6 +63,7 @@ void AChasingAlienNPC::TriggerRadialPushback(float DeltaTime)
 		Cast<ACharacter>(Actor)->GetCharacterMovement()->AddImpulse(AwayDirection * Falloff * RadialForceComponent->ImpulseStrength, true);
 		AlienPushBackBP();
 		PlayPushBackVFX();
+		DealDamage(Cast<ACharacter>(Actor));
 	}
 	TimeSinceLastPushBack = 0.f;
 	
@@ -70,6 +72,13 @@ void AChasingAlienNPC::TriggerRadialPushback(float DeltaTime)
 void AChasingAlienNPC::PlayPushBackVFX() const
 {
 	if (PushBackVFXComponent) PushBackVFXComponent->ActivateSystem(true);
+}
+
+void AChasingAlienNPC::DealDamage(const ACharacter* Character)
+{
+	if (!Character) return;
+	UHealthComponent* HealthComp = Character->GetComponentByClass<UHealthComponent>();
+	if (HealthComp) HealthComp->TakeDamage();
 }
 
 void AChasingAlienNPC::OnEnterPatrollingState()
