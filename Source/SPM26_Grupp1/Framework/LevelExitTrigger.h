@@ -60,9 +60,13 @@ private:
 	FTimerHandle LevelExitCountdownHandle;
 	UPROPERTY(EditAnywhere, Category="Level")
 	float LevelExitCountdownTime = 6.0f;
+
 	
 	bool bIsRobotInTriggerArea = false;
 	bool bIsMechanicInTriggerArea = false;
+	UPROPERTY()
+	FTimerHandle CountdownTickHandle;
 
-
+	int32 CountdownSecondsRemaining = 0;
+	void BroadcastStatus();
 };

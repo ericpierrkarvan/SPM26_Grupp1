@@ -26,6 +26,7 @@ void ALevelExitTrigger::BeginPlay()
 	Super::BeginPlay();
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &ALevelExitTrigger::OnOverlapBegin);
 	Collider->OnComponentEndOverlap.AddDynamic(this, &ALevelExitTrigger::OnOverlapEnd);
+	
 }
 
 void ALevelExitTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -45,8 +46,10 @@ void ALevelExitTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		bIsMechanicInTriggerArea = true;
 		MechanicEnteredLoadNextLevelTriggerBP();
 	}
+
 	
 	if (bIsRobotInTriggerArea && bIsMechanicInTriggerArea) LoadNextLevelCountdown();
+	BroadcastStatus();
 }
 
 void ALevelExitTrigger::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -61,6 +64,7 @@ void ALevelExitTrigger::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor
 	if (OtherActor->IsA<AMechanicCharacter>()) bIsMechanicInTriggerArea = false;
 	
 	StopCountdown();
+	
 }
 
 void ALevelExitTrigger::LoadNextLevelCountdown()
@@ -69,7 +73,10 @@ void ALevelExitTrigger::LoadNextLevelCountdown()
 	GetWorldTimerManager().ClearTimer(LevelExitCountdownHandle);
 
 	StartLoadNextLevelBP(); // sound event
-	
+
+	//timer to int
+	CountdownSecondsRemaining = FMath::FloorToInt(LevelExitCountdownTime);
+
 	GetWorldTimerManager().SetTimer(
 		LevelExitCountdownHandle,
 		[this]()
@@ -78,13 +85,29 @@ void ALevelExitTrigger::LoadNextLevelCountdown()
 		},
 		LevelExitCountdownTime,
 		false);
+
+	//update every second
+	GetWorldTimerManager().SetTimer(
+	   CountdownTickHandle,
+	   [this]()
+	   {
+		   CountdownSecondsRemaining--;
+		   BroadcastStatus();
+	   },
+	   1.0f,
+	   true,
+	   1.0f);
+	
+	BroadcastStatus();
 }
 
 void ALevelExitTrigger::StopCountdown()
 {
 	UE_LOG(LogTemp, Warning, TEXT("LevelExitTrigger(): Stopped loading next level. (Player exited field)"));
 	GetWorldTimerManager().ClearTimer(LevelExitCountdownHandle);
+	GetWorldTimerManager().ClearTimer(CountdownTickHandle);
 	StopLoadNextLevelBP(); // stop sound event
+	BroadcastStatus();
 }
 
 void ALevelExitTrigger::LoadNextLevel() const
@@ -111,4 +134,12 @@ void ALevelExitTrigger::LoadNextLevel() const
 	
 }
 
-
+void ALevelExitTrigger::BroadcastStatus()
+{
+	const int32 PlayerCount = (bIsRobotInTriggerArea ? 1 : 0) + (bIsMechanicInTriggerArea ? 1 : 0);
+	const float TimeRemaining =  (float)CountdownSecondsRemaining;
+	if (UUISubSystem* UISub = GetGameInstance()->GetSubsystem<UUISubSystem>())
+	{
+		UISub->HandleLevelExitStatus(PlayerCount, TimeRemaining);
+	}
+}
