@@ -114,7 +114,7 @@ void AMechanicCharacter::PossessedBy(AController* NewController)
 
 bool AMechanicCharacter::CanShoot()
 {
-	
+	if (!IsAlive()) return false;
 	if (EquippedWeapon)
 	{
 		return EquippedWeapon->Execute_CanShoot(EquippedWeapon);
