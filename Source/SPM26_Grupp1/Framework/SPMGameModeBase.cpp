@@ -5,6 +5,7 @@
 #include "SPMGameInstance.h"
 #include "SPMPlayerController.h"
 #include "Engine/PlayerStartPIE.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
@@ -50,6 +51,15 @@ void ASPMGameModeBase::SwapPossession()
 
 	ActiveKeyboardPlayer = (ActiveKeyboardPlayer + 1) % 2;
 
+	//we want to keep veloctiy when swapping, so lets store it
+	FVector Velocity0 = FVector::ZeroVector;
+	FVector Velocity1 = FVector::ZeroVector;
+
+	if (ACharacter* Char0 = Cast<ACharacter>(OriginalPawn0.Get()))
+		Velocity0 = Char0->GetCharacterMovement()->Velocity;
+	if (ACharacter* Char1 = Cast<ACharacter>(OriginalPawn1.Get()))
+		Velocity1 = Char1->GetCharacterMovement()->Velocity;
+	
 	PC0->UnPossess();
 	PC1->UnPossess();
 
@@ -64,6 +74,12 @@ void ASPMGameModeBase::SwapPossession()
 		PC1->Possess(OriginalPawn1.Get());
 	}
 
+	//restore velocity:
+	if (ACharacter* Char0 = Cast<ACharacter>(OriginalPawn0.Get()))
+		Char0->GetCharacterMovement()->Velocity = Velocity0;
+	if (ACharacter* Char1 = Cast<ACharacter>(OriginalPawn1.Get()))
+		Char1->GetCharacterMovement()->Velocity = Velocity1;
+	
 	// Lock each viewport camera to its original pawn
 	PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
 	PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
