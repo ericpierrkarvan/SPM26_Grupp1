@@ -41,8 +41,12 @@ public:
 	AAIController* Contr;
 	
 	// VFX
-	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UPROPERTY(EditAnywhere, Category="Alien|VFX")
 	UNiagaraSystem* FleeingVFX;
+	
+	// Material
+	UPROPERTY(EditAnywhere, Category="Alien|Material")
+	UMaterial* FleeEmissiveMaterial;
 	
 protected:
 	

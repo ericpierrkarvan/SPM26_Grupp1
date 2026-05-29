@@ -32,6 +32,7 @@ void AChasingAlienNPC::Tick(float DeltaTime)
 void AChasingAlienNPC::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AChasingAlienNPC::TriggerRadialPushback(float DeltaTime)
@@ -84,19 +85,22 @@ void AChasingAlienNPC::DealDamage(const ACharacter* Character)
 void AChasingAlienNPC::OnEnterPatrollingState()
 {
 	Super::OnEnterPatrollingState();
-	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
 }
 
 void AChasingAlienNPC::OnEnterInvestigatingState()
 {
 	Super::OnEnterInvestigatingState();
-	GetCharacterMovement()->MaxWalkSpeed = InvestigateSpeed;
+	
+	MovComp->MaxWalkSpeed = InvestigateSpeed;
+	if (StatMesh) StatMesh->SetMaterial(2, PatrolEmissiveMaterial);
 	ModeVFXComponent->SetAsset(InvestigatingVFX); 
 }
 
 void AChasingAlienNPC::OnEnterChasingState()
 {
 	Super::OnEnterChasingState();
-	GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
+	
+	MovComp->MaxWalkSpeed = ChaseSpeed;
+	if (StatMesh) StatMesh->SetMaterial(2, ChasingEmissiveMaterial);
 	ModeVFXComponent->SetAsset(ChasingVFX);
 }

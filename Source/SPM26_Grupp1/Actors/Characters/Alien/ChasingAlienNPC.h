@@ -46,6 +46,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	URadialForceComponent* RadialForceComponent;
 	
+	// Material
+	UPROPERTY(EditAnywhere)
+	UMaterial* ChasingEmissiveMaterial;
+	
 	// VFX
 	UPROPERTY(EditAnywhere, Category="Chasing|Pushback|VFX")
 	UNiagaraComponent* PushBackVFXComponent;

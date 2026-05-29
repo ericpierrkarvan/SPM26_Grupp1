@@ -77,7 +77,7 @@ protected:
 	bool bShouldFleeFromRobot = false;
 	
 	// Both
-	float ReachabilityCheckInterval = 0.5f;
+	float ReachabilityCheckInterval = 0.3f;
 	float TimeSinceLastReachabilityCheck = 0.0f;
 	
 	// NPC

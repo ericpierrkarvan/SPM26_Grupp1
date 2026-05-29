@@ -43,13 +43,17 @@ protected:
 	virtual void OnEnterFleeingState();
 	
 	// VFX
-	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UPROPERTY(EditAnywhere, Category="Alien|Pushback|VFX")
 	UNiagaraComponent* ModeVFXComponent;
-	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
+	UPROPERTY(EditAnywhere, Category="Alien|Pushback|VFX")
 	UNiagaraSystem* PatrollingVFX;
 	
+	// Material
+	UPROPERTY(EditAnywhere, Category="Alien|Material")
+	UMaterial* PatrolEmissiveMaterial;
+	
 	// Speed
-	UPROPERTY(EditAnywhere, Category="Speed")
+	UPROPERTY(EditAnywhere, Category="Alien|Speed")
 	float PatrolSpeed = 300.f;
 	
 	// "Type" of NPC
@@ -58,9 +62,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bIsFleeingNPC;
 	
-	// Mesh & Collision
-	//UPROPERTY()
-	//UStaticMeshComponent* StaticMesh;
+	// Mesh
+	UStaticMeshComponent* StatMesh = nullptr;
 	UPROPERTY()
 	UCapsuleComponent* CapsuleComp = nullptr;
 	

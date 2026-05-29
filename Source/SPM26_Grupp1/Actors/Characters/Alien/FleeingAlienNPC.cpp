@@ -105,7 +105,8 @@ void AFleeingAlienNPC::OnEnterFleeingState()
 {
 	Super::OnEnterFleeingState();
 	ModeVFXComponent->SetAsset(FleeingVFX); 
-	GetCharacterMovement()->MaxWalkSpeed = FleeSpeed;
+	if (StatMesh) StatMesh->SetMaterial(2, FleeEmissiveMaterial);
+	MovComp->MaxWalkSpeed = FleeSpeed;
 }
 
 void AFleeingAlienNPC::OnEnterPatrollingState()

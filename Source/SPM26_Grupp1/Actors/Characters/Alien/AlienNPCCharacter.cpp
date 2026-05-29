@@ -13,9 +13,6 @@ AAlienNPCCharacter::AAlienNPCCharacter()
 	ModeVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ModeVFXComponent"));
 	ModeVFXComponent->SetupAttachment(RootComponent);
 	
-	//StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	//StaticMesh->SetupAttachment(RootComponent);
-	
 	PatrolComp = CreateDefaultSubobject<UPatrolComponent>(TEXT("PatrolComp"));
 	
 	CurrentAudio = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("CurrentAudio"));
@@ -31,6 +28,8 @@ void AAlienNPCCharacter::BeginPlay()
 	
 	MovComp = GetCharacterMovement();
 	MovComp->MaxWalkSpeed = PatrolSpeed;
+	
+	StatMesh = GetComponentByClass<UStaticMeshComponent>();
 	
 }
 
@@ -73,6 +72,7 @@ void AAlienNPCCharacter::OnEnterPatrollingState()
 {
 	ModeVFXComponent->SetAsset(PatrollingVFX); 
 	MovComp->MaxWalkSpeed = PatrolSpeed;
+	if (StatMesh) StatMesh->SetMaterial(2, PatrolEmissiveMaterial);
 	IsPatrollingBP(); 
 }
 
