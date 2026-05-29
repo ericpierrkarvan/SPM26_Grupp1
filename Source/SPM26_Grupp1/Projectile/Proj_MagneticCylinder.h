@@ -81,6 +81,17 @@ protected:
 	AMagneticField_Cylinder* SpawnMagneticField(const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 	void RegisterFieldInMechanicArray(AActor* Field) const;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Decal")
+	TObjectPtr<UMaterialInterface> ImpactNegativeDecalMaterial;
+	UPROPERTY(EditDefaultsOnly, Category = "Decal")
+	TObjectPtr<UMaterialInterface> ImpactPositiveDecalMaterial;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Decal")
+	FVector DecalSize = FVector(5.f, 20.f, 20.f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Decal")
+	float DecalLifeSpan = 10.f;
+	
 private:
 	bool ShouldAttachFieldToHitObject(const FHitResult& ImpactResult) const;
 	void AttachFieldToObject(const FHitResult& ImpactResult, AMagneticField_Cylinder* Field);

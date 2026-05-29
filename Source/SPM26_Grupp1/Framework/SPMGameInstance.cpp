@@ -38,6 +38,33 @@ void USPMGameInstance::LoadNextLevel()
 	}
 }
 
+void USPMGameInstance::LoadLevel(TSoftObjectPtr<UWorld> LevelToLoad, bool ShowCutsceneLevel)
+{
+	LevelAfterCutscene = LevelToLoad;
+	SetShowCutsceneOnLevelChange(ShowCutsceneLevel);
+	
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		UGameplayStatics::OpenLevelBySoftObjectPtr(World, CutSceneLevel);
+	}
+}
+
+TSoftObjectPtr<UWorld> USPMGameInstance::GetLevelAfterCutscene()
+{
+	return LevelAfterCutscene;
+}
+
+bool USPMGameInstance::GetShowCutsceneOnLevelChange()
+{
+	return bShowCutsceneOnLevelChange;
+}
+
+void USPMGameInstance::SetShowCutsceneOnLevelChange(bool NewValue)
+{
+	bShowCutsceneOnLevelChange = NewValue;
+}
+
 void USPMGameInstance::Init()
 {
 	Super::Init();
