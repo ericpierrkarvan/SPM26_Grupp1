@@ -499,6 +499,7 @@ void ARobotCharacter::StartADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 bool ARobotCharacter::CanSwitchPolarity() const

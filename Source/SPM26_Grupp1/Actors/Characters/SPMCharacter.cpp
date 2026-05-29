@@ -560,6 +560,7 @@ void ASPMCharacter::StartADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 void ASPMCharacter::StopADS()
@@ -574,6 +575,7 @@ void ASPMCharacter::StopADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 float ASPMCharacter::GetArmLengthForState(ECameraState State) const
