@@ -9,6 +9,7 @@
 /**
  * 
  */
+
 UCLASS()
 class SPM26_GRUPP1_API AFleeingAlienNPC : public AAlienNPCCharacter
 {
@@ -39,4 +40,8 @@ protected:
 	virtual void OnEnterFleeingState() override;
 	virtual void OnEnterPatrollingState() override;
 	
+	UFUNCTION()
+	void PickedUp(AActor* Actor);
+	UFUNCTION()
+	void PutDown();
 };

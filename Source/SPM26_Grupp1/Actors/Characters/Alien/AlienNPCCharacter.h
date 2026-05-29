@@ -8,10 +8,11 @@
 #include "GameFramework/Character.h"
 #include "SPM26_Grupp1/AI/AlienAIController.h"
 #include "SPM26_Grupp1/Components/PatrolComponent.h"
+#include "SPM26_Grupp1/Interfaces/Scannable.h"
 #include "AlienNPCCharacter.generated.h"
 
 UCLASS()
-class SPM26_GRUPP1_API AAlienNPCCharacter : public ACharacter
+class SPM26_GRUPP1_API AAlienNPCCharacter : public ACharacter, public IScannable
 {
 	GENERATED_BODY()
 
