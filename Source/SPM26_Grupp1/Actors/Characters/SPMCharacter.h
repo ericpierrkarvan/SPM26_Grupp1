@@ -81,6 +81,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Camera|ADS")
 	FOnADS OnADS;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnADS_BP(bool IsADS);
 	UPROPERTY(BlueprintAssignable, Category = "Progress")
 	FOnPictureTaken OnPictureTaken;
 	
