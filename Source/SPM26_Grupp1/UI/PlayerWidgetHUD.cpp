@@ -43,6 +43,7 @@ void UPlayerWidgetHUD::SetOwningCharacter(AActor* NewCharacter)
 		{
 			Sub->OnTutorialPromptActivated.AddDynamic(this, &UPlayerWidgetHUD::OnTutorialPromptActivated);
 			Sub->OnContextActionActivated.AddDynamic(this, &UPlayerWidgetHUD::OnContextActionActivated);
+			Sub->OnLevelExitStatus.AddDynamic(this, &UPlayerWidgetHUD::OnLevelExitStatus);
 			bSubscribedToSubsystem = true;
 		}
 	}
@@ -335,6 +336,11 @@ void UPlayerWidgetHUD::HideContextActions()
 void UPlayerWidgetHUD::OnContextActionsFadeOutFinished()
 {
 	ContextActionContainer->ClearChildren();
+}
+
+void UPlayerWidgetHUD::OnLevelExitStatus(int32 PlayersInTrigger, float CountdownSecondsRemaining)
+{
+	OnLevelExitStatus_BP(PlayersInTrigger, CountdownSecondsRemaining);
 }
 
 void UPlayerWidgetHUD::OnTutorialPromptActivated(const TArray<ETutorialPrompt>& TutPrompts, ETextPlayerFilter PlayerFilter, bool bActivated, AActor* TriggeringActor)
