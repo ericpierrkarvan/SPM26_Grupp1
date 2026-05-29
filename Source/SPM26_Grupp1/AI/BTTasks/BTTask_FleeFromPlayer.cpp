@@ -5,11 +5,9 @@
 
 #include "AIController.h"
 #include "NavigationSystem.h"
-#include "SPM26_Grupp1/Actors/Characters/AlienNPCCharacter.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
-
-
+#include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h"
 
 
 EBTNodeResult::Type UBTTask_FleeFromPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -27,8 +25,8 @@ EBTNodeResult::Type UBTTask_FleeFromPlayer::ExecuteTask(UBehaviorTreeComponent& 
 	const FVector AILocation = AIPawn->GetActorLocation();
 	const FVector PlayerLocation = RobotPawn->GetActorLocation();
 	const float DistanceToPlayer = FVector::Dist(AILocation, PlayerLocation);
-	SafeDistance = Cast<AAlienNPCCharacter>(AIPawn)->GetSafeDistance();
-	FleeDistance = Cast<AAlienNPCCharacter>(AIPawn)->GetFleeDistance();
+	SafeDistance = Cast<AFleeingAlienNPC>(AIPawn)->GetSafeDistance();
+	FleeDistance = Cast<AFleeingAlienNPC>(AIPawn)->GetFleeDistance();
 	//UE_LOG(LogTemp, Warning, TEXT("Flee DistanceToPlayer: %f, SafeDistance: %f, FleeDistance: %f, Dist>SafeDist?: %hhd"), DistanceToPlayer, SafeDistance, FleeDistance, (DistanceToPlayer >= SafeDistance));
 	if (DistanceToPlayer >= SafeDistance) return EBTNodeResult::Succeeded;
 	
