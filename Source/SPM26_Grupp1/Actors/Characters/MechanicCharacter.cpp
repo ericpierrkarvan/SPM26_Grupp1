@@ -112,6 +112,16 @@ void AMechanicCharacter::PossessedBy(AController* NewController)
 	SetOwner(GetController());
 }
 
+bool AMechanicCharacter::CanShoot()
+{
+	
+	if (EquippedWeapon)
+	{
+		return EquippedWeapon->Execute_CanShoot(EquippedWeapon);
+	}
+	return false;
+}
+
 UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() const
 {
 	return Cast<UMechanicMovementComponent>(GetCharacterMovement());
