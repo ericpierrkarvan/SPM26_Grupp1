@@ -150,6 +150,22 @@ void AProj_MagneticCylinder::OnProjectileStopped(const FHitResult& ImpactResult)
 				Field->InitializeFieldDuration(SpawnedMagneticFieldDuration);
 				UGameplayStatics::FinishSpawningActor(Field, FTransform(SpawnRotation, SpawnLocation)); // BeginPlay fires here
 			}
+
+			//decal:
+			if (UMaterialInterface* ImpactDecalMaterial = ProjPolarity == EPolarity::Positive ? ImpactPositiveDecalMaterial : ImpactNegativeDecalMaterial)
+			{
+				//towards surface
+				FRotator DecalRotation = (-ImpactResult.ImpactNormal).Rotation();
+
+				UGameplayStatics::SpawnDecalAtLocation(
+					GetWorld(),
+					ImpactDecalMaterial,
+					DecalSize,
+					ImpactResult.ImpactPoint,
+					DecalRotation,
+					DecalLifeSpan
+				);
+			}
 		}
 	}
 	
