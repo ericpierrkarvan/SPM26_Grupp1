@@ -557,7 +557,7 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (OtherActor == this) return;
 	if (bCanEverHeadLaunch && IsLaunchableObject(OtherActor))
 	{
-		
+
 		ActorsInDetectionSphere.AddUnique(OtherActor);
 		bHavePayload = true;
 		SetCameraState(ECameraState::Payload);

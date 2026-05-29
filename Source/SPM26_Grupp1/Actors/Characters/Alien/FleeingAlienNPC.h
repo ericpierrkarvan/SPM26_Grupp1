@@ -30,18 +30,34 @@ public:
 	UPROPERTY(EditAnywhere, Category="Speed")
 	float FleeSpeed = 500.f;
 	
+	// Held
+	bool bIsHeld = false;
+	
+	// Timer
+	FTimerHandle RayCastHandle;
+	
+	// Controller
+	UPROPERTY();
+	AAIController* Contr;
+	
 	// VFX
 	UPROPERTY(EditAnywhere, Category="Pushback|VFX")
 	UNiagaraSystem* FleeingVFX;
 	
 protected:
+	
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnEnterFleeingState() override;
 	virtual void OnEnterPatrollingState() override;
 	
 	UFUNCTION()
-	void PickedUp(AActor* Actor);
-	UFUNCTION()
 	void PutDown();
+	UFUNCTION()
+	void PickedUp(AActor* Actor);
+	
+	void CheckIfRobotBelow();
+	void CheckIfRobotBelowEveryXSeconds(float Seconds);
+	void SetIsHeld();
+	void SetIsNotHeld();
 };

@@ -13,8 +13,8 @@ AAlienNPCCharacter::AAlienNPCCharacter()
 	ModeVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ModeVFXComponent"));
 	ModeVFXComponent->SetupAttachment(RootComponent);
 	
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(RootComponent);
+	//StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	//StaticMesh->SetupAttachment(RootComponent);
 	
 	PatrolComp = CreateDefaultSubobject<UPatrolComponent>(TEXT("PatrolComp"));
 	
