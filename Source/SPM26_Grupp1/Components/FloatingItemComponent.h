@@ -1,0 +1,79 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "TelekinesisComponent.h"
+#include "Components/SceneComponent.h"
+#include "SPM26_Grupp1/Enum/Polarity.h"
+#include "FloatingItemComponent.generated.h"
+
+USTRUCT(BlueprintType)
+struct FFloatingItemLaunchData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	UStaticMesh* Mesh = nullptr;
+
+	UPROPERTY()
+	UMaterialInterface* Material = nullptr;
+
+	UPROPERTY()
+	FVector LaunchVelocity = FVector::ZeroVector;
+
+	UPROPERTY()
+	FTransform SpawnTransform;
+	
+	UPROPERTY()
+	EPolarity Polarity = EPolarity::Negative;
+};
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class SPM26_GRUPP1_API UFloatingItemComponent : public USceneComponent
+{
+	GENERATED_BODY()
+
+public:	
+	UFloatingItemComponent();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
+	UFUNCTION(BlueprintCallable)
+	void LaunchItem();
+	//UFUNCTION()
+	//void OnTelekinesisStateChanged(ETelekinesisState NewState);
+	
+protected:
+	virtual void BeginPlay() override;
+	
+	// Orbiting parameters
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	float OrbitRadius = 60.f;       // How far from center it orbits
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	float HeightOffset = 100.f;     // Base height above the component's origin
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	float RotationSpeed = 90.f;     // Degrees per second
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	float BobAmplitude = 5.f;       // How much it bobs up/down
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	float BobFrequency = 2.f;		// How fast it bobs
+	
+	// Rotate parameters
+	
+private:
+	void RotateItemAroundNPC(const float DeltaTime);
+	FRotator RotateAroundSelf(const float DeltaTime);
+
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UStaticMeshComponent* ItemMesh;
+	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	EPolarity Polarity = EPolarity::Negative;
+	
+	// Internal
+	bool bLaunched = false;
+	FVector LaunchVelocity;
+	float FloatTime = 0.f;
+	float FloatAngle = 0.f;
+	float RotateAngle = 0.f;
+		
+};
