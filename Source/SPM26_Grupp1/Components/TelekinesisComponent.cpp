@@ -53,6 +53,7 @@ void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* Overlapped
 	
 	IncomingItem = OtherActor;
 	SetTelekinesisState(ETelekinesisState::Entry);
+	UE_LOG(LogTemp, Warning, TEXT("SetState to Entry"))
 	InterceptTimer = 0.f;
 
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
