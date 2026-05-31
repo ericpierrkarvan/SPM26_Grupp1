@@ -35,8 +35,6 @@ void URespawnComponent::Respawn()
 {
 	if (bIsDead) return;
 	bIsDead = true;
-
-	
 	
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, &URespawnComponent::OnRespawnActor, RespawnDelay,
 	                                       false);
