@@ -56,6 +56,9 @@ void ACheckpoint::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	URespawnComponent* RespawnComponent = OtherActor->GetComponentByClass<URespawnComponent>();
 	
 	if (!RespawnComponent) return;
+	
+	if (RespawnComponent->GetShouldIgnoreCheckPoints()) return;
+	
 	RespawnComponent->SetCheckpoint(this);
 	
 	bActivated = true;
