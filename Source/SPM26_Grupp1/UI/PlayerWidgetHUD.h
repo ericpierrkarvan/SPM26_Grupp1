@@ -171,6 +171,12 @@ protected:
 	TObjectPtr<UWidgetAnimation> ContextFadeOutAnim;
 
 	FWidgetAnimationDynamicEvent ContextFadeOutDelegate;
+
+	UFUNCTION()
+	void OnLevelExitStatus(int32 PlayersInTrigger, float CountdownSecondsRemaining);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnLevelExitStatus_BP(int32 PlayersInTrigger, float CountdownSecondsRemaining);
 private:
 	bool bSubscribedToSubsystem = false;
 };

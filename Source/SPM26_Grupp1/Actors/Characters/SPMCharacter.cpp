@@ -394,6 +394,7 @@ void ASPMCharacter::ConsumePickup()
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
+	if (!IsAlive()) return;
 	InteractTimer += DeltaTime;
 	if (InteractTimer < InteractInterval) return;
 	InteractTimer = 0.f;
@@ -550,6 +551,7 @@ float ASPMCharacter::GetADSMovementMultiplier() const
 
 void ASPMCharacter::StartADS()
 {
+	if (!IsAlive()) return;
 	bIsADS = true;
 	SetCameraState(ECameraState::ADS);
 
@@ -560,6 +562,7 @@ void ASPMCharacter::StartADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 void ASPMCharacter::StopADS()
@@ -574,6 +577,7 @@ void ASPMCharacter::StopADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 float ASPMCharacter::GetArmLengthForState(ECameraState State) const
@@ -795,6 +799,7 @@ void ASPMCharacter::ResetCoyoteJump()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
 	bCanCoyoteJump = false;
+	GetSPMMovementComponent()->DecrementJumpCount();
 }
 
 void ASPMCharacter::OnJumpRelease()

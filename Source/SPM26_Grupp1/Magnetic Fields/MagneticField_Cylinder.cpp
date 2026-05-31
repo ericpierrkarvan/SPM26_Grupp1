@@ -3,14 +3,15 @@
 
 #include "MagneticField_Cylinder.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
-#include "SPM26_Grupp1/Components/InteractableReceiverComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
@@ -50,24 +51,21 @@ void AMagneticField_Cylinder::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMagneticField_Cylinder::CheckInitialOverlaps);
 	
 	// FUCK THIS BUGGY ASS SHIT
-	//if (!bWasSpawnedByProjectile) HandleStaticField();
+	if (!bWasSpawnedByProjectile) HandleStaticField();
 	
 }
 
 void AMagneticField_Cylinder::Activate()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MF::Activate(): %s"), *GetName());
 	if (bIsActive) return;
 	if (!MagnetVfxComponent) return;
 	if (!Capsule) return;
 	bIsActive = true;
-	UE_LOG(LogTemp, Warning, TEXT("MF::Activate() validation ok"));
 	
-	//MagnetVfxComponent->Activate();
-	MagnetVfxComponent->SetAsset(GetCurrentVFX());
-	UE_LOG(LogTemp, Warning, TEXT("Activate() Setting to GetCurrentVFX: %s"), *GetCurrentVFX()->GetName());
+	MagnetVfxComponent->Activate();
 	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	//SetActorHiddenInGame(false);
+	//MagnetVfxComponent->SetAsset(GetCurrentVFX());
+
 }
 
 void AMagneticField_Cylinder::Disable()
@@ -75,17 +73,14 @@ void AMagneticField_Cylinder::Disable()
 	UE_LOG(LogTemp, Warning, TEXT("MagField Disable(): %s"), *GetName());
 	if (!bIsActive) return;
 	if (!MagnetVfxComponent) return;
-	if (!EmptyVFX) return;
+	//if (!EmptyVFX) return;
 	if (!Capsule) return;
 	bIsActive = false;
 	UE_LOG(LogTemp, Warning, TEXT("MagFieldDisable() bool validation ok"));
 	
-	//MagnetVfxComponent->Deactivate();
-	MagnetVfxComponent->SetAsset(EmptyVFX);
+	MagnetVfxComponent->Deactivate();
 	Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//if (EmptyVFX) UE_LOG(LogTemp, Warning, TEXT("Disable() Setting to EmptyVFX: %s"), *EmptyVFX->GetName());
-	//if (Capsule) UE_LOG(LogTemp, Warning, TEXT("Disable() Capsule to NoCollision"));
-	//SetActorHiddenInGame(true);
+	//MagnetVfxComponent->SetAsset(EmptyVFX);
 
 }
 
@@ -154,11 +149,9 @@ FVector AMagneticField_Cylinder::CalculateMagnetCenterPoint(AActor* Actor)
 {
 	if (!Actor) return FVector::ZeroVector;
 	
-	// const float CharacterHalfHeight = TargetCharacter->GetDefaultHalfHeight();
 	const float ActorHalfHeight = Actor->GetSimpleCollisionHalfHeight();
 	
 	// Offset so character aligns correctly in capsule collider
-	// MagnetTarget = Top of capsule
 	// CapsuleUp gets local up axis (regardless of orientation)
 	const FVector CapsuleUp = Capsule->GetUpVector();
 	const FVector CapsuleLocation = Capsule->GetComponentLocation();
@@ -400,7 +393,6 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 {
 	
-	//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
 	if (!bWasSpawnedByProjectile) return;
 	if (OtherActor == this) return;
 	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
@@ -417,12 +409,17 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
 	{
 		CurrentAmountOfSummarizedField = FMath::Max(CurrentAmountOfSummarizedField, OtherField->GetCurrentAmountOfSummarizedField());
-		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap(): Fields attract, destroying OtherField: %s"), *OtherField->GetName());
+		const FVector OtherLocation = OtherField->GetActorLocation();
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField--;
 		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
 		
-		if (CurrentAmountOfSummarizedField <= 0) this->Destroy();
+		if (CurrentAmountOfSummarizedField <= 0)
+		{
+			const FVector VfxLocation = (OtherLocation + GetActorLocation()) / 2.f;
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FieldCollisionVfx, VfxLocation);
+			this->Destroy();	
+		}
 		else this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
 		
 	}
@@ -723,10 +720,6 @@ void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 	if (GetObjectPolarity(Actor) != Polarity) OnMagneticPullBP(Actor);
 	
 	//GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
-	
-	//bool bShouldAttract = ShouldAttract(Polarity, GetObjectPolarity(Actor));
-	//if (bShouldAttract) OnMagneticPullBP(Actor);
-	//if (!bShouldAttract) OnMagneticRepulsionBP(Actor);
 	
 }
 

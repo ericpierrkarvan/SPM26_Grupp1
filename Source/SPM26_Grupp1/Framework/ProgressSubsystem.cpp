@@ -32,8 +32,10 @@ void UProgressSubsystem::SaveProgress()
 {
 	UProgressSaveGame* SaveObject = Cast<UProgressSaveGame>(UGameplayStatics::CreateSaveGameObject(UProgressSaveGame::StaticClass()));
 	if (!SaveObject) return;
-	
-	SetCurrentLevel(GetWorld()->GetMapName());
+
+	FString MapName = GetWorld()->GetMapName();
+	MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); //remove odd mapname prefixes in PIE
+	SetCurrentLevel(MapName);
 	UpdateSaveObject(SaveObject);
 	
 	UGameplayStatics::SaveGameToSlot(SaveObject, SaveSlotName, SaveUserIndex);

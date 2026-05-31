@@ -30,6 +30,11 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
 	TSoftObjectPtr<UWorld> NextLevel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UBoxComponent* Collider;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMeshComponent* Mesh;
 private:
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -43,10 +48,7 @@ private:
 	void StopCountdown();
 	void LoadNextLevel() const;
 	
-	UPROPERTY(EditAnywhere)
-	UBoxComponent* Collider;
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* Mesh;
+
 	UPROPERTY()
 	TArray<AActor*> ActorsInField;
 	
@@ -58,9 +60,13 @@ private:
 	FTimerHandle LevelExitCountdownHandle;
 	UPROPERTY(EditAnywhere, Category="Level")
 	float LevelExitCountdownTime = 6.0f;
+
 	
 	bool bIsRobotInTriggerArea = false;
 	bool bIsMechanicInTriggerArea = false;
+	UPROPERTY()
+	FTimerHandle CountdownTickHandle;
 
-
+	int32 CountdownSecondsRemaining = 0;
+	void BroadcastStatus();
 };

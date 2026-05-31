@@ -34,6 +34,9 @@ void URespawnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void URespawnComponent::Respawn()
 {
 	if (bIsDead) return;
+	bIsDead = true;
+
+	
 	
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, &URespawnComponent::OnRespawnActor, RespawnDelay,
 	                                       false);
@@ -86,7 +89,12 @@ FTransform URespawnComponent::GetCheckpointTransform() const
 	{
 		return FTransform(LastCheckpoint->GetActorRotation(), LastCheckpoint->GetActorLocation(), ActorScale);
 	}
-
+	
+	if (!Cast<ASPMCharacter>(GetOwner()))
+	{
+		return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
+	}
+	
 	// fallback to last mutual checkpoint from load/save
 	if (UGameInstance* GI = GetWorld()->GetGameInstance())
 	{

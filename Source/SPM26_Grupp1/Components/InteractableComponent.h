@@ -66,6 +66,10 @@ public:
 	bool GetIsInteractable() const;
 
 	void SetInteractable(bool NewInteractableState);
+
+	UFUNCTION(BlueprintCallable, Category="Interaction")
+	void ForceInteract(bool NewActivateState, AActor* Interactor);
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
 	bool bIsInteractable = true;
