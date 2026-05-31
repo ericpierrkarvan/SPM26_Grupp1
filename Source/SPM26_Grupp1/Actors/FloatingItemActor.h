@@ -23,21 +23,25 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	
-	void Launch(const FFloatingItemLaunchData& LaunchData);
+	void SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData);
+	void Launch(const FFloatingItemLaunchData& LaunchData) const;
 	bool HasBeenAffectedByMagnetism() const;
 	void HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism);
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	UMagneticComponent* MagComp;
-	UPROPERTY()
-	UStaticMeshComponent* ItemMesh;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* KineticSphereComp;
+	UPROPERTY(VisibleAnywhere)
 	UMaterialInstance* Material;
-	
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* AttachPoint;
+
 protected:
 	bool bHasBeenAffectedByMagnetism = false; // True -> break connection to NPC
+	float CounterGravityCoefficient = 0.9f; // Counters gravity. 1 should mean weightless
 
 private:
-	void SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData);
 	void SimulateGravity() const;
+	void AdjustAttachPointOffset() const;
 };
