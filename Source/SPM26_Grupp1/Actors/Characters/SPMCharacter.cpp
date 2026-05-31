@@ -394,6 +394,7 @@ void ASPMCharacter::ConsumePickup()
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
+	if (!IsAlive()) return;
 	InteractTimer += DeltaTime;
 	if (InteractTimer < InteractInterval) return;
 	InteractTimer = 0.f;
@@ -550,6 +551,7 @@ float ASPMCharacter::GetADSMovementMultiplier() const
 
 void ASPMCharacter::StartADS()
 {
+	if (!IsAlive()) return;
 	bIsADS = true;
 	SetCameraState(ECameraState::ADS);
 

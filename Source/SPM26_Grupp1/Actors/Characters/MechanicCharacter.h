@@ -81,6 +81,9 @@ protected:
 	virtual bool CanSwitchPolarity() const override;
 
 	virtual void PossessedBy(AController* NewController) override;
+
+	UFUNCTION(BlueprintCallable)
+	bool CanShoot();
 private:
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();

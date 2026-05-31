@@ -3,14 +3,15 @@
 
 #include "MagneticField_Cylinder.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
-#include "SPM26_Grupp1/Components/InteractableReceiverComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
@@ -392,7 +393,6 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 {
 	
-	//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
 	if (!bWasSpawnedByProjectile) return;
 	if (OtherActor == this) return;
 	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
@@ -409,12 +409,17 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
 	{
 		CurrentAmountOfSummarizedField = FMath::Max(CurrentAmountOfSummarizedField, OtherField->GetCurrentAmountOfSummarizedField());
-		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap(): Fields attract, destroying OtherField: %s"), *OtherField->GetName());
+		const FVector OtherLocation = OtherField->GetActorLocation();
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField--;
 		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
 		
-		if (CurrentAmountOfSummarizedField <= 0) this->Destroy();
+		if (CurrentAmountOfSummarizedField <= 0)
+		{
+			const FVector VfxLocation = (OtherLocation + GetActorLocation()) / 2.f;
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FieldCollisionVfx, VfxLocation);
+			this->Destroy();	
+		}
 		else this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
 		
 	}
@@ -715,10 +720,6 @@ void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 	if (GetObjectPolarity(Actor) != Polarity) OnMagneticPullBP(Actor);
 	
 	//GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
-	
-	//bool bShouldAttract = ShouldAttract(Polarity, GetObjectPolarity(Actor));
-	//if (bShouldAttract) OnMagneticPullBP(Actor);
-	//if (!bShouldAttract) OnMagneticRepulsionBP(Actor);
 	
 }
 

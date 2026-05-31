@@ -557,7 +557,7 @@ void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (OtherActor == this) return;
 	if (bCanEverHeadLaunch && IsLaunchableObject(OtherActor))
 	{
-		
+
 		ActorsInDetectionSphere.AddUnique(OtherActor);
 		bHavePayload = true;
 		SetCameraState(ECameraState::Payload);
@@ -1076,7 +1076,7 @@ void ARobotCharacter::Landed(const FHitResult& HitResult)
 	
 	float ImpactForce = FMath::Abs(GetVelocity().Z);
 	
-	UE_LOG(LogTemp, Warning, TEXT("LANDED"));
+	
 	OnMovementStateChanged.Broadcast(ERobotMovementState::Landing);
 }
 

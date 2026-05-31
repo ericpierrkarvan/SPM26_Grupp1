@@ -121,8 +121,5 @@ private:
 	float TimeSinceLastRegen = 0.0f;
 
 	void RegenerateAmmo(float DeltaTime);
-
-	
-	
 	
 };
