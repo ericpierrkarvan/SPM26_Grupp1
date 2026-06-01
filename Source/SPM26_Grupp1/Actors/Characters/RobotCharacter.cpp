@@ -681,7 +681,7 @@ void ARobotCharacter::Launch()
 			}
 		}
 	}
-
+	OnShoot.Broadcast();
 	OnLaunchEnd();
 }
 
