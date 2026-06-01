@@ -129,6 +129,16 @@ URespawnComponent* ASPMCharacter::GetRespawnComponent() const
 	return RespawnComponent;
 }
 
+bool ASPMCharacter::GetIsPickingUpItem()
+{
+	return bIsPickingUp;
+}
+
+bool ASPMCharacter::HaveHeldActor()
+{
+	return IsValid(HeldActor);
+}
+
 bool ASPMCharacter::IsAlive() const
 {
 	if (!RespawnComponent) return false;

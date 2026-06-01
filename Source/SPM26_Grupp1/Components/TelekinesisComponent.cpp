@@ -5,6 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Actors/FloatingItemActor.h"
 
 // Sets default values for this component's properties
 UTelekinesisComponent::UTelekinesisComponent()
@@ -126,7 +127,11 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 	if (TelekinesisState == ETelekinesisState::Sucking)
 	{
-		
+		if (!IncomingItem)
+		{
+			SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+			return;
+		}
 		float RadiusOffset = 5.f;
 		//end slighly above edge of sphere
 		FVector PullLocation = DetectionSphere->GetComponentLocation() - FVector(0, 0, (SphereRadius - RadiusOffset));
@@ -134,9 +139,9 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 		//move and rotate the object towards our end destination
 		FVector NewLocation = FMath::Lerp(SuckStartLocation, PullLocation, Alpha);
-		IncomingItem->SetActorLocation(NewLocation);
+		if(IncomingItem) IncomingItem->SetActorLocation(NewLocation);
 		FRotator TargetRotation = FRotator(180.f, EntryRotation.Yaw, EntryRotation.Roll);
-		IncomingItem->SetActorRotation(FMath::Lerp(EntryRotation, TargetRotation, Alpha));
+		if(IncomingItem) IncomingItem->SetActorRotation(FMath::Lerp(EntryRotation, TargetRotation, Alpha));
 
 		if (Alpha >= 1.f)
 		{
@@ -147,15 +152,32 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 			//and attach it to ourself
 			SetTelekinesisState(ETelekinesisState::ItemAttached);
-			AttachItemToOwner(IncomingItem, PullLocation, TargetRotation);
+			if (IncomingItem) AttachItemToOwner(IncomingItem, PullLocation, TargetRotation);
 			
 			IncomingItem = nullptr;
 		}
 	}
 }
 
+TObjectPtr<AActor> UTelekinesisComponent::GetIncomingItem() const
+{
+	return IncomingItem;
+}
+
+TObjectPtr<AActor> UTelekinesisComponent::GetAttachedItem() const
+{
+	return AttachedItem;
+}
+
+void UTelekinesisComponent::HandleDestroyKineticism()
+{
+	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+	IncomingItem = nullptr;
+	InterceptTimer = 0.f;
+}
+
 void UTelekinesisComponent::AttachItemToOwner(AActor* Item, const FVector& TargetLocation,
-	const FRotator& TargetRotation)
+                                              const FRotator& TargetRotation)
 {
 	if (!Item) return;
 
@@ -197,7 +219,9 @@ void UTelekinesisComponent::OnAttachedItem(float DeltaTime)
 
 	if (EjectAttachedTimer >= ItemAttachedDuration)
 	{
-		LaunchAttachedItem();
+		if (Cast<AFloatingItemActor>(AttachedItem)) 
+			DestroyFloatingItemAndActivateHiddenItemMesh(Cast<AFloatingItemActor>(AttachedItem));
+		else LaunchAttachedItem();
 	}
 }
 
@@ -206,6 +230,11 @@ void UTelekinesisComponent::SetTelekinesisState(ETelekinesisState NewState)
 	if (TelekinesisState == NewState) return;
 	TelekinesisState = NewState;
 	OnTelekinesisStateChanged.Broadcast(NewState);
+}
+
+ETelekinesisState UTelekinesisComponent::GetTelekinesisState() const
+{
+	return TelekinesisState;
 }
 
 void UTelekinesisComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
@@ -247,4 +276,17 @@ void UTelekinesisComponent::LaunchAttachedItem()
 	SetTelekinesisState(ETelekinesisState::Launching);
 }
 
+// 1. Sucked in the Quest Floating Item, destroy it 
+// 2. "Reset" NPC to original state with floating item bobbing around its head
+void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor)
+{
+	AttachedItem = nullptr;
+	EjectAttachedTimer = 0.f;
+	Actor->Destroy();
+	if (UFloatingItemComponent* FloatingComp = GetOwner()->FindComponentByClass<UFloatingItemComponent>())
+	{
+		FloatingComp->ActivateHiddenItemMesh();
+		SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+	}
+}
 	
