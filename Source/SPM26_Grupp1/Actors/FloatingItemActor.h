@@ -25,6 +25,8 @@ public:
 	
 	void SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData);
 	void Launch(const FFloatingItemLaunchData& LaunchData) const;
+	void DestroyKineticism();
+	void DestroyMagnetism();
 	bool HasBeenAffectedByMagnetism() const;
 	void HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism);
 
@@ -39,6 +41,8 @@ public:
 
 protected:
 	bool bHasBeenAffectedByMagnetism = false; // True -> break connection to NPC
+	bool bAlreadyDestroyedKineticism = false;
+	bool bAlreadyDestroyedMagnetism = false;
 	float CounterGravityCoefficient = 0.9f; // Counters gravity. 1 should mean weightless
 
 private:

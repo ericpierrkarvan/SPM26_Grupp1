@@ -35,24 +35,7 @@ void AFloatingItemActor::BeginPlay()
 void AFloatingItemActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	SimulateGravity();
-}
-
-void AFloatingItemActor::Launch(const FFloatingItemLaunchData& LaunchData) const
-{
-	//SetValuesFromFloatingItemComponent(LaunchData);
-	UE_LOG(LogTemp, Warning, TEXT("FIA::Launch()"));
-	MeshComponent->AddImpulse(LaunchData.LaunchVelocity, NAME_None, true);
-}
-
-bool AFloatingItemActor::HasBeenAffectedByMagnetism() const
-{
-	return bHasBeenAffectedByMagnetism;
-}
-
-void AFloatingItemActor::HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism)
-{
-	this->bHasBeenAffectedByMagnetism = bNewHasBeenAffectedByMagnetism;
+	if (!bHasBeenAffectedByMagnetism) SimulateGravity();
 }
 
 void AFloatingItemActor::SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData)
@@ -81,4 +64,60 @@ void AFloatingItemActor::AdjustAttachPointOffset() const
 	const FVector HalfSize = Bounds.BoxExtent;
 	const FVector AttachOffset = FVector(0,0,-HalfSize.Z);
 	AttachPoint->SetRelativeLocation(AttachOffset);
+}
+
+void AFloatingItemActor::DestroyKineticism()
+{
+	if (bAlreadyDestroyedKineticism) return;
+	
+	// First cancel the suck so it stops touching IncomingItem
+	if (UTelekinesisComponent* TeleComp = GetComponentByClass<UTelekinesisComponent>())
+	{
+		if (TeleComp->GetTelekinesisState() == ETelekinesisState::Sucking)
+			TeleComp->HandleDestroyKineticism();
+	}
+	
+	// Now safe to destroy components. Create a copy so don't modify live internal array
+	TArray<USceneComponent*> Childs = KineticSphereComp->GetAttachChildren();
+	for (USceneComponent* Child : Childs)
+	{
+		if (Child) Child->DestroyComponent();
+	}
+	KineticSphereComp->DestroyComponent();
+	KineticSphereComp = nullptr;
+	
+	bAlreadyDestroyedKineticism = true;
+}
+
+void AFloatingItemActor::DestroyMagnetism()
+{
+	if (bAlreadyDestroyedMagnetism) return;
+	
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(
+	TimerHandle,
+	[this]()
+	{
+		MagComp->DestroyComponent();
+		MagComp = nullptr;
+	},
+	1,
+	false);
+	
+	bAlreadyDestroyedMagnetism = true;
+}
+
+void AFloatingItemActor::Launch(const FFloatingItemLaunchData& LaunchData) const
+{
+	MeshComponent->AddImpulse(LaunchData.LaunchVelocity, NAME_None, true);
+}
+
+bool AFloatingItemActor::HasBeenAffectedByMagnetism() const
+{
+	return bHasBeenAffectedByMagnetism;
+}
+
+void AFloatingItemActor::HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism)
+{
+	this->bHasBeenAffectedByMagnetism = bNewHasBeenAffectedByMagnetism;
 }
