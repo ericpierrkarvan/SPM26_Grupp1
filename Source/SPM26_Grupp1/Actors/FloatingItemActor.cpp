@@ -2,6 +2,7 @@
 #include "FloatingItemActor.h"
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
 
 AFloatingItemActor::AFloatingItemActor()
 {
@@ -18,6 +19,8 @@ AFloatingItemActor::AFloatingItemActor()
 	KineticSphereComp->SetCollisionObjectType(ECC_KINETIC);
 	AttachPoint = CreateDefaultSubobject<USceneComponent>("AttachPoint");
 	AttachPoint->SetupAttachment(KineticSphereComp);
+	
+	ProgressGrantingComp = CreateDefaultSubobject<UProgressGrantingComponent>("ProgressGrantingComp");
 	
 	MagComp = CreateDefaultSubobject<UMagneticComponent>("MagComp");
 	
@@ -40,8 +43,8 @@ void AFloatingItemActor::Tick(float DeltaTime)
 
 void AFloatingItemActor::SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData)
 {
-	MeshComponent->SetStaticMesh(LaunchData.Mesh);
-	MeshComponent->SetMaterial(0, LaunchData.Material);
+	//MeshComponent->SetStaticMesh(LaunchData.Mesh);
+	//MeshComponent->SetMaterial(0, LaunchData.Material);
 	MagComp->SetPolarity(LaunchData.Polarity);
 	SetActorTransform(LaunchData.SpawnTransform);
 }
@@ -60,7 +63,7 @@ void AFloatingItemActor::SimulateGravity() const
 void AFloatingItemActor::AdjustAttachPointOffset() const
 {
 	if (!MeshComponent || !MeshComponent->GetStaticMesh()) return;
-	const FBoxSphereBounds Bounds = MeshComponent->GetStaticMesh()->GetBounds();
+	const FBoxSphereBounds Bounds = Cast<UStaticMeshComponent>(MeshComponent->GetChildComponent(0))->GetStaticMesh()->GetBounds();
 	const FVector HalfSize = Bounds.BoxExtent;
 	const FVector AttachOffset = FVector(0,0,-HalfSize.Z);
 	AttachPoint->SetRelativeLocation(AttachOffset);

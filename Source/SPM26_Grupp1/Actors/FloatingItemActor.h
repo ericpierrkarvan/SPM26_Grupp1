@@ -8,6 +8,7 @@
 #include "SPM26_Grupp1/Components/MagneticComponent.h"
 #include "FloatingItemActor.generated.h"
 
+class UProgressGrantingComponent;
 /**
  * Actor spawned by FloatingItemComponent.
  * Idea to "detach" the item from the original owner (gulbeta) by hiding that actor and creating this one.
@@ -38,6 +39,8 @@ public:
 	UMaterialInstance* Material;
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* AttachPoint;
+	UPROPERTY(VisibleAnywhere)
+	UProgressGrantingComponent* ProgressGrantingComp;
 
 protected:
 	bool bHasBeenAffectedByMagnetism = false; // True -> break connection to NPC
