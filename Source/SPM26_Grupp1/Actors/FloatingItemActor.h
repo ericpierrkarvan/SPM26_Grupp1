@@ -8,6 +8,7 @@
 #include "SPM26_Grupp1/Components/MagneticComponent.h"
 #include "FloatingItemActor.generated.h"
 
+class UProgressGrantingComponent;
 /**
  * Actor spawned by FloatingItemComponent.
  * Idea to "detach" the item from the original owner (gulbeta) by hiding that actor and creating this one.
@@ -25,6 +26,8 @@ public:
 	
 	void SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData);
 	void Launch(const FFloatingItemLaunchData& LaunchData) const;
+	void DestroyKineticism();
+	void DestroyMagnetism();
 	bool HasBeenAffectedByMagnetism() const;
 	void HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism);
 
@@ -36,9 +39,13 @@ public:
 	UMaterialInstance* Material;
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* AttachPoint;
+	UPROPERTY(VisibleAnywhere)
+	UProgressGrantingComponent* ProgressGrantingComp;
 
 protected:
 	bool bHasBeenAffectedByMagnetism = false; // True -> break connection to NPC
+	bool bAlreadyDestroyedKineticism = false;
+	bool bAlreadyDestroyedMagnetism = false;
 	float CounterGravityCoefficient = 0.9f; // Counters gravity. 1 should mean weightless
 
 private:

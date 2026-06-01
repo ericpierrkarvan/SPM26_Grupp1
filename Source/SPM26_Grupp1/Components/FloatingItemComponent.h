@@ -48,27 +48,31 @@ protected:
 	virtual void BeginPlay() override;
 	
 	// Orbiting parameters
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float OrbitRadius = 60.f;       // How far from center it orbits
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float HeightOffset = 100.f;     // Base height above the component's origin
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float RotationSpeed = 90.f;     // Degrees per second
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float BobAmplitude = 5.f;       // How much it bobs up/down
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float BobFrequency = 2.f;		// How fast it bobs
 	
-	// Rotate parameters
+	// Spawned actor class
+	UPROPERTY(EditAnywhere, Category = "Floating|Spawning")
+	TSubclassOf<AFloatingItemActor> FloatingItemClass;
 	
 private:
 	void RotateItemAroundNPC(const float DeltaTime);
 	FRotator RotateAroundSelf(const float DeltaTime);
 
 
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
 	UStaticMeshComponent* ItemMesh;
-	UPROPERTY(EditAnywhere, Category = "Floating Item")
+	UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
+	UStaticMeshComponent* GlassMesh;
+	UPROPERTY(EditAnywhere, Category = "Floating")
 	EPolarity Polarity = EPolarity::Negative;
 	
 	// Internal
