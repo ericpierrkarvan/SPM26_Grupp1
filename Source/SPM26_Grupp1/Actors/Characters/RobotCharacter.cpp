@@ -556,6 +556,11 @@ URobotMovementComponent* ARobotCharacter::GetRobotMovementComponent() const
 	return Cast<URobotMovementComponent>(GetCharacterMovement());
 }
 
+bool ARobotCharacter::HavePayload()
+{
+	return bHavePayload;
+}
+
 void ARobotCharacter::OnPlatformOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                              UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                              const FHitResult& SweepResult)
