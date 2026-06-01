@@ -28,6 +28,7 @@ public:
 	void Launch(const FFloatingItemLaunchData& LaunchData) const;
 	void DestroyKineticism();
 	void DestroyMagnetism();
+	FRotator RotateAroundSelf(float DeltaTime);
 	bool HasBeenAffectedByMagnetism() const;
 	void HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism);
 
@@ -41,6 +42,10 @@ public:
 	USceneComponent* AttachPoint;
 	UPROPERTY(VisibleAnywhere)
 	UProgressGrantingComponent* ProgressGrantingComp;
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* GlassMeshComp;
+	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
+	float RotationSpeed = 120.f;     // Degrees per second
 
 protected:
 	bool bHasBeenAffectedByMagnetism = false; // True -> break connection to NPC
@@ -51,4 +56,6 @@ protected:
 private:
 	void SimulateGravity() const;
 	void AdjustAttachPointOffset() const;
+	
+	float RotateAngle = 0.f;
 };

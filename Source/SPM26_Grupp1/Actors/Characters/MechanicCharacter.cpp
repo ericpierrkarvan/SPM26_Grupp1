@@ -70,6 +70,7 @@ void AMechanicCharacter::OnDeath()
 
 void AMechanicCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("ApplyProgress reached"));
 	Super::ApplyProgress(Progress);
 
 	if (Progress)

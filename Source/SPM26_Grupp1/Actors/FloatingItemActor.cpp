@@ -11,6 +11,9 @@ AFloatingItemActor::AFloatingItemActor()
 	MeshComponent->SetCollisionResponseToChannel(ECC_INTERACT, ECR_Block);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
+	GlassMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("GlassMeshComp");
+	GlassMeshComp->AttachToComponent(MeshComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	
 	KineticSphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	KineticSphereComp->SetupAttachment(RootComponent);
 	KineticSphereComp->SetSphereRadius(32.f);
@@ -31,14 +34,19 @@ void AFloatingItemActor::BeginPlay()
 	Super::BeginPlay();
 	MeshComponent->SetEnableGravity(true);
 	MeshComponent->SetMassOverrideInKg(NAME_None, 20);
-	
+
 	AdjustAttachPointOffset();
 }
 
 void AFloatingItemActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!bHasBeenAffectedByMagnetism) SimulateGravity();
+	if (!bHasBeenAffectedByMagnetism)
+	{
+		SimulateGravity();
+		MeshComponent->SetWorldRotation(FRotator(RotateAroundSelf(DeltaTime)));
+	}
+	
 }
 
 void AFloatingItemActor::SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData)
@@ -63,7 +71,7 @@ void AFloatingItemActor::SimulateGravity() const
 void AFloatingItemActor::AdjustAttachPointOffset() const
 {
 	if (!MeshComponent || !MeshComponent->GetStaticMesh()) return;
-	const FBoxSphereBounds Bounds = Cast<UStaticMeshComponent>(MeshComponent->GetChildComponent(0))->GetStaticMesh()->GetBounds();
+	const FBoxSphereBounds Bounds = MeshComponent->GetStaticMesh()->GetBounds();
 	const FVector HalfSize = Bounds.BoxExtent;
 	const FVector AttachOffset = FVector(0,0,-HalfSize.Z);
 	AttachPoint->SetRelativeLocation(AttachOffset);
@@ -108,6 +116,14 @@ void AFloatingItemActor::DestroyMagnetism()
 	false);
 	
 	bAlreadyDestroyedMagnetism = true;
+}
+
+FRotator AFloatingItemActor::RotateAroundSelf(const float DeltaTime)
+{
+	if (!MeshComponent || !MeshComponent->IsVisible()) return FRotator();
+	RotateAngle += RotationSpeed * DeltaTime;
+	if (RotateAngle > 360.f) RotateAngle -= 360.f;
+	return FRotator(0,0,RotateAngle);	
 }
 
 void AFloatingItemActor::Launch(const FFloatingItemLaunchData& LaunchData) const

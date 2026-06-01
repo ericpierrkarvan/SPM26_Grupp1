@@ -312,6 +312,16 @@ bool ASPMCharacter::FindPickup()
 
 void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("SUPER"));
+	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)) 
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Generator Part One!: %s"), *GetClass()->GetName()));
+	
+	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)
+		&& Progress->HasFlag(EProgressFlag::GeneratorPartTwo)
+		&& Progress->HasFlag(EProgressFlag::GeneratorPartThree))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hello"));
+	}
 }
 
 void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)

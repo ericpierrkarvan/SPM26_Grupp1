@@ -21,6 +21,12 @@ void UFloatingItemComponent::BeginPlay()
 		ItemMesh->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	if (GlassMesh)
+	{
+		GlassMesh->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		GlassMesh->AttachToComponent(ItemMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		GlassMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 	
 }
 
@@ -46,18 +52,24 @@ void UFloatingItemComponent::LaunchItem()
 	LaunchData.SpawnTransform = ItemMesh->GetComponentTransform();
 	LaunchData.Polarity = Polarity;
 
-	AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
+	/*AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
 		AFloatingItemActor::StaticClass(),
 		LaunchData.SpawnTransform
-		);
+		);*/
+	
+	AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
+		FloatingItemClass,
+		LaunchData.SpawnTransform);
 	
 	if (ItemActor)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FIC::Spawned ItemActor!"))
 		ItemActor->SetValuesFromFloatingItemComponent(LaunchData);
 		UGameplayStatics::FinishSpawningActor(ItemActor, LaunchData.SpawnTransform);
 		ItemActor->Launch(LaunchData);
 	}
 	ItemMesh->SetVisibility(false);
+	GlassMesh->SetVisibility(false);
 }
 
 void UFloatingItemComponent::RotateItemAroundNPC(const float DeltaTime)
@@ -89,6 +101,7 @@ FRotator UFloatingItemComponent::RotateAroundSelf(const float DeltaTime)
 void UFloatingItemComponent::ActivateHiddenItemMesh() const
 {
 	ItemMesh->SetVisibility(true);
+	GlassMesh->SetVisibility(true);
 }
 
 
