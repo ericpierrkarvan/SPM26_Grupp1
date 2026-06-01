@@ -83,7 +83,7 @@ protected:
 	void CalculatePullStrength(const FVector& CurrentPlayerLocation);
 	void HandleStaticField();
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
-
+	
 	// Overlap events
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
@@ -146,6 +146,7 @@ protected:
 	bool bCharacterInsideField = false;
 	
 private:
+	void HandleFloatingItemActor(AActor* Actor);
 	
 	// Components
 	UPROPERTY(VisibleAnywhere)

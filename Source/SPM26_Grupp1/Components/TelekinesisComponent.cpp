@@ -127,7 +127,11 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 	if (TelekinesisState == ETelekinesisState::Sucking)
 	{
-		
+		if (!IncomingItem)
+		{
+			SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+			return;
+		}
 		float RadiusOffset = 5.f;
 		//end slighly above edge of sphere
 		FVector PullLocation = DetectionSphere->GetComponentLocation() - FVector(0, 0, (SphereRadius - RadiusOffset));
@@ -135,9 +139,9 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 		//move and rotate the object towards our end destination
 		FVector NewLocation = FMath::Lerp(SuckStartLocation, PullLocation, Alpha);
-		IncomingItem->SetActorLocation(NewLocation);
+		if(IncomingItem) IncomingItem->SetActorLocation(NewLocation);
 		FRotator TargetRotation = FRotator(180.f, EntryRotation.Yaw, EntryRotation.Roll);
-		IncomingItem->SetActorRotation(FMath::Lerp(EntryRotation, TargetRotation, Alpha));
+		if(IncomingItem) IncomingItem->SetActorRotation(FMath::Lerp(EntryRotation, TargetRotation, Alpha));
 
 		if (Alpha >= 1.f)
 		{
@@ -148,7 +152,7 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 			//and attach it to ourself
 			SetTelekinesisState(ETelekinesisState::ItemAttached);
-			AttachItemToOwner(IncomingItem, PullLocation, TargetRotation);
+			if (IncomingItem) AttachItemToOwner(IncomingItem, PullLocation, TargetRotation);
 			
 			IncomingItem = nullptr;
 		}
@@ -163,6 +167,13 @@ TObjectPtr<AActor> UTelekinesisComponent::GetIncomingItem() const
 TObjectPtr<AActor> UTelekinesisComponent::GetAttachedItem() const
 {
 	return AttachedItem;
+}
+
+void UTelekinesisComponent::HandleDestroyKineticism()
+{
+	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+	IncomingItem = nullptr;
+	InterceptTimer = 0.f;
 }
 
 void UTelekinesisComponent::AttachItemToOwner(AActor* Item, const FVector& TargetLocation,
@@ -221,6 +232,11 @@ void UTelekinesisComponent::SetTelekinesisState(ETelekinesisState NewState)
 	OnTelekinesisStateChanged.Broadcast(NewState);
 }
 
+ETelekinesisState UTelekinesisComponent::GetTelekinesisState() const
+{
+	return TelekinesisState;
+}
+
 void UTelekinesisComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
                                           FActorComponentTickFunction* ThisTickFunction)
 {
@@ -265,10 +281,12 @@ void UTelekinesisComponent::LaunchAttachedItem()
 void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor)
 {
 	AttachedItem = nullptr;
+	EjectAttachedTimer = 0.f;
 	Actor->Destroy();
 	if (UFloatingItemComponent* FloatingComp = GetOwner()->FindComponentByClass<UFloatingItemComponent>())
 	{
 		FloatingComp->ActivateHiddenItemMesh();
+		SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 	}
 }
 	

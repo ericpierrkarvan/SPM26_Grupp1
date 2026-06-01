@@ -34,8 +34,13 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable)
 	void LaunchAttachedItem();
+	void HandleDestroyKineticism();
+	
+	// Getters
 	TObjectPtr<AActor> GetIncomingItem() const;
 	TObjectPtr<AActor> GetAttachedItem() const;
+	void SetTelekinesisState(ETelekinesisState NewState);
+	ETelekinesisState GetTelekinesisState() const;
 
 	UPROPERTY(BlueprintAssignable, Category="Telekinesis")
 	FOnTelekinesisStateChanged OnTelekinesisStateChanged;
@@ -90,7 +95,6 @@ private:
 	void DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor);
 	void OnAttachedItem(float DeltaTime);
 	void AttachItemToOwner(AActor* Item, const FVector& TargetLocation, const FRotator& TargetRotation);
-	void SetTelekinesisState(ETelekinesisState NewState);
 	
 	UPROPERTY()
 	TObjectPtr<AActor> IncomingItem;
@@ -102,11 +106,9 @@ private:
 	FRotator EntryRotation = FRotator::ZeroRotator;
 	FVector SuckStartLocation  = FVector::ZeroVector;
 	ETelekinesisState TelekinesisState = ETelekinesisState::WaitingForKinetic;
+	
 	float EjectAttachedTimer = 0.f;
 	float InterceptTimer = 0.f;
 	float LaunchCooldownTimer = 0.f;
-	
-
-
 
 };
