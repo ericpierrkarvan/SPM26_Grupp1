@@ -13,7 +13,7 @@ void UProgressSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 #if WITH_EDITOR
 	//force all progress in development
-	DevGiveAllProgress();
+	// DevGiveAllProgress();
 #endif
 
 	//bandaid for playtest devbuild level 2

@@ -312,15 +312,16 @@ bool ASPMCharacter::FindPickup()
 
 void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("SUPER"));
 	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)) 
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Generator Part One!: %s"), *GetClass()->GetName()));
+	else if (Progress->HasFlag(EProgressFlag::GeneratorPartTwo)) 
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Generator Part Two!: %s"), *GetClass()->GetName()));
 	
-	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)
+	else if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)
 		&& Progress->HasFlag(EProgressFlag::GeneratorPartTwo)
 		&& Progress->HasFlag(EProgressFlag::GeneratorPartThree))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Hello"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("YOU WIN GAME! Sydney Sweeney is on the phone"));
 	}
 }
 
