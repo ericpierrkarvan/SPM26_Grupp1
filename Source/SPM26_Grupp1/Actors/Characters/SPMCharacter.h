@@ -17,6 +17,7 @@
 enum class EProgressFlag : uint8;
 struct FPlayerProgress;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShoot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPolaritySwitchUnlocked, bool, Unlocked);
@@ -116,6 +117,16 @@ public:
 	
 	URespawnComponent* GetRespawnComponent() const;
 
+	//i started picking up -> finished picking up
+	UFUNCTION(BlueprintPure)
+	bool GetIsPickingUpItem();
+
+	//I have an item picked up
+	UFUNCTION(BlueprintPure)
+	bool HaveHeldActor();
+
+	UPROPERTY(BlueprintAssignable, Category = "Animation")
+	FOnShoot OnShoot;
 protected:
 
 	UPROPERTY()
