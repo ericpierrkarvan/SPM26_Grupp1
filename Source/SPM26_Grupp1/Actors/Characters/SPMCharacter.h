@@ -116,6 +116,13 @@ public:
 	
 	URespawnComponent* GetRespawnComponent() const;
 
+	//i started picking up -> finished picking up
+	UFUNCTION(BlueprintPure)
+	bool GetIsPickingUpItem();
+
+	//I have an item picked up
+	UFUNCTION(BlueprintPure)
+	bool HaveHeldActor();
 protected:
 
 	UPROPERTY()
