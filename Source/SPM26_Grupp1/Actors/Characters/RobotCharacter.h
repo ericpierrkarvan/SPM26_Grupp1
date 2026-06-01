@@ -84,6 +84,9 @@ public:
 
 	virtual void OnDeath();
 	URobotMovementComponent* GetRobotMovementComponent() const;
+
+	UFUNCTION(BlueprintPure)
+	bool HavePayload();
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;

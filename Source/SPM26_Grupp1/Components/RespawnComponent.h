@@ -25,6 +25,8 @@ public:
 	bool GetIsDead() const { return bIsDead; }
 	void Kill() { bIsDead = true; }
 	float GetRespawnDelay() const { return RespawnDelay; }
+	bool GetShouldIgnoreCheckPoints() const { return bShouldIgnoreCheckpoints; }
+	bool GetShouldRespawnAfterLaunched() const { return bShouldRespawnAfterLaunched; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,9 +42,17 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float RespawnDelay = 2.f;
+	UPROPERTY(EditAnywhere)
+	bool bShouldIgnoreCheckpoints = false;
+	
+	UPROPERTY(EditAnywhere)
+	bool bShouldRespawnAfterLaunched = false;
 
 	FVector OriginalPosition;
 	FRotator OriginalRotation;
 	FTimerHandle RespawnTimerHandle;
 	bool bIsDead = false;
+	
+	
+	
 };
