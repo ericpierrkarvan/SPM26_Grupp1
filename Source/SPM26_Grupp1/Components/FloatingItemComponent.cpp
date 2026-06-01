@@ -1,7 +1,7 @@
 
 #include "FloatingItemComponent.h"
 
-#include "TelekinesisComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/FloatingItemActor.h"
 
 // Sets default values for this component's properties
@@ -19,6 +19,7 @@ void UFloatingItemComponent::BeginPlay()
 	if (ItemMesh)
 	{
 		ItemMesh->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	
 }
@@ -32,20 +33,30 @@ void UFloatingItemComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UFloatingItemComponent::LaunchItem()
 {
-	UE_LOG(LogTemp, Warning, TEXT("FIC::LaunchItem()"))
+	// If incoming item is FloatingItemActor, don't spawn another one.
+	if (const UTelekinesisComponent* TeleComp = GetOwner()->GetComponentByClass<UTelekinesisComponent>())
+	{
+		if (Cast<AFloatingItemActor>(TeleComp->GetIncomingItem())) return;
+	}
+	
 	FFloatingItemLaunchData LaunchData;
 	LaunchData.Mesh = ItemMesh->GetStaticMesh();
 	LaunchData.Material = ItemMesh->GetMaterial(0);
-	LaunchData.LaunchVelocity = FVector(0.f, 0.f, 1600.f); // or calculated
+	LaunchData.LaunchVelocity = FVector(0.f, 0.f, 800.f); // or calculated
 	LaunchData.SpawnTransform = ItemMesh->GetComponentTransform();
 	LaunchData.Polarity = Polarity;
 
-	AFloatingItemActor* ItemActor = GetWorld()->SpawnActor<AFloatingItemActor>(
+	AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
 		AFloatingItemActor::StaticClass(),
 		LaunchData.SpawnTransform
 		);
 	
-	if (ItemActor) ItemActor->Launch(LaunchData);
+	if (ItemActor)
+	{
+		ItemActor->SetValuesFromFloatingItemComponent(LaunchData);
+		UGameplayStatics::FinishSpawningActor(ItemActor, LaunchData.SpawnTransform);
+		ItemActor->Launch(LaunchData);
+	}
 	ItemMesh->SetVisibility(false);
 }
 
@@ -69,9 +80,15 @@ void UFloatingItemComponent::RotateItemAroundNPC(const float DeltaTime)
 
 FRotator UFloatingItemComponent::RotateAroundSelf(const float DeltaTime)
 {
+	if (!ItemMesh || !ItemMesh->IsVisible()) return FRotator();
 	RotateAngle += RotationSpeed * DeltaTime;
 	if (RotateAngle > 360.f) RotateAngle -= 360.f;
 	return FRotator(0,0,RotateAngle);	
+}
+
+void UFloatingItemComponent::ActivateHiddenItemMesh() const
+{
+	ItemMesh->SetVisibility(true);
 }
 
 

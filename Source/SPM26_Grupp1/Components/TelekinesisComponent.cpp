@@ -5,6 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Actors/FloatingItemActor.h"
 
 // Sets default values for this component's properties
 UTelekinesisComponent::UTelekinesisComponent()
@@ -53,7 +54,6 @@ void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* Overlapped
 	
 	IncomingItem = OtherActor;
 	SetTelekinesisState(ETelekinesisState::Entry);
-	UE_LOG(LogTemp, Warning, TEXT("SetState to Entry"))
 	InterceptTimer = 0.f;
 
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
@@ -155,8 +155,18 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 	}
 }
 
+TObjectPtr<AActor> UTelekinesisComponent::GetIncomingItem() const
+{
+	return IncomingItem;
+}
+
+TObjectPtr<AActor> UTelekinesisComponent::GetAttachedItem() const
+{
+	return AttachedItem;
+}
+
 void UTelekinesisComponent::AttachItemToOwner(AActor* Item, const FVector& TargetLocation,
-	const FRotator& TargetRotation)
+                                              const FRotator& TargetRotation)
 {
 	if (!Item) return;
 
@@ -198,7 +208,9 @@ void UTelekinesisComponent::OnAttachedItem(float DeltaTime)
 
 	if (EjectAttachedTimer >= ItemAttachedDuration)
 	{
-		LaunchAttachedItem();
+		if (Cast<AFloatingItemActor>(AttachedItem)) 
+			DestroyFloatingItemAndActivateHiddenItemMesh(Cast<AFloatingItemActor>(AttachedItem));
+		else LaunchAttachedItem();
 	}
 }
 
@@ -248,4 +260,15 @@ void UTelekinesisComponent::LaunchAttachedItem()
 	SetTelekinesisState(ETelekinesisState::Launching);
 }
 
+// 1. Sucked in the Quest Floating Item, destroy it 
+// 2. "Reset" NPC to original state with floating item bobbing around its head
+void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor)
+{
+	AttachedItem = nullptr;
+	Actor->Destroy();
+	if (UFloatingItemComponent* FloatingComp = GetOwner()->FindComponentByClass<UFloatingItemComponent>())
+	{
+		FloatingComp->ActivateHiddenItemMesh();
+	}
+}
 	

@@ -7,6 +7,7 @@
 #include "TelekinesisComponent.generated.h"
 
 
+class AFloatingItemActor;
 class USphereComponent;
 
 UENUM(BlueprintType)
@@ -33,6 +34,8 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable)
 	void LaunchAttachedItem();
+	TObjectPtr<AActor> GetIncomingItem() const;
+	TObjectPtr<AActor> GetAttachedItem() const;
 
 	UPROPERTY(BlueprintAssignable, Category="Telekinesis")
 	FOnTelekinesisStateChanged OnTelekinesisStateChanged;
@@ -65,7 +68,6 @@ protected:
 	//time until we can accept new telekinetic objects
 	UPROPERTY(EditAnywhere, Category="Telekinesis")
 	float LaunchedCooldown = 1.f;
-
 	
 	float AttachItemEjectStrength = 1500.f;
 	
@@ -85,27 +87,26 @@ private:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	void InterceptingItem(float DeltaTime);
 
+	void DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor);
+	void OnAttachedItem(float DeltaTime);
+	void AttachItemToOwner(AActor* Item, const FVector& TargetLocation, const FRotator& TargetRotation);
+	void SetTelekinesisState(ETelekinesisState NewState);
+	
 	UPROPERTY()
 	TObjectPtr<AActor> IncomingItem;
-
+	
 	UPROPERTY()
 	TObjectPtr<AActor> AttachedItem;
-
-	
-	float InterceptTimer = 0.f;
 	
 	FVector EntryVelocity = FVector::ZeroVector;
 	FRotator EntryRotation = FRotator::ZeroRotator;
 	FVector SuckStartLocation  = FVector::ZeroVector;
-
-	void AttachItemToOwner(AActor* Item, const FVector& TargetLocation, const FRotator& TargetRotation);
-
-	float EjectAttachedTimer = 0.f;
-
-	void OnAttachedItem(float DeltaTime);
-
 	ETelekinesisState TelekinesisState = ETelekinesisState::WaitingForKinetic;
-	void SetTelekinesisState(ETelekinesisState NewState);
-
+	float EjectAttachedTimer = 0.f;
+	float InterceptTimer = 0.f;
 	float LaunchCooldownTimer = 0.f;
+	
+
+
+
 };

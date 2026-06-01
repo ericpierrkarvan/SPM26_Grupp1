@@ -72,7 +72,8 @@ public:
 	virtual EPolarity GetPolarity() const;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	FORCENOINLINE bool IsADSActive() const;
+	UFUNCTION(BlueprintCallable, Category="ADS")
+	bool IsADSActive() const;
 
 	UFUNCTION(BlueprintCallable)
 	USPMCharacterMovementComponent* GetSPMMovementComponent() const;

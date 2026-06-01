@@ -39,7 +39,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void LaunchItem();
+	void LaunchItem();	
+	void ActivateHiddenItemMesh() const;
 	//UFUNCTION()
 	//void OnTelekinesisStateChanged(ETelekinesisState NewState);
 	
@@ -63,6 +64,7 @@ protected:
 private:
 	void RotateItemAroundNPC(const float DeltaTime);
 	FRotator RotateAroundSelf(const float DeltaTime);
+
 
 	UPROPERTY(EditAnywhere, Category = "Floating Item")
 	UStaticMeshComponent* ItemMesh;
