@@ -254,6 +254,7 @@ void AMechanicCharacter::Shoot()
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Execute_Shoot(EquippedWeapon, ADSResult);
+		OnShoot.Broadcast();
 	}
 }
 
