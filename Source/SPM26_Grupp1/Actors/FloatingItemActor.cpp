@@ -43,6 +43,7 @@ void AFloatingItemActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!bHasBeenAffectedByMagnetism)
 	{
+		FollowNPCXYLocation();
 		SimulateGravity();
 		MeshComponent->SetWorldRotation(FRotator(RotateAroundSelf(DeltaTime)));
 	}
@@ -51,8 +52,7 @@ void AFloatingItemActor::Tick(float DeltaTime)
 
 void AFloatingItemActor::SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData)
 {
-	//MeshComponent->SetStaticMesh(LaunchData.Mesh);
-	//MeshComponent->SetMaterial(0, LaunchData.Material);
+	NPC = LaunchData.OwnerOfComponent;
 	MagComp->SetPolarity(LaunchData.Polarity);
 	SetActorTransform(LaunchData.SpawnTransform);
 }
@@ -116,6 +116,12 @@ void AFloatingItemActor::DestroyMagnetism()
 	false);
 	
 	bAlreadyDestroyedMagnetism = true;
+}
+
+void AFloatingItemActor::FollowNPCXYLocation()
+{
+	NPCLocation = NPC->GetActorLocation();
+	SetActorLocation(FVector(NPCLocation.X, NPCLocation.Y, GetActorLocation().Z));
 }
 
 FRotator AFloatingItemActor::RotateAroundSelf(const float DeltaTime)

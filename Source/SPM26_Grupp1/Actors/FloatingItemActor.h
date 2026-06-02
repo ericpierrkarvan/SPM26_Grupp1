@@ -22,12 +22,14 @@ public:
 	AFloatingItemActor();
 	
 	virtual void BeginPlay() override;
+
 	virtual void Tick(float DeltaTime) override;
 	
 	void SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData);
 	void Launch(const FFloatingItemLaunchData& LaunchData) const;
 	void DestroyKineticism();
 	void DestroyMagnetism();
+	void FollowNPCXYLocation();
 	FRotator RotateAroundSelf(float DeltaTime);
 	bool HasBeenAffectedByMagnetism() const;
 	void HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism);
@@ -44,6 +46,8 @@ public:
 	UProgressGrantingComponent* ProgressGrantingComp;
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* GlassMeshComp;
+	UPROPERTY(VisibleAnywhere)
+	AActor* NPC; // The NPC that owns the component that spawned this 
 	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float RotationSpeed = 120.f;     // Degrees per second
 
@@ -58,4 +62,5 @@ private:
 	void AdjustAttachPointOffset() const;
 	
 	float RotateAngle = 0.f;
+	FVector NPCLocation;
 };

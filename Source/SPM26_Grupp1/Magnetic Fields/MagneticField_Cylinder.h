@@ -59,6 +59,8 @@ protected:
 	void OnMagneticRepulsionBP(AActor* Actor);
 	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
 	void OnMagneticForceEndBP(AActor* Actor);
+	UFUNCTION(BlueprintImplementableEvent, Category="AAA_Magnet|Events")
+	void FieldDestructionBP();
 
 	// magnet functions
 	FVector LateralCorrection(AActor* Actor) const; 
@@ -72,7 +74,6 @@ protected:
 	void RepelCharacter(ACharacter* Character);
 	void RepelActor(AActor* Actor);
 	FVector GenerateSimpleFVectorForRepel(const ACharacter* Character) const;
-	FVector GenerateDynamicFVectorForRepel(const FVector& RepelDirection) const;
 	FVector CalculateDirection(const AActor* Actor);
 	void Pull(AActor* Actor, float DeltaTime);
 	void PullCharacter(const ACharacter* Character, const FVector& LatCorrection, const FVector& PullDirection,

@@ -46,16 +46,12 @@ void UFloatingItemComponent::LaunchItem()
 	}
 	
 	FFloatingItemLaunchData LaunchData;
+	LaunchData.OwnerOfComponent = GetOwner();
 	LaunchData.Mesh = ItemMesh->GetStaticMesh();
 	LaunchData.Material = ItemMesh->GetMaterial(0);
 	LaunchData.LaunchVelocity = FVector(0.f, 0.f, 800.f); // or calculated
 	LaunchData.SpawnTransform = ItemMesh->GetComponentTransform();
 	LaunchData.Polarity = Polarity;
-
-	/*AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
-		AFloatingItemActor::StaticClass(),
-		LaunchData.SpawnTransform
-		);*/
 	
 	AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
 		FloatingItemClass,
@@ -63,7 +59,6 @@ void UFloatingItemComponent::LaunchItem()
 	
 	if (ItemActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FIC::Spawned ItemActor!"))
 		ItemActor->SetValuesFromFloatingItemComponent(LaunchData);
 		UGameplayStatics::FinishSpawningActor(ItemActor, LaunchData.SpawnTransform);
 		ItemActor->Launch(LaunchData);
