@@ -4,8 +4,10 @@
 #include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 
 #include "Components/SphereComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/FloatingItemActor.h"
+#include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h"
 
 // Sets default values for this component's properties
 UTelekinesisComponent::UTelekinesisComponent()
@@ -51,6 +53,7 @@ void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* Overlapped
 	if (!OtherActor) return;
 	if (IncomingItem) return;
 	if (AttachedItem) return;
+	if (Cast<AFleeingAlienNPC>(GetOwner())->GetMovementComponent()->IsFlying()) return;
 	
 	IncomingItem = OtherActor;
 	SetTelekinesisState(ETelekinesisState::Entry);

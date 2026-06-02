@@ -248,6 +248,7 @@ private:
 	bool bIsInLaunchMode = false;
 
 	void Launch();
+	void HandleFleeingNPCLaunch(ACharacter* Char) const;
 	void LaunchPlayerCharacter(ACharacter* Char, const FVector& LaunchForce);
 	void LaunchObject(AActor* Actor, const FVector& LaunchForce);
 
