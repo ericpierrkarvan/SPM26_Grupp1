@@ -690,6 +690,7 @@ void ARobotCharacter::Launch()
 	OnLaunchEnd();
 }
 
+// If FleeingAlienNPC, also launch its item
 void ARobotCharacter::HandleFleeingNPCLaunch(ACharacter* Char) const
 {
 	FTimerHandle TimerHandle;
@@ -698,16 +699,13 @@ void ARobotCharacter::HandleFleeingNPCLaunch(ACharacter* Char) const
 		TimerHandle,
 		[Char]()
 		{
-			// Happens after 0.5 seconds
-			if (AFleeingAlienNPC* FleeingNPC = Cast<AFleeingAlienNPC>(Char)) // If FleeingAlienNPC, also launch its item
+			if (AFleeingAlienNPC* FleeingNPC = Cast<AFleeingAlienNPC>(Char))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("RobotChar::FleeingNPC cast ok"))
 				if (FleeingNPC->GetComponentByClass<UFloatingItemComponent>()->AreMeshesVisible())
-					UE_LOG(LogTemp, Warning, TEXT("RobotChar::FloatingComp Meshes are visible, LaunchItem()"))
 					FleeingNPC->GetComponentByClass<UFloatingItemComponent>()->LaunchItem();
-		}
+			}
 		},
-		1.f,
+		1.f, // delay used so NPC launches when falling down
 		false
 	);
 
