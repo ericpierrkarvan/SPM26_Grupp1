@@ -95,22 +95,21 @@ void ARobotCharacter::BeginPlay()
 		FollowCamera->PostProcessSettings.AddBlendable(CRTMID, 1.f);
 		CRTMID->SetScalarParameterValue(FName("Intensity"), 0.f);
 	}
-	/*
+
 	USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance());
 	if (!GI) return;
-	
+
 	if (GI->GetRobotMaterialOptions().Num() > 0)
 	{
 		int32 SavedIndex = GI->GetSelectedRobotMaterialIndex();
-		
+
 		SavedIndex = FMath::Clamp(SavedIndex, 0, GI->GetRobotMaterialOptions().Num() - 1);
-		
+
 		if (GI->GetRobotMaterialOptions()[SavedIndex])
 		{
-			GetMesh()->SetMaterial(0, GI->GetRobotMaterialOptions()[SavedIndex]);
+			GetMesh()->SetMaterial(1, GI->GetRobotMaterialOptions()[SavedIndex]);
 		}
 	}
-	*/
 }
 
 bool ARobotCharacter::CanJumpInternal_Implementation() const
