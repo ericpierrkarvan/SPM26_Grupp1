@@ -21,6 +21,12 @@ void UFloatingItemComponent::BeginPlay()
 		ItemMesh->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	if (GlassMesh)
+	{
+		GlassMesh->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		GlassMesh->AttachToComponent(ItemMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		GlassMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 	
 }
 
@@ -40,16 +46,16 @@ void UFloatingItemComponent::LaunchItem()
 	}
 	
 	FFloatingItemLaunchData LaunchData;
+	LaunchData.OwnerOfComponent = GetOwner();
 	LaunchData.Mesh = ItemMesh->GetStaticMesh();
 	LaunchData.Material = ItemMesh->GetMaterial(0);
 	LaunchData.LaunchVelocity = FVector(0.f, 0.f, 800.f); // or calculated
 	LaunchData.SpawnTransform = ItemMesh->GetComponentTransform();
 	LaunchData.Polarity = Polarity;
-
+	
 	AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
-		AFloatingItemActor::StaticClass(),
-		LaunchData.SpawnTransform
-		);
+		FloatingItemClass,
+		LaunchData.SpawnTransform);
 	
 	if (ItemActor)
 	{
@@ -58,6 +64,7 @@ void UFloatingItemComponent::LaunchItem()
 		ItemActor->Launch(LaunchData);
 	}
 	ItemMesh->SetVisibility(false);
+	GlassMesh->SetVisibility(false);
 }
 
 void UFloatingItemComponent::RotateItemAroundNPC(const float DeltaTime)
@@ -89,6 +96,7 @@ FRotator UFloatingItemComponent::RotateAroundSelf(const float DeltaTime)
 void UFloatingItemComponent::ActivateHiddenItemMesh() const
 {
 	ItemMesh->SetVisibility(true);
+	GlassMesh->SetVisibility(true);
 }
 
 
