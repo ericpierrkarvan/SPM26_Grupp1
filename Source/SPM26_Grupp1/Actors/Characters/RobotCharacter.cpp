@@ -7,11 +7,13 @@
 #include "FMODAudioComponent.h"
 #include "MechanicCharacter.h"
 #include "NiagaraDebuggerCommon.h"
+#include "Alien/FleeingAlienNPC.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Engine/OverlapResult.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Components/FloatingItemComponent.h"
 #include "SPM26_Grupp1/Components/InteractableComponent.h"
 #include "SPM26_Grupp1/Components/LaunchArcComponent.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
@@ -639,6 +641,7 @@ void ARobotCharacter::Launch()
 		if (ACharacter* Char = Cast<ACharacter>(HeldActor))
 		{
 			LaunchPlayerCharacter(Char, GetLaunchForce(Char->GetCharacterMovement()));
+
 		}
 		else
 		{
@@ -666,6 +669,8 @@ void ARobotCharacter::Launch()
 		if (ACharacter* Char = Cast<ACharacter>(Actor))
 		{
 			LaunchPlayerCharacter(Char, GetLaunchForce(Char->GetCharacterMovement()));
+			HandleFleeingNPCLaunch(Char);
+
 		}
 		else if (UPickupComponent* Pickup = Actor->FindComponentByClass<UPickupComponent>())
 		{
@@ -682,6 +687,28 @@ void ARobotCharacter::Launch()
 	}
 	OnShoot.Broadcast();
 	OnLaunchEnd();
+}
+
+// If FleeingAlienNPC, also launch its item
+void ARobotCharacter::HandleFleeingNPCLaunch(ACharacter* Char) const
+{
+	FTimerHandle TimerHandle;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		[Char]()
+		{
+			if (AFleeingAlienNPC* FleeingNPC = Cast<AFleeingAlienNPC>(Char))
+			{
+				if (FleeingNPC->GetComponentByClass<UFloatingItemComponent>()->AreMeshesVisible())
+					FleeingNPC->GetComponentByClass<UFloatingItemComponent>()->LaunchItem();
+			}
+		},
+		1.f, // delay used so NPC launches when falling down
+		false
+	);
+
+	
 }
 
 void ARobotCharacter::LaunchPlayerCharacter(ACharacter* Char, const FVector& LaunchForce)

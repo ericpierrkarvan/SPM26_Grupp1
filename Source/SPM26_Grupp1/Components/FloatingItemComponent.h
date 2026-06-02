@@ -47,6 +47,8 @@ public:
 	void LaunchItem();	
 	void ActivateHiddenItemMesh() const;
 	
+	bool AreMeshesVisible() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	
