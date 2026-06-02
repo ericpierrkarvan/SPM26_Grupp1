@@ -288,10 +288,10 @@ void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloati
 	AttachedItem = nullptr;
 	EjectAttachedTimer = 0.f;
 	Actor->Destroy();
+	
 	if (UFloatingItemComponent* FloatingComp = GetOwner()->FindComponentByClass<UFloatingItemComponent>())
-	{
 		FloatingComp->ActivateHiddenItemMesh();
-		SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
-	}
+	
+	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 }
 	
