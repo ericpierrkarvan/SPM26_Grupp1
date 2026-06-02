@@ -68,8 +68,8 @@ protected:
 	UCapsuleComponent* CapsuleComp = nullptr;
 	
 	// Components
-	UPROPERTY()
-	UPatrolComponent* PatrolComp = nullptr;
+	//UPROPERTY()
+	//UPatrolComponent* PatrolComp = nullptr;
 	UPROPERTY()
 	UCharacterMovementComponent* MovComp = nullptr;
 	
