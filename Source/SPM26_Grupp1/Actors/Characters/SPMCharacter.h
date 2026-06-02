@@ -226,13 +226,13 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
-
 	
 	virtual void ApplyProgress(UProgressSubsystem* Progress);
 
 	UFUNCTION()
 	virtual void HandleFlagUnlocked(EProgressFlag Flag);
-
+	void HandleGeneratorQuestFlags(const UProgressSubsystem* Progress) const;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickup")
 	float PickupSpeed = 5;
 

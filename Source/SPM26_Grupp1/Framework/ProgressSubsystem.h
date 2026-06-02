@@ -81,6 +81,7 @@ public:
 	FName GetProgressCurrentLevel() const;
 	UFUNCTION(BlueprintCallable)
 	TSoftObjectPtr<UWorld> GetProgressCurrentLevelSoftPtr() const;
+	int16 GetGeneratorFlagsUnlocked() const;
 
 	// Can be expanded later if want several save slots
 	const FString SaveSlotName = TEXT("SaveGame");
@@ -93,5 +94,7 @@ protected:
 private:
 	void UpdateSaveObject(UProgressSaveGame* SaveObject) const;
 	void LoadProgressObject(UProgressSaveGame* SaveObject);
+
+	int16 GeneratorFlagsUnlocked = 0;
 
 };
