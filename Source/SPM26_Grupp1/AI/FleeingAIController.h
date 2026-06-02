@@ -7,6 +7,7 @@
 #include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h"
 #include "FleeingAIController.generated.h"
 
+enum class ETelekinesisState : uint8;
 /**
  * 
  */
@@ -19,8 +20,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	
-	//UFUNCTION()
-	//void OnTelekinesisStateChanged(ETelekinesisState NewState);
+	UFUNCTION()
+	void OnTelekinesisStateChanged(ETelekinesisState NewState);
 	
 private:
 	TArray<FPlayerPerceptionState> TrackedPlayers;
