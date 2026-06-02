@@ -13,7 +13,7 @@ AAlienNPCCharacter::AAlienNPCCharacter()
 	ModeVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ModeVFXComponent"));
 	ModeVFXComponent->SetupAttachment(RootComponent);
 	
-	PatrolComp = CreateDefaultSubobject<UPatrolComponent>(TEXT("PatrolComp"));
+	//PatrolComp = CreateDefaultSubobject<UPatrolComponent>(TEXT("PatrolComp"));
 	
 	CurrentAudio = CreateDefaultSubobject<UFMODAudioComponent>(TEXT("CurrentAudio"));
 	

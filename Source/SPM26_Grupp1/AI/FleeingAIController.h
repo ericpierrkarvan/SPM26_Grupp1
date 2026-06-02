@@ -19,6 +19,9 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	
+	//UFUNCTION()
+	//void OnTelekinesisStateChanged(ETelekinesisState NewState);
+	
 private:
 	TArray<FPlayerPerceptionState> TrackedPlayers;
 	UPROPERTY()
