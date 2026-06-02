@@ -5,6 +5,7 @@
 #include "EngineUtils.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/Alien/AlienNPCCharacter.h"
+#include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 
 void AFleeingAIController::BeginPlay()
 {
@@ -12,6 +13,12 @@ void AFleeingAIController::BeginPlay()
 	
 	FleeingNPC = Cast<AFleeingAlienNPC>(NPC);
 	ConnectPlayerPawnToState();
+	if (FleeingNPC)
+	{
+		if (UTelekinesisComponent* TeleComp = FleeingNPC->GetComponentByClass<UTelekinesisComponent>())
+			TeleComp->OnTelekinesisStateChanged.AddDynamic(this, &AFleeingAIController::OnTelekinesisStateChanged);
+	}
+
 }
 
 void AFleeingAIController::Tick(float DeltaTime)
@@ -31,6 +38,15 @@ void AFleeingAIController::Tick(float DeltaTime)
 		ClearFleeingBBCValues();
 		SetAIState(EAlienAIState::Patrolling);
 	}
+}
+
+void AFleeingAIController::OnTelekinesisStateChanged(const ETelekinesisState NewState)
+{
+	if (!BBC) return;
+	
+	if (NewState == ETelekinesisState::WaitingForKinetic)
+		BBC->SetValueAsBool(TEXT("OccupiedWithTelekinesis"), false);
+	else BBC->SetValueAsBool(TEXT("OccupiedWithTelekinesis"), true);
 }
 
 void AFleeingAIController::HandleFleeFromPlayer(FPlayerPerceptionState& State, float DeltaTime)
