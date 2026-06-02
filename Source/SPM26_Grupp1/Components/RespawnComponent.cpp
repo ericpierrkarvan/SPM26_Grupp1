@@ -31,11 +31,23 @@ void URespawnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+void URespawnComponent::CancelRespawnTimer()
+{
+	if (bIsRespawning)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cancel Respawn Timer"));
+		GetWorld()->GetTimerManager().ClearTimer(RespawnTimerHandle);
+		bIsRespawning = false;
+		bIsDead = false;
+	}
+}
+
 void URespawnComponent::Respawn()
 {
 	if (bIsDead) return;
 	bIsDead = true;
-	
+	bIsRespawning = true;
+	UE_LOG(LogTemp, Warning, TEXT("Is Respawning"));
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, &URespawnComponent::OnRespawnActor, RespawnDelay,
 	                                       false);
 }
@@ -60,39 +72,40 @@ void URespawnComponent::OnRespawnActor()
 	GetOwner()->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
 	RespawnPlayerBP();
 	bIsDead = false;
+	bIsRespawning = false;
+	UE_LOG(LogTemp, Warning, TEXT("Has Respawned"));
 }
 
 void URespawnComponent::SetCheckpoint(const ACheckpoint* NewCheckpoint)
 {
 	LastCheckpoint = NewCheckpoint; // track individual checkpoints
-	
+
 	// Only update progress/load/save checkpoint if it IsMutualCheckpoint
 	if (NewCheckpoint && NewCheckpoint->IsMutualCheckpoint())
 	{
 		if (UGameInstance* GI = GetWorld()->GetGameInstance())
-        {
-        	if (UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
-        		PS->SetCheckpoint(NewCheckpoint);
-        }
+		{
+			if (UProgressSubsystem* PS = GI->GetSubsystem<UProgressSubsystem>())
+				PS->SetCheckpoint(NewCheckpoint);
+		}
 	}
-
 }
 
 FTransform URespawnComponent::GetCheckpointTransform() const
 {
 	const FVector ActorScale = GetOwner()->GetActorScale3D();
-	
+
 	// individual checkpoint first priority
 	if (LastCheckpoint)
 	{
 		return FTransform(LastCheckpoint->GetActorRotation(), LastCheckpoint->GetActorLocation(), ActorScale);
 	}
-	
+
 	if (!Cast<ASPMCharacter>(GetOwner()))
 	{
 		return FTransform(FRotator(OriginalRotation), OriginalPosition, ActorScale);
 	}
-	
+
 	// fallback to last mutual checkpoint from load/save
 	if (UGameInstance* GI = GetWorld()->GetGameInstance())
 	{
@@ -104,10 +117,10 @@ FTransform URespawnComponent::GetCheckpointTransform() const
 				const FName CurrentLevel = FName(*GetWorld()->GetMapName());
 				if (CurrentLevel == Progress.CheckpointLevelName) // Validate checkpoint belongs to current level
 				{
-                    return FTransform(
-                    	Progress.LastCheckpointTransform.GetRotation(), 
-                    	Progress.LastCheckpointTransform.GetLocation(),
-                    	ActorScale);
+					return FTransform(
+						Progress.LastCheckpointTransform.GetRotation(),
+						Progress.LastCheckpointTransform.GetLocation(),
+						ActorScale);
 				}
 			}
 		}

@@ -27,7 +27,10 @@ public:
 	float GetRespawnDelay() const { return RespawnDelay; }
 	bool GetShouldIgnoreCheckPoints() const { return bShouldIgnoreCheckpoints; }
 	bool GetShouldRespawnAfterLaunched() const { return bShouldRespawnAfterLaunched; }
-
+	bool GetIsRespawning() const { return bIsRespawning; }
+	
+	void CancelRespawnTimer();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -47,7 +50,9 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	bool bShouldRespawnAfterLaunched = false;
-
+	
+	bool bIsBeingHeld = false;
+	bool bIsRespawning = false;
 	FVector OriginalPosition;
 	FRotator OriginalRotation;
 	FTimerHandle RespawnTimerHandle;

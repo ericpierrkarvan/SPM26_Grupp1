@@ -301,7 +301,7 @@ private:
 	UPROPERTY(EditAnywhere, Category="Movement")
 	float JumpBufferDuration = 0.2f;
 
-	UPROPERTY(EditAnywhere, Category="Movement")
+	UPROPERTY(EditAnywhere, Category="Movement", meta = (ClampMin = "0", ClampMax = "1"))
 	float CoyoteTimeWindow = 0.3f;
 	
 	FTimerHandle CoyoteTimerHandle;

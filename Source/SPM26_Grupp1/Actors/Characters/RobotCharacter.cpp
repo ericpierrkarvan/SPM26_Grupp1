@@ -237,7 +237,14 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 				//not a character, so let's attach it
 
 				UProgressGrantingComponent* ProgComp = HeldActor->FindComponentByClass<UProgressGrantingComponent>();
-
+				
+				URespawnComponent* RespawnComp = HeldActor->FindComponentByClass<URespawnComponent>();
+				
+				if (RespawnComp && RespawnComp->GetIsRespawning())
+				{
+					RespawnComp->CancelRespawnTimer();
+				}
+				
 				if (ProgComp || bCanEverHeadLaunch)
 				{
 					HeldActor->AttachToComponent(
