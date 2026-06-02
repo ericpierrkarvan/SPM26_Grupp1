@@ -27,6 +27,5 @@ EBTNodeResult::Type UBTTask_GetNextPatrolPoint::ExecuteTask(UBehaviorTreeCompone
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector("PatrolTargetKey", NextWaypoint);
 		return EBTNodeResult::Succeeded;
 	}
-	
 	return EBTNodeResult::Failed;
 }

@@ -46,8 +46,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LaunchItem();	
 	void ActivateHiddenItemMesh() const;
-	//UFUNCTION()
-	//void OnTelekinesisStateChanged(ETelekinesisState NewState);
 	
 protected:
 	virtual void BeginPlay() override;

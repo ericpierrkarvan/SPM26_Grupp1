@@ -23,6 +23,7 @@
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "Engine/OverlapResult.h"
+#include "SPM26_Grupp1/Framework/SPMGameInstance.h"
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
@@ -312,17 +313,8 @@ bool ASPMCharacter::FindPickup()
 
 void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
-	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)) 
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Generator Part One!: %s"), *GetClass()->GetName()));
-	if (Progress->HasFlag(EProgressFlag::GeneratorPartTwo)) 
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Generator Part Two!: %s"), *GetClass()->GetName()));
-	
-	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne)
-		&& Progress->HasFlag(EProgressFlag::GeneratorPartTwo)
-		&& Progress->HasFlag(EProgressFlag::GeneratorPartThree))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("YOU WIN GAME! Sydney Sweeney is on the phone"));
-	}
+	HandleGeneratorQuestFlags(Progress);
+
 }
 
 void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
@@ -331,6 +323,23 @@ void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
 	{
 		ApplyProgress(Progress);
 	}
+}
+
+// Check generator flags, if has all flags -> Load cutscene
+void ASPMCharacter::HandleGeneratorQuestFlags(const UProgressSubsystem* Progress) const
+{
+	if (Progress->GetGeneratorFlagsUnlocked() == 3)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("YOU WIN GAME! Sydney Sweeney is on the phone"));
+		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Startmenue.Startmenue")));
+		USPMGameInstance* GI = Cast<USPMGameInstance>(UGameplayStatics::GetGameInstance(this));
+		GI->LoadLevel(StartMenuLevel, true);
+	}	
+	else if (Progress->GetGeneratorFlagsUnlocked() == 2) 
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Two generators unlocked! One to go."));
+	else if (Progress->GetGeneratorFlagsUnlocked() == 1) 
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, TEXT("One generator unlocked! Two to go."));
+	
 }
 
 void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)
