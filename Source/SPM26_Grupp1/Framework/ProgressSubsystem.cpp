@@ -80,6 +80,7 @@ void UProgressSubsystem::SetFlag(EProgressFlag Flag)
 
 	if (!bFlagAlreadyUnlocked)
 	{
+		if (Flag == EProgressFlag::GeneratorPartOne || Flag == EProgressFlag::GeneratorPartTwo || Flag == EProgressFlag::GeneratorPartThree) GeneratorFlagsUnlocked++;
 		OnFlagUnlocked.Broadcast(Flag);
 		SaveProgress();
 	}
@@ -165,6 +166,11 @@ void UProgressSubsystem::LoadProgressObject(UProgressSaveGame* SaveObject)
 	Progress.bHasCheckpoint = SaveObject->bHasCheckpoint;
 	Progress.CurrentLevel = SaveObject->CurrentLevel;
 	Progress.MechanicMaterial = SaveObject->MechanicMaterial;
+}
+
+int16 UProgressSubsystem::GetGeneratorFlagsUnlocked() const
+{
+	return GeneratorFlagsUnlocked;
 }
 
 void UProgressSubsystem::DevGiveAllProgress()

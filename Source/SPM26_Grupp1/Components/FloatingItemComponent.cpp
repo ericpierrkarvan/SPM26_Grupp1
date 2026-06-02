@@ -99,4 +99,3 @@ void UFloatingItemComponent::ActivateHiddenItemMesh() const
 	GlassMesh->SetVisibility(true);
 }
 
-
