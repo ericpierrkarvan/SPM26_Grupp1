@@ -18,6 +18,9 @@ AMagnetGun::AMagnetGun()
 	
 	GunVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("GunVFXComponent"));
 	GunVFXComponent->SetupAttachment(RootComponent);
+	
+	MuzzleFlashVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MuzzleFlashVFXComponent"));
+	MuzzleFlashVFXComponent->SetupAttachment(MuzzleLocation);
 
 	PolarityLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("GunLight"));
 	PolarityLight->SetupAttachment(RootComponent);
@@ -43,6 +46,7 @@ void AMagnetGun::SwitchPolarity(float PolaritySwitchCooldown)
 	
 	PolarityLerpAlpha = 0.f;
 	bPolarityIsLerping = true;
+
 }
 
 void AMagnetGun::BeginPlay()
@@ -54,6 +58,9 @@ void AMagnetGun::BeginPlay()
 	PolarityLight->SetLightColor(StartColor);
 	PolarityCurrentColor = StartColor;
 	PolarityTargetColor = StartColor;
+	
+	OnWeaponFired.AddDynamic(this, &AMagnetGun::HandleWeaponFired);
+
 }
 
 void AMagnetGun::Tick(float DeltaTime)
@@ -61,6 +68,12 @@ void AMagnetGun::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdatePolarityLightColor(DeltaTime);
+}
+
+void AMagnetGun::HandleWeaponFired()
+{
+	UpdateMuzzleFlashVFXColor();
+	if (MuzzleFlashVFXComponent) MuzzleFlashVFXComponent->Activate(true);
 }
 
 void AMagnetGun::UpdatePolarityLightColor(float DeltaTime)
@@ -81,3 +94,9 @@ void AMagnetGun::UpdatePolarityLightColor(float DeltaTime)
 	}
 }
 
+void AMagnetGun::UpdateMuzzleFlashVFXColor() const
+{
+	Polarity == EPolarity::Positive 
+		? MuzzleFlashVFXComponent->SetAsset(MuzzleFlashVFXBlue)
+		: MuzzleFlashVFXComponent->SetAsset(MuzzleFlashVFXRed);
+}

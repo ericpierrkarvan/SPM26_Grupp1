@@ -3,14 +3,16 @@
 
 #include "MagneticField_Cylinder.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
+#include "SPM26_Grupp1/Actors/FloatingItemActor.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
-#include "SPM26_Grupp1/Components/InteractableReceiverComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
 #include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
@@ -216,6 +218,7 @@ FVector AMagneticField_Cylinder::CalculateDirection(const AActor* Actor)
 void AMagneticField_Cylinder::Pull(AActor* Actor, const float DeltaTime)
 {
 	if (!Actor) return;
+	if (!Actor->GetComponentByClass<UMagneticComponent>()) return;
 	const FVector PullDirection = CalculateDirection(Actor);
 	const FVector LatCorrection = LateralCorrection(Actor);
 	const ACharacter* Character = Cast<ACharacter>(Actor);
@@ -292,7 +295,6 @@ void AMagneticField_Cylinder::RepelCharacter(ACharacter* Character)
 	
 	Character->LaunchCharacter(LaunchVelocity * RepelDirection, true, true);
 	OnMagneticRepulsionBP(Character);
-	UE_LOG(LogTemp, Warning, TEXT("Repelling character. Triggered OnMagneticRepulsionBP"));
 }
 
 // Repel an Actor using AddImpulse, if it has a MagneticComponent.
@@ -392,7 +394,6 @@ void AMagneticField_Cylinder::IfRobotHandleDash(AActor* Actor)
 void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 {
 	
-	//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap() start"));
 	if (!bWasSpawnedByProjectile) return;
 	if (OtherActor == this) return;
 	AMagneticField_Cylinder* OtherField = Cast<AMagneticField_Cylinder>(OtherActor);
@@ -409,12 +410,17 @@ void AMagneticField_Cylinder::IfFieldHandleOverlap(AActor* OtherActor)
 	if (ShouldAttract(OtherField->GetPolarity(), this->GetPolarity()))
 	{
 		CurrentAmountOfSummarizedField = FMath::Max(CurrentAmountOfSummarizedField, OtherField->GetCurrentAmountOfSummarizedField());
-		//UE_LOG(LogTemp, Warning, TEXT("IfFieldHandleOverlap(): Fields attract, destroying OtherField: %s"), *OtherField->GetName());
+		const FVector OtherLocation = OtherField->GetActorLocation();
 		OtherField->Destroy();
 		CurrentAmountOfSummarizedField--;
 		const float NewXYScaleValue = 1 + CurrentAmountOfSummarizedField * FieldSizeMultiplier;
 		
-		if (CurrentAmountOfSummarizedField <= 0) this->Destroy();
+		if (CurrentAmountOfSummarizedField <= 0)
+		{
+			const FVector VfxLocation = (OtherLocation + GetActorLocation()) / 2.f;
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FieldCollisionVfx, VfxLocation);
+			this->Destroy();	
+		}
 		else this->SetActorScale3D(FVector(NewXYScaleValue, NewXYScaleValue, 1));
 		
 	}
@@ -445,6 +451,7 @@ void AMagneticField_Cylinder::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	if (OtherActor->FindComponentByClass<UMagneticComponent>()) ActorsInField.AddUnique(OtherActor);
 	MagnetCenterPoint = CalculateMagnetCenterPoint(OtherActor);
 	
+	HandleFloatingItemActor(OtherActor);
 	IfRobotSetWithinMagneticField(true, OtherActor);
 	IfRobotHandleDash(OtherActor);
 	ListenToRobot(Character);
@@ -490,7 +497,6 @@ void AMagneticField_Cylinder::OnOverlapEnd(UPrimitiveComponent* OverlappedCompon
 	if (Character && ShouldAttract(this->Polarity, GetObjectPolarity(OtherActor)))
 	{
 		RestoreMovement(Character);
-		//UE_LOG(LogTemp, Warning, TEXT("Restored movement of character: %s"), *Character->GetName());
 	}
 	if (Cast<ARobotCharacter>(Character)) StopListenToRobot(Character);
 	bCharacterInsideField = false;
@@ -523,7 +529,6 @@ void AMagneticField_Cylinder::SetCharacterAttractParameters(ACharacter* Characte
 	
 	// Gravity = 0 in magnet field while pulling
 	Character->GetCharacterMovement()->GravityScale = 0;
-	UE_LOG(LogTemp, Warning, TEXT("SetCharacterAttractParameters(): Setting Character's gravityscale to 0."));
 	bHasCrippled = true;
 	CrippleMovement(Character);
 }
@@ -531,10 +536,6 @@ void AMagneticField_Cylinder::SetCharacterAttractParameters(ACharacter* Characte
 void AMagneticField_Cylinder::SetActorAttractParameters(AActor* Actor)
 {
 	if (!Actor) return;
-	UE_LOG(LogTemp, Warning, TEXT("Field polarity: %s, Other polarity: %s, Should attract? %d"), 
-	*UEnum::GetValueAsString(Polarity), 
-	*UEnum::GetValueAsString(GetObjectPolarity(Actor)), 
-	ShouldAttract(Polarity, GetObjectPolarity(Actor)));
 	
 	FVector ActorVelocity = Actor->GetVelocity();
 	ActorVelocity *= ActorAttractVelocityMultiplier; // reduce actor's velocity so it stays in field
@@ -577,8 +578,16 @@ void AMagneticField_Cylinder::RestoreMovement(const ACharacter* Character) const
 		MovementComponent->MaxAcceleration = OriginalMaxAcceleration;
 		MovementComponent->BrakingDecelerationWalking = OriginalBrakingDecelerationWalking;
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("Restored movement. Movement mode: %s, MaxSpeed: %f, MaxAccel: %f, BrakingDecel: %f"), 
-	//*MovementComponent->GetMovementName(), MovementComponent->MaxWalkSpeed, MovementComponent->MaxAcceleration, MovementComponent->BrakingDecelerationWalking);
+
+}
+
+void AMagneticField_Cylinder::HandleFloatingItemActor(AActor* Actor)
+{
+	AFloatingItemActor* FIActor = Cast<AFloatingItemActor>(Actor);
+	if (!FIActor) return;
+	FIActor->HasBeenAffectedByMagnetism(true);
+	FIActor->DestroyKineticism();
+	FIActor->DestroyMagnetism();
 
 }
 
@@ -715,10 +724,6 @@ void AMagneticField_Cylinder::ChooseMagneticSoundBasedOnPolarity(AActor* Actor)
 	if (GetObjectPolarity(Actor) != Polarity) OnMagneticPullBP(Actor);
 	
 	//GetObjectPolarity(Actor) == Polarity ? OnMagneticRepulsionBP(Actor) : OnMagneticPullBP(Actor);
-	
-	//bool bShouldAttract = ShouldAttract(Polarity, GetObjectPolarity(Actor));
-	//if (bShouldAttract) OnMagneticPullBP(Actor);
-	//if (!bShouldAttract) OnMagneticRepulsionBP(Actor);
 	
 }
 

@@ -7,6 +7,8 @@
 
 #define ECC_PROJECTILE ECC_GameTraceChannel1
 #define ECC_INTERACT ECC_GameTraceChannel2
+#define ECC_KINESIS_DETECTION ECC_GameTraceChannel3
+#define ECC_KINETIC ECC_GameTraceChannel4
 
 UENUM(BlueprintType)
 enum class ETextPlayerFilter : uint8

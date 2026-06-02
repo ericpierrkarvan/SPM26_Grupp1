@@ -132,3 +132,10 @@ void UInteractableComponent::SetInteractable(const bool NewInteractableState)
 {
 	bIsInteractable = NewInteractableState;
 }
+
+void UInteractableComponent::ForceInteract(bool NewActivateState, AActor* Interactor)
+{
+	InteractCooldownTimer = InteractCooldown;
+	bIsOn = NewActivateState;
+	OnInteract.Broadcast(Interactor, bIsOn);
+}

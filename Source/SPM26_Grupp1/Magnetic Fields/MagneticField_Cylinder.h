@@ -32,7 +32,7 @@ public:
 	EPolarity GetPolarity() const;
 	int32 GetPolarityValue() const;
 	UNiagaraSystem* GetCurrentVFX() const;
-	void Destroyed();
+
 	UNiagaraComponent* GetVFXComponent() const;
 	UCapsuleComponent* GetCapsuleComponent() const;
 	static EPolarity GetObjectPolarity(AActor* Actor); // Get any objects Polarity
@@ -41,14 +41,14 @@ public:
 	void SetSpawnedByProjectile(bool bNewWasSpawnedByProjectile);
 	AActor* GetAttachedToActor() const;
 	void SetAttachedToActor(AActor* NewAttachedToActor);
-	
+	bool IsActive() const;
+	void IsActive(bool bNewIsActive);
 	void ChooseMagneticSoundBasedOnPolarity(AActor* Actor);
-
 	void InitializeFieldDuration(const float InDuration);
 	void CheckInitialOverlaps();
+	void Destroyed();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	
@@ -82,9 +82,8 @@ protected:
 	void CalculateRepelStrength(const FVector& CurrentPlayerLocation);
 	void CalculatePullStrength(const FVector& CurrentPlayerLocation);
 	void HandleStaticField();
-	
 	bool ShouldAttract(EPolarity Field, EPolarity Other);
-
+	
 	// Overlap events
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
@@ -111,24 +110,20 @@ protected:
 	UFUNCTION()
 	void RestoreMovement(const ACharacter* Character) const;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	// VFX - Fields
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_Magnet|VFX")
 	UNiagaraSystem* PositivePolarityVFX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_Magnet|VFX")
 	UNiagaraSystem* NegativePolarityVFX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_Magnet|VFX")
 	UNiagaraSystem* EmptyVFX;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_MagnetVFX")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_Magnet|VFX")
 	UNiagaraComponent* MagnetVfxComponent;
-	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
-	bool bIsActive = true;
-
-public:
-	bool IsActive() const;
-	void IsActive(bool bNewIsActive);
-
-protected:
-	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
-	bool bWasSpawnedByProjectile = false;
+	// VFX - Field collision
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_Magnet|VFX")
+	UNiagaraComponent* FieldCollisionVfxComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AAA_Magnet|VFX")
+	UNiagaraSystem* FieldCollisionVfx;
 	
 	// Polarity
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="AAA_Magnet|Polarity")
@@ -141,12 +136,17 @@ protected:
 	TArray<AActor*> ActorsInField;
 	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
 	AActor* AttachedToActor = nullptr;
-
-protected:
 	TWeakObjectPtr<AActor> ActorToAttractOrPull = nullptr;
+	
+	// Bools
+	UPROPERTY(BlueprintReadOnly, Category="AAA_Magnet")
+	bool bIsActive = true;
+	UPROPERTY(VisibleAnywhere, Category="AAA_Magnet")
+	bool bWasSpawnedByProjectile = false;
 	bool bCharacterInsideField = false;
 	
 private:
+	void HandleFloatingItemActor(AActor* Actor);
 	
 	// Components
 	UPROPERTY(VisibleAnywhere)
@@ -216,7 +216,7 @@ private:
 	// CapsuleCollider
 	float CapsuleHeight;
 	float CapsuleHalfHeight;
-	float CapsuleOriginalRadius = 75;
+	float CapsuleOriginalRadius = 80;
 	
 	// Active player
 	UPROPERTY()

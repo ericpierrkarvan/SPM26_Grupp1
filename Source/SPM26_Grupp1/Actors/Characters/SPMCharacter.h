@@ -17,6 +17,7 @@
 enum class EProgressFlag : uint8;
 struct FPlayerProgress;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShoot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnADS, bool, bIsADS);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPolaritySwitched, EPolarity, NewPolarity, float, PolaritySwitchCooldown);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPolaritySwitchUnlocked, bool, Unlocked);
@@ -72,7 +73,8 @@ public:
 	virtual EPolarity GetPolarity() const;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	FORCENOINLINE bool IsADSActive() const;
+	UFUNCTION(BlueprintCallable, Category="ADS")
+	bool IsADSActive() const;
 
 	UFUNCTION(BlueprintCallable)
 	USPMCharacterMovementComponent* GetSPMMovementComponent() const;
@@ -81,6 +83,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Camera|ADS")
 	FOnADS OnADS;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnADS_BP(bool IsADS);
 	UPROPERTY(BlueprintAssignable, Category = "Progress")
 	FOnPictureTaken OnPictureTaken;
 	
@@ -113,6 +117,16 @@ public:
 	
 	URespawnComponent* GetRespawnComponent() const;
 
+	//i started picking up -> finished picking up
+	UFUNCTION(BlueprintPure)
+	bool GetIsPickingUpItem();
+
+	//I have an item picked up
+	UFUNCTION(BlueprintPure)
+	bool HaveHeldActor();
+
+	UPROPERTY(BlueprintAssignable, Category = "Animation")
+	FOnShoot OnShoot;
 protected:
 
 	UPROPERTY()

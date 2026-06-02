@@ -129,6 +129,16 @@ URespawnComponent* ASPMCharacter::GetRespawnComponent() const
 	return RespawnComponent;
 }
 
+bool ASPMCharacter::GetIsPickingUpItem()
+{
+	return bIsPickingUp;
+}
+
+bool ASPMCharacter::HaveHeldActor()
+{
+	return IsValid(HeldActor);
+}
+
 bool ASPMCharacter::IsAlive() const
 {
 	if (!RespawnComponent) return false;
@@ -394,6 +404,7 @@ void ASPMCharacter::ConsumePickup()
 
 void ASPMCharacter::LookForInteractables(float DeltaTime)
 {
+	if (!IsAlive()) return;
 	InteractTimer += DeltaTime;
 	if (InteractTimer < InteractInterval) return;
 	InteractTimer = 0.f;
@@ -550,6 +561,7 @@ float ASPMCharacter::GetADSMovementMultiplier() const
 
 void ASPMCharacter::StartADS()
 {
+	if (!IsAlive()) return;
 	bIsADS = true;
 	SetCameraState(ECameraState::ADS);
 
@@ -560,6 +572,7 @@ void ASPMCharacter::StartADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 void ASPMCharacter::StopADS()
@@ -574,6 +587,7 @@ void ASPMCharacter::StopADS()
 		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	}
 	OnADS.Broadcast(bIsADS);
+	OnADS_BP(bIsADS);
 }
 
 float ASPMCharacter::GetArmLengthForState(ECameraState State) const

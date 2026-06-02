@@ -24,7 +24,10 @@ public:
 	void PerformDash();
 	void CancelDash();
 	bool CanDash() const;
+	
+	UFUNCTION(BlueprintCallable, Category="Dash")
 	bool IsDashing() const;
+	
 	void SmoothRotationWhenDashing(float DeltaSeconds);
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
