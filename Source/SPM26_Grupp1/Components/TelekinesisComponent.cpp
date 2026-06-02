@@ -132,7 +132,8 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 			SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 			return;
 		}
-		float RadiusOffset = 5.f;
+		float RadiusOffset;
+		Cast<AFloatingItemActor>(IncomingItem) ? RadiusOffset = 50.f : RadiusOffset = 5.f;
 		//end slighly above edge of sphere
 		FVector PullLocation = DetectionSphere->GetComponentLocation() - FVector(0, 0, (SphereRadius - RadiusOffset));
 		float Alpha = FMath::Clamp(InterceptTimer / SuckDuration, 0.f, 1.f);
@@ -280,6 +281,7 @@ void UTelekinesisComponent::LaunchAttachedItem()
 // 2. "Reset" NPC to original state with floating item bobbing around its head
 void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("TeleComp::Destroyed FloatingActor, resetting"))
 	AttachedItem = nullptr;
 	EjectAttachedTimer = 0.f;
 	Actor->Destroy();
