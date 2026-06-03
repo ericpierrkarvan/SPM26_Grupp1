@@ -47,6 +47,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnEquipWeapon OnEquipWeapon;
 	virtual void OnDeath() override;
+	
+	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -84,8 +86,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	bool CanShoot();
+	
+	
 private:
-	UMechanicMovementComponent* GetMechanicMovementComponent() const;
 	void EquipWeapon();
 	virtual void BeginPlay() override;
 	void UpdateADSTrace();

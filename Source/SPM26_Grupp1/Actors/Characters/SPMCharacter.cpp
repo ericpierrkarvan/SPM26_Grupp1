@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "FMODAudioComponent.h"
+#include "MechanicCharacter.h"
 #include "RobotCharacter.h"
 #include "SPM26_Grupp1/Components/SPMCharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -23,7 +24,9 @@
 #include "SPM26_Grupp1/UI/SPMHUD.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 #include "Engine/OverlapResult.h"
+#include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "SPM26_Grupp1/Framework/SPMGameInstance.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
@@ -821,13 +824,13 @@ void ASPMCharacter::OnWalkingOffLedge_Implementation(const FVector& PreviousFloo
                                                      const FVector& PreviousLocation, float TimeDelta)
 {
 	bCanCoyoteJump = true;
-	//UE_LOG(LogTemp, Warning, TEXT("WalkingOffLedge is triggered"));
+	UE_LOG(LogTemp, Warning, TEXT("WalkingOffLedge is triggered"));
 	GetWorldTimerManager().SetTimer(CoyoteTimerHandle, this, &ASPMCharacter::ResetCoyoteJump, CoyoteTimeWindow, false);
 }
 
 void ASPMCharacter::ResetCoyoteJump()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
+	UE_LOG(LogTemp, Warning, TEXT("Resetting coyote jump"));
 	bCanCoyoteJump = false;
 	GetSPMMovementComponent()->DecrementJumpCount();
 }
@@ -838,7 +841,8 @@ void ASPMCharacter::OnJumpRelease()
 
 	if (!GetSPMMovementComponent()->IsGrounded() && GetSPMMovementComponent()->Velocity.Z > 0.f)
 	{
-		GetSPMMovementComponent()->Velocity.Z *= 0.82f;
+		//kändes rätt
+		GetSPMMovementComponent()->Velocity.Z *= 0.8258937845838785834875821982734894229935f;
 	}
 }
 
@@ -854,6 +858,11 @@ void ASPMCharacter::Landed(const FHitResult& Hit)
 	if (USPMCharacterMovementComponent* MoveComp = GetSPMMovementComponent())
 	{
 		MoveComp->ResetJumpsRemaining();
+	}
+	
+	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(this))
+	{
+		MechanicCharacter->GetMechanicMovementComponent()->bHasDoubleJumped = false;
 	}
 
 	if (JumpBufferTimer > 0.0f)

@@ -49,6 +49,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Movement: Jumping / Falling")
 	float DoubleJumpVelocityMultiplier = 1.4f;
+	
+	bool bHasDoubleJumped = false;
 private:
 	int RootMotionSourceID;
 	TSharedPtr<FRootMotionSource_MoveToForce> RootMotionSource;
@@ -60,6 +62,8 @@ private:
 
 	void InitAnimations();
 	FTimerHandle TimerHandle;
+	
+	
 	
 
 };

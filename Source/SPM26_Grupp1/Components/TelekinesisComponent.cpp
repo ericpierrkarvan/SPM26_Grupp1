@@ -53,6 +53,7 @@ void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* Overlapped
 	if (!OtherActor) return;
 	if (IncomingItem) return;
 	if (AttachedItem) return;
+	if (OtherActor->GetVelocity().Size() <= 20.f) return; //todo: need a better check if an item has been thrown
 	if (Cast<AFleeingAlienNPC>(GetOwner())->GetMovementComponent()->IsFlying()) return;
 	
 	IncomingItem = OtherActor;
