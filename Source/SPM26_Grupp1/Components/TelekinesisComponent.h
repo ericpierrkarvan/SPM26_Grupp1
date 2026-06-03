@@ -30,14 +30,22 @@ class SPM26_GRUPP1_API UTelekinesisComponent : public USceneComponent
 public:	
 	// Sets default values for this component's properties
 	UTelekinesisComponent();
+	
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
 	UFUNCTION(BlueprintCallable)
 	void LaunchAttachedItem();
 	void HandleDestroyKineticism();
 	
+	// Events
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Telekinesis|Sound Events")
+	void TractorBeamStartingBP();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Telekinesis|Sound Events")
+	void TractorBeamStoppingBP();
+	
 	// Tractorbeam
 	void StartTractorBeam() const;
-	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const;
+	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState);
 	
 	// Getters
 	TObjectPtr<AActor> GetIncomingItem() const;
