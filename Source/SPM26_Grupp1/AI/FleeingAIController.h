@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AlienAIController.h"
-#include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h"
 #include "FleeingAIController.generated.h"
+
+class AFleeingAlienNPC;
 
 enum class ETelekinesisState : uint8;
 /**

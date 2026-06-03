@@ -1,11 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraComponent.h"
 #include "Components/ActorComponent.h"
 #include "TelekinesisComponent.generated.h"
-
 
 class AFloatingItemActor;
 class USphereComponent;
@@ -23,7 +22,7 @@ enum class ETelekinesisState : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTelekinesisStateChanged, ETelekinesisState, NewState);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SPM26_GRUPP1_API UTelekinesisComponent : public USceneComponent
 {
 	GENERATED_BODY()
@@ -35,6 +34,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LaunchAttachedItem();
 	void HandleDestroyKineticism();
+	
+	// Tractorbeam
+	void StartTractorBeam() const;
+	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const;
 	
 	// Getters
 	TObjectPtr<AActor> GetIncomingItem() const;
@@ -81,6 +84,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Telekinesis")
 	USphereComponent* DetectionSphere;
+	
+	// vfx
+	UPROPERTY(EditAnywhere, Category="Telekinesis|VFX")
+	UNiagaraSystem* TractorBeamVFX;
+	UPROPERTY(EditAnywhere, Category="Telekinesis|VFX")
+	UNiagaraComponent* TractorBeamVFXComponent;
+	
 private:
 	UFUNCTION()
 	void OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

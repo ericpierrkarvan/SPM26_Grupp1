@@ -8,6 +8,7 @@
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "FloatingItemComponent.generated.h"
 
+class UFloatingItemComponent;
 class AFleeingAlienNPC;
 
 USTRUCT(BlueprintType)
@@ -17,6 +18,9 @@ struct FFloatingItemLaunchData
 
 	UPROPERTY()
 	AActor* OwnerOfComponent = nullptr;
+	
+	UPROPERTY()
+	UFloatingItemComponent* CreatorComp = nullptr;
 	
 	UPROPERTY()
 	UStaticMesh* Mesh = nullptr;

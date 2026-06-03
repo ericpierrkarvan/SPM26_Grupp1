@@ -47,6 +47,7 @@ void UFloatingItemComponent::LaunchItem()
 	
 	FFloatingItemLaunchData LaunchData;
 	LaunchData.OwnerOfComponent = GetOwner();
+	LaunchData.CreatorComp = this;
 	LaunchData.Mesh = ItemMesh->GetStaticMesh();
 	LaunchData.Material = ItemMesh->GetMaterial(0);
 	LaunchData.LaunchVelocity = FVector(0.f, 0.f, 800.f); // or calculated

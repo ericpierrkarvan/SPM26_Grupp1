@@ -52,6 +52,7 @@ void AFloatingItemActor::Tick(float DeltaTime)
 
 void AFloatingItemActor::SetValuesFromFloatingItemComponent(const FFloatingItemLaunchData& LaunchData)
 {
+	CreatorComp = LaunchData.CreatorComp;
 	NPC = LaunchData.OwnerOfComponent;
 	MagComp->SetPolarity(LaunchData.Polarity);
 	SetActorTransform(LaunchData.SpawnTransform);
@@ -116,6 +117,21 @@ void AFloatingItemActor::DestroyMagnetism()
 	false);
 	
 	bAlreadyDestroyedMagnetism = true;
+}
+
+void AFloatingItemActor::DestroyCreator()
+{
+	if (bAlreadyDestroyedCreator) return;
+	
+	TArray<USceneComponent*> Childs = CreatorComp->GetAttachChildren();
+	for (USceneComponent* Child : Childs)
+	{
+		if (Child) Child->DestroyComponent();
+	}
+	CreatorComp->DestroyComponent();
+	CreatorComp = nullptr;
+	
+	bAlreadyDestroyedCreator = true;
 }
 
 void AFloatingItemActor::FollowNPCXYLocation()
