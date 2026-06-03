@@ -8,6 +8,7 @@
 #include "MechanicCharacter.h"
 #include "NiagaraDebuggerCommon.h"
 #include "Alien/FleeingAlienNPC.h"
+#include "Alien/PatrollingAlienNPC.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -697,16 +698,21 @@ void ARobotCharacter::Launch()
 // If FleeingAlienNPC, also launch its item
 void ARobotCharacter::HandleFleeingNPCLaunch(ACharacter* Char) const
 {
+	AFleeingAlienNPC* FleeingNPC = Cast<AFleeingAlienNPC>(Char);
+	if (!IsValid(FleeingNPC)) return;
+	APatrollingAlienNPC* PatrollingNPC = Cast<APatrollingAlienNPC>(Char);
+	if (PatrollingNPC) return;
 	FTimerHandle TimerHandle;
 
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
-		[Char]()
+		[FleeingNPC]()
 		{
-			if (AFleeingAlienNPC* FleeingNPC = Cast<AFleeingAlienNPC>(Char))
+			UFloatingItemComponent* FloatComp = FleeingNPC->GetComponentByClass<UFloatingItemComponent>();
+			if (IsValid(FloatComp))
 			{
-				if (FleeingNPC->GetComponentByClass<UFloatingItemComponent>()->AreMeshesVisible())
-					FleeingNPC->GetComponentByClass<UFloatingItemComponent>()->LaunchItem();
+				if (FloatComp->AreMeshesVisible())
+					FloatComp->LaunchItem();
 			}
 		},
 		1.f, // delay used so NPC launches when falling down
