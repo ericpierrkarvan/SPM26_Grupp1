@@ -11,7 +11,9 @@
 #include "SPM26_Grupp1/Actors/FloatingItemActor.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
+#include "SPM26_Grupp1/Components/FloatingItemComponent.h"
 #include "SPM26_Grupp1/Components/RobotMovementComponent.h"
+#include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 #include "SPM26_Grupp1/Projectile/Proj_MagneticCylinder.h"
 #include "SPM26_Grupp1/Weapon/MagnetGun.h"
 
@@ -542,7 +544,16 @@ void AMagneticField_Cylinder::HandleFloatingItemActor(AActor* Actor)
 {
 	AFloatingItemActor* FIActor = Cast<AFloatingItemActor>(Actor);
 	if (!FIActor) return;
+	
 	FIActor->HasBeenAffectedByMagnetism(true);
+	
+	if (FIActor->CreatorComp)
+	{
+		FIActor->CreatorComp->SetSpawnedItemActorHasBeenConsumed(true);
+		UTelekinesisComponent* TeleComp = FIActor->CreatorComp->GetOwner()->GetComponentByClass<UTelekinesisComponent>();
+		if (TeleComp) TeleComp->DeactivateTractorVFXComp();
+	}
+	
 	FIActor->DestroyKineticism();
 	FIActor->DestroyMagnetism();
 	FIActor->DestroyCreator();

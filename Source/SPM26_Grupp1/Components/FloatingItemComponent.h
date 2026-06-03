@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TelekinesisComponent.h"
+//#include "TelekinesisComponent.h"
 #include "Components/SceneComponent.h"
+#include "SPM26_Grupp1/Actors/FloatingItemActor.h" // cannot forward declare (TSubclassOf)
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "FloatingItemComponent.generated.h"
 
+class UTelekinesisComponent;
 class UFloatingItemComponent;
 class AFleeingAlienNPC;
 
@@ -51,6 +53,14 @@ public:
 	void LaunchItem();	
 	void ActivateHiddenItemMesh() const;
 	
+	// Getters
+	int16 GetCurrentAmountOfSpawnedActors() const;
+	void SetCurrentAmountOfSpawnedActors(int16 NewCurrentAmountOfSpawnedActors);
+	AFloatingItemActor* GetSpawnedItemActor() const;
+	bool GetSpawnedItemActorHasBeenConsumed() const;
+	void SetSpawnedItemActorHasBeenConsumed(bool bNewSpawnedItemActorHasBeenConsumed);
+
+	void DecrementSpawnedActors();
 	bool AreMeshesVisible() const;
 	
 protected:
@@ -76,7 +86,9 @@ private:
 	void RotateItemAroundNPC(const float DeltaTime);
 	FRotator RotateAroundSelf(const float DeltaTime);
 
-
+	UPROPERTY(VisibleAnywhere, Category = "Floating|Spawning")
+	AFloatingItemActor* SpawnedItemActor;
+	
 	UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
 	UStaticMeshComponent* ItemMesh;
 	UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
@@ -86,9 +98,11 @@ private:
 	
 	// Internal
 	bool bLaunched = false;
+	bool SpawnedItemActorHasBeenConsumed = false; // True when a spawned actor gets consumed, stop play TractorBeamVFX
 	FVector LaunchVelocity;
 	float FloatTime = 0.f;
 	float FloatAngle = 0.f;
 	float RotateAngle = 0.f;
-		
+	int16 CurrentAmountOfSpawnedActors = 0;
+	
 };

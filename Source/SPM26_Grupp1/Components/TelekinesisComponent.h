@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "TelekinesisComponent.generated.h"
 
+class UFloatingItemComponent;
 class AFloatingItemActor;
 class USphereComponent;
 
@@ -40,7 +41,8 @@ public:
 	// Tractorbeam
 	void StartTractorBeam() const;
 	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState);
-	
+	void DeactivateTractorVFXComp() const;
+
 	// Getters
 	TObjectPtr<AActor> GetIncomingItem() const;
 	TObjectPtr<AActor> GetAttachedItem() const;
@@ -86,6 +88,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Telekinesis")
 	USphereComponent* DetectionSphere;
+	
+	UPROPERTY(VisibleAnywhere, Category="Telekinesis")
+	UFloatingItemComponent* FloatingItemComp;
 	
 	// vfx
 	UPROPERTY(EditAnywhere, Category="Telekinesis|VFX")

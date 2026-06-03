@@ -331,7 +331,9 @@ void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
 // Check generator flags, if has all flags -> Load cutscene
 void ASPMCharacter::HandleGeneratorQuestFlags(const UProgressSubsystem* Progress) const
 {
-	if (Progress->GetGeneratorFlagsUnlocked() == 3)
+	if (Progress->HasFlag(EProgressFlag::GeneratorPartOne) 
+		&& Progress->HasFlag(EProgressFlag::GeneratorPartTwo)
+		&& Progress->HasFlag(EProgressFlag::GeneratorPartThree))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("YOU WIN GAME! Sydney Sweeney is on the phone"));
 		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Startmenue.Startmenue")));
