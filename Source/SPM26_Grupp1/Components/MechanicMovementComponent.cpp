@@ -184,6 +184,7 @@ void UMechanicMovementComponent::OnMantleAnimFinished()
 {
 	SetMovementMode(DefaultLandMovementMode);
 	ResetJumpsRemaining();
+	bHasDoubleJumped = false;
 }
 
 float UMechanicMovementComponent::GetCapsuleHalfHeight() const

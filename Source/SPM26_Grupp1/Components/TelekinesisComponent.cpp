@@ -28,6 +28,12 @@ UTelekinesisComponent::UTelekinesisComponent()
 	
 	TractorBeamVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TractorBeamVFXComponent"));
 	TractorBeamVFXComponent->SetAbsolute(true, true, true);
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> BeamVFX(
+		TEXT("/Game/ParticleSystems/AISystems/NS_AITractorbeam.NS_AITractorbeam")
+	);
+	if (BeamVFX.Succeeded())
+		TractorBeamVFX = BeamVFX.Object;
+	TractorBeamVFXComponent->SetAsset(TractorBeamVFX);
 	
 }
 
@@ -50,9 +56,9 @@ void UTelekinesisComponent::BeginPlay()
 	{
 		DetectionSphere->SetHiddenInGame(true);
 	}
-	TractorBeamVFX = LoadObject<UNiagaraSystem>(nullptr, 
+	/*TractorBeamVFX = LoadObject<UNiagaraSystem>(nullptr, 
 	TEXT("/Game/ParticleSystems/AISystems/NS_AITractorbeam.NS_AITractorbeam"));
-	TractorBeamVFXComponent->SetAsset(TractorBeamVFX);
+	TractorBeamVFXComponent->SetAsset(TractorBeamVFX);*/
 }
 
 void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -327,12 +333,14 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
 			TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
 			TractorBeamVFXComponent->Activate();
-			TractorBeamStartingBP();
+			if (Cast<AFleeingAlienNPC>(GetOwner()))
+				Cast<AFleeingAlienNPC>(GetOwner())->TractorBeamStartingBP();
 		}
 	}
 	else
 	{
 		TractorBeamVFXComponent->Deactivate();
-		TractorBeamStoppingBP();
+		if (Cast<AFleeingAlienNPC>(GetOwner()))
+			Cast<AFleeingAlienNPC>(GetOwner())->TractorBeamStoppingBP();
 	}
 }
