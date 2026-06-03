@@ -49,10 +49,20 @@ public:
 	virtual void OnDeath() override;
 	
 	UMechanicMovementComponent* GetMechanicMovementComponent() const;
+
+	virtual UInputMappingContext* GetGamepadIMC() const override { return IMC_MechanicGamepad; }
+	virtual UInputMappingContext* GetKeyboardIMC() const override { return IMC_MechanicKeyboard; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetOneJumpRemaining();
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputMappingContext> IMC_Mechanic;
+	TObjectPtr<UInputMappingContext> IMC_MechanicKeyboard;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputMappingContext> IMC_MechanicGamepad;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_DestroyFields;

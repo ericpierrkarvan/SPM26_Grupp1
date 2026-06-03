@@ -4,6 +4,7 @@
 #include "FleeingAIController.h"
 #include "EngineUtils.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h" 
 #include "SPM26_Grupp1/Actors/Characters/Alien/AlienNPCCharacter.h"
 #include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 

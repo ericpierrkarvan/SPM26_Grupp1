@@ -6,9 +6,7 @@
 #include "AlienNPCCharacter.h"
 #include "FleeingAlienNPC.generated.h"
 
-/**
- * 
- */
+class AFleeingAIController;
 
 UCLASS()
 class SPM26_GRUPP1_API AFleeingAlienNPC : public AAlienNPCCharacter
@@ -48,8 +46,13 @@ public:
 	UPROPERTY(EditAnywhere, Category="Alien|Material")
 	UMaterial* FleeEmissiveMaterial;
 	
-protected:
+	// Events
+	UFUNCTION(BlueprintImplementableEvent, Category="Alien|Sound Events")
+	void TractorBeamStartingBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="Alien|Sound Events")
+	void TractorBeamStoppingBP();
 	
+protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnEnterFleeingState() override;
@@ -59,9 +62,12 @@ protected:
 	void PutDown();
 	UFUNCTION()
 	void PickedUp(AActor* Actor);
+	/*UFUNCTION()
+	void OnTelekinesisStateChanged(ETelekinesisState NewState);*/
 	
 	void CheckIfRobotBelow();
 	void CheckIfRobotBelowEveryXSeconds(float Seconds);
 	void SetIsHeld();
 	void SetIsNotHeld();
+	
 };

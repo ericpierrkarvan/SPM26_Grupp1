@@ -7,10 +7,11 @@
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/AI/FleeingAIController.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
+#include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 
 AFleeingAlienNPC::AFleeingAlienNPC()
 {
-	
+
 }
 
 void AFleeingAlienNPC::BeginPlay()
@@ -22,6 +23,10 @@ void AFleeingAlienNPC::BeginPlay()
 		PickupComp->OnDroppedDelegate.AddDynamic(this, &AFleeingAlienNPC::PutDown);
 		PickupComp->OnPickedUpDelegate.AddDynamic(this, &AFleeingAlienNPC::PickedUp);
 	}
+	if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
+	{
+		//TeleComp->OnTelekinesisStateChanged.AddDynamic(this, &AFleeingAlienNPC::OnTelekinesisStateChanged);
+	}
 	
 	CheckIfRobotBelowEveryXSeconds(0.2f);
 }
@@ -31,7 +36,6 @@ void AFleeingAlienNPC::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);	
 }
 
-// "Put down" on the Robot's head spring, i.e waiting to be launched.
 void AFleeingAlienNPC::PickedUp(AActor* Actor)
 {
 	if (Contr)
@@ -101,6 +105,18 @@ void AFleeingAlienNPC::SetIsNotHeld()
 	bIsHeld = false;
 }
 
+// When telekinesis happening, activate tractorbeam
+/*void AFleeingAlienNPC::OnTelekinesisStateChanged(ETelekinesisState NewState)
+{
+	if (NewState == ETelekinesisState::Entry 
+		|| NewState == ETelekinesisState::ObjectStopped
+		|| NewState == ETelekinesisState::Sucking)
+	{
+		//if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
+	}
+	//else //
+}*/
+
 void AFleeingAlienNPC::OnEnterFleeingState()
 {
 	Super::OnEnterFleeingState();
@@ -123,5 +139,4 @@ float AFleeingAlienNPC::GetSafeDistance() const
 {
 	return SafeDistanceFromPlayer;
 }
-
 

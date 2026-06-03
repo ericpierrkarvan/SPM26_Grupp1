@@ -545,6 +545,7 @@ void AMagneticField_Cylinder::HandleFloatingItemActor(AActor* Actor)
 	FIActor->HasBeenAffectedByMagnetism(true);
 	FIActor->DestroyKineticism();
 	FIActor->DestroyMagnetism();
+	FIActor->DestroyCreator();
 
 }
 

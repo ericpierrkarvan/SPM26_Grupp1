@@ -91,6 +91,11 @@ void ASPMGameModeBase::SwapPossession()
 	       ActiveKeyboardPlayer,
 	       *PC0->GetPawn()->GetName(),
 	       *PC1->GetPawn()->GetName());
+
+	if (USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance()))
+	{
+		GI->SetupLocalMultiplayerInput();
+	}
 }
 #endif
 
@@ -182,5 +187,16 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 	}
 	
 	SpawnPlayersAtStartBP(); // sound event
+
+#if !WITH_EDITOR
+	// imc assignment next tick:
+	GetWorldTimerManager().SetTimerForNextTick([this]()
+	{
+		if (USPMGameInstance* GI = Cast<USPMGameInstance>(GetGameInstance()))
+		{
+			GI->SetupLocalMultiplayerInput();
+		}
+	});
+#endif
 }
 
