@@ -313,7 +313,7 @@ void UTelekinesisComponent::StartTractorBeam() const
 	}
 }
 
-void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const
+void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState)
 {
 	if (NewState == ETelekinesisState::Entry 
 		|| NewState == ETelekinesisState::ObjectStopped
@@ -324,7 +324,12 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
 			TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
 			TractorBeamVFXComponent->Activate();
+			TractorBeamStartingBP();
 		}
 	}
-	else TractorBeamVFXComponent->Deactivate();
+	else
+	{
+		TractorBeamVFXComponent->Deactivate();
+		TractorBeamStoppingBP();
+	}
 }
