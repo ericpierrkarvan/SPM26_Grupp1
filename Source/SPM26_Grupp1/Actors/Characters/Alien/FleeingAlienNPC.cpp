@@ -23,10 +23,6 @@ void AFleeingAlienNPC::BeginPlay()
 		PickupComp->OnDroppedDelegate.AddDynamic(this, &AFleeingAlienNPC::PutDown);
 		PickupComp->OnPickedUpDelegate.AddDynamic(this, &AFleeingAlienNPC::PickedUp);
 	}
-	if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
-	{
-		//TeleComp->OnTelekinesisStateChanged.AddDynamic(this, &AFleeingAlienNPC::OnTelekinesisStateChanged);
-	}
 	
 	CheckIfRobotBelowEveryXSeconds(0.2f);
 }

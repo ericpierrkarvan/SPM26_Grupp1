@@ -41,7 +41,7 @@ void AFleeingAIController::Tick(float DeltaTime)
 	}
 }
 
-void AFleeingAIController::OnTelekinesisStateChanged(const ETelekinesisState NewState)
+void AFleeingAIController::OnTelekinesisStateChanged(ETelekinesisState NewState)
 {
 	if (!BBC) return;
 	

@@ -278,7 +278,7 @@ void UTelekinesisComponent::TickComponent(float DeltaTime, enum ELevelTick TickT
 		if (LaunchCooldownTimer >= LaunchedCooldown)
 		{
 			LaunchCooldownTimer = 0.f;
-			SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+			//SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 		}
 	}
 }
@@ -307,7 +307,7 @@ void UTelekinesisComponent::LaunchAttachedItem()
 // 2. "Reset" NPC to original state with floating item bobbing around its head
 void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloatingItemActor* Actor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("TeleComp::Destroyed FloatingActor, resetting"))
+	
 	AttachedItem = nullptr;
 	EjectAttachedTimer = 0.f;
 	
@@ -318,6 +318,8 @@ void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloati
 		FloatingItemComp->ActivateHiddenItemMesh();
 	
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
+	UE_LOG(LogTemp, Warning, TEXT("TeleComp::Destroyed FloatingActor, State WaitingForKinetic"))
+	
 }
 	
 void UTelekinesisComponent::StartTractorBeam() const
