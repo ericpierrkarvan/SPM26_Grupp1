@@ -37,12 +37,6 @@ public:
 	void LaunchAttachedItem();
 	void HandleDestroyKineticism();
 	
-	// Events
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Telekinesis|Sound Events")
-	void TractorBeamStartingBP();
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="Telekinesis|Sound Events")
-	void TractorBeamStoppingBP();
-	
 	// Tractorbeam
 	void StartTractorBeam() const;
 	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState);

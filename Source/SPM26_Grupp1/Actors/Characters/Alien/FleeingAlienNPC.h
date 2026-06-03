@@ -46,6 +46,12 @@ public:
 	UPROPERTY(EditAnywhere, Category="Alien|Material")
 	UMaterial* FleeEmissiveMaterial;
 	
+	// Events
+	UFUNCTION(BlueprintImplementableEvent, Category="Alien|Sound Events")
+	void TractorBeamStartingBP();
+	UFUNCTION(BlueprintImplementableEvent, Category="Alien|Sound Events")
+	void TractorBeamStoppingBP();
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
