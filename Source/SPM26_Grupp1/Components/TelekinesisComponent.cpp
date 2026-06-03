@@ -50,6 +50,9 @@ void UTelekinesisComponent::BeginPlay()
 	{
 		DetectionSphere->SetHiddenInGame(true);
 	}
+	TractorBeamVFX = LoadObject<UNiagaraSystem>(nullptr, 
+	TEXT("/Game/ParticleSystems/AISystems/NS_AITractorbeam.NS_AITractorbeam"));
+	TractorBeamVFXComponent->SetAsset(TractorBeamVFX);
 }
 
 void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
