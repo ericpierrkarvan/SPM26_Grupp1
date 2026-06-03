@@ -11,8 +11,7 @@
 
 AFleeingAlienNPC::AFleeingAlienNPC()
 {
-	TractorBeamVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TractorBeamVFXComponent"));
-	TractorBeamVFXComponent->SetupAttachment(RootComponent);
+
 }
 
 void AFleeingAlienNPC::BeginPlay()
@@ -26,7 +25,7 @@ void AFleeingAlienNPC::BeginPlay()
 	}
 	if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
 	{
-		TeleComp->OnTelekinesisStateChanged.AddDynamic(this, &AFleeingAlienNPC::OnTelekinesisStateChanged);
+		//TeleComp->OnTelekinesisStateChanged.AddDynamic(this, &AFleeingAlienNPC::OnTelekinesisStateChanged);
 	}
 	
 	CheckIfRobotBelowEveryXSeconds(0.2f);
@@ -37,7 +36,6 @@ void AFleeingAlienNPC::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);	
 }
 
-// "Put down" on the Robot's head spring, i.e waiting to be launched.
 void AFleeingAlienNPC::PickedUp(AActor* Actor)
 {
 	if (Contr)
@@ -107,16 +105,17 @@ void AFleeingAlienNPC::SetIsNotHeld()
 	bIsHeld = false;
 }
 
-void AFleeingAlienNPC::OnTelekinesisStateChanged(ETelekinesisState NewState)
+// When telekinesis happening, activate tractorbeam
+/*void AFleeingAlienNPC::OnTelekinesisStateChanged(ETelekinesisState NewState)
 {
 	if (NewState == ETelekinesisState::Entry 
 		|| NewState == ETelekinesisState::ObjectStopped
 		|| NewState == ETelekinesisState::Sucking)
 	{
-		ActivateTractorBeamVFX();
+		//if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
 	}
-	else DeactivateTractorBeamVFX();
-}
+	//else //
+}*/
 
 void AFleeingAlienNPC::OnEnterFleeingState()
 {
@@ -139,15 +138,5 @@ float AFleeingAlienNPC::GetFleeDistance() const
 float AFleeingAlienNPC::GetSafeDistance() const
 {
 	return SafeDistanceFromPlayer;
-}
-
-void AFleeingAlienNPC::ActivateTractorBeamVFX() const
-{
-	TractorBeamVFXComponent->Activate();
-}
-
-void AFleeingAlienNPC::DeactivateTractorBeamVFX() const
-{
-	TractorBeamVFXComponent->Deactivate();
 }
 

@@ -8,7 +8,7 @@ public class SPM26_Grupp1 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Niagara", "CommonUI", "CommonInput", "ApplicationCore", "NavigationSystem", "AIModule" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Niagara", "CommonUI", "CommonInput", "ApplicationCore", "NavigationSystem", "AIModule", "CableComponent" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "FMODStudio" });
 

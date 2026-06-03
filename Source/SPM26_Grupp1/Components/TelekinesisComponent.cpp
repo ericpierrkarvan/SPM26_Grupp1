@@ -3,6 +3,7 @@
 
 #include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 
+#include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
@@ -24,6 +25,9 @@ UTelekinesisComponent::UTelekinesisComponent()
 	DetectionSphere->SetCollisionResponseToChannel(ECC_KINETIC, ECR_Overlap);
 	DetectionSphere->SetGenerateOverlapEvents(true);
 	DetectionSphere->ShapeColor = FColor::Cyan;
+	
+	TractorBeamVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TractorBeamVFXComponent"));
+	
 }
 
 // Called when the game starts
@@ -174,6 +178,17 @@ TObjectPtr<AActor> UTelekinesisComponent::GetAttachedItem() const
 	return AttachedItem;
 }
 
+void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const
+{
+	if (NewState == ETelekinesisState::Entry 
+		|| NewState == ETelekinesisState::ObjectStopped
+		|| NewState == ETelekinesisState::Sucking)
+	{
+		TractorBeamVFXComponent->Activate();
+	}
+	else TractorBeamVFXComponent->Deactivate();
+}
+
 void UTelekinesisComponent::HandleDestroyKineticism()
 {
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
@@ -234,6 +249,7 @@ void UTelekinesisComponent::SetTelekinesisState(ETelekinesisState NewState)
 {
 	if (TelekinesisState == NewState) return;
 	TelekinesisState = NewState;
+	HandleTractorBeamOnStateUpdate(TelekinesisState);
 	OnTelekinesisStateChanged.Broadcast(NewState);
 }
 
@@ -249,6 +265,7 @@ void UTelekinesisComponent::TickComponent(float DeltaTime, enum ELevelTick TickT
 
 	InterceptingItem(DeltaTime);
 	OnAttachedItem(DeltaTime);
+	if (TractorBeamVFXComponent->IsActive()) HandleTractorBeam();
 
 	if (TelekinesisState == ETelekinesisState::Launching)
 	{
@@ -296,3 +313,21 @@ void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloati
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 }
 	
+void UTelekinesisComponent::HandleTractorBeam() const
+{
+	if (GetOwner() && IncomingItem)
+	{
+		TractorBeamVFXComponent->SetVectorParameter(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVectorParameter(FName("End"), IncomingItem->GetActorLocation());
+	}
+}
+
+void UTelekinesisComponent::ActivateTractorBeamVFX() const
+{
+	TractorBeamVFXComponent->Activate();
+}
+
+void UTelekinesisComponent::DeactivateTractorBeamVFX() const
+{
+	TractorBeamVFXComponent->Deactivate();
+}

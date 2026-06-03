@@ -41,10 +41,6 @@ public:
 	// VFX
 	UPROPERTY(EditAnywhere, Category="Alien|VFX")
 	UNiagaraSystem* FleeingVFX;
-	UPROPERTY(EditAnywhere, Category="Alien|VFX")
-	UNiagaraSystem* TractorBeamVFX;
-	UPROPERTY(EditAnywhere, Category="Alien|VFX")
-	UNiagaraComponent* TractorBeamVFXComponent;
 	
 	// Material
 	UPROPERTY(EditAnywhere, Category="Alien|Material")
@@ -60,11 +56,9 @@ protected:
 	void PutDown();
 	UFUNCTION()
 	void PickedUp(AActor* Actor);
-	UFUNCTION()
-	void OnTelekinesisStateChanged(ETelekinesisState NewState);
+	/*UFUNCTION()
+	void OnTelekinesisStateChanged(ETelekinesisState NewState);*/
 	
-	void ActivateTractorBeamVFX() const;
-	void DeactivateTractorBeamVFX() const;
 	void CheckIfRobotBelow();
 	void CheckIfRobotBelowEveryXSeconds(float Seconds);
 	void SetIsHeld();
