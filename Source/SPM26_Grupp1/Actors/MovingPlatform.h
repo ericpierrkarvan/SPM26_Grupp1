@@ -53,10 +53,10 @@ public:
 	UPROPERTY(VisibleAnywhere, Category="MovingPlatform")
 	USplineComponent* Spline;
 	
-	UPROPERTY(EditDefaultsOnly, Category="MovingPlatform")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="MovingPlatform")
 	UStaticMeshComponent* Mesh;
 
-	UPROPERTY(VisibleAnywhere, Category="MovingPlatform")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="MovingPlatform")
 	UInteractableReceiverComponent* ReceiverComponent;
 	
 	UPROPERTY(EditAnywhere, Category="MovingPlatform", meta=(ClampMin="0.1"))
