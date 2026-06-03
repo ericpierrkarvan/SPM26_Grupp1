@@ -105,7 +105,7 @@ void AMechanicCharacter::PossessedBy(AController* NewController)
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
-			Subsystem->AddMappingContext(IMC_Mechanic, 0);
+			Subsystem->AddMappingContext(IMC_MechanicKeyboard, 0);
 		}
 	}
 
@@ -205,12 +205,14 @@ bool AMechanicCharacter::PerformAimTrace(FHitResult& OutHit)
 	
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, CameraLocation, TraceEnd, ECC_Visibility, CameraCollisionParams);
 	OutHit.TraceEnd= TraceEnd;
-
+	
+#if !WITH_EDITOR
 	//draw the debug trace from muzzle -> end location
 	FVector GunTraceStart = GetCurrentProjectileSpawnLocation();
 	FVector CameraTarget = OutHit.bBlockingHit ? OutHit.ImpactPoint : TraceEnd;
 	DrawDebugLine(GetWorld(), GunTraceStart, CameraTarget, PolarityColor, false, -1, 0, 1);
-
+#endif
+	
 	return bHit;
 }
 

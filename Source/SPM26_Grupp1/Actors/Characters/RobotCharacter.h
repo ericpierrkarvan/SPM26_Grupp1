@@ -87,13 +87,20 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	bool HavePayload();
+
+	virtual UInputMappingContext* GetGamepadIMC() const override { return IMC_RobotGamepad; }
+	virtual UInputMappingContext* GetKeyboardIMC() const override { return IMC_RobotKeyboard; }
+	
 protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 	void ScreenDebugPolaritySwitchMessage() const;
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputMappingContext> IMC_Robot;
+	TObjectPtr<UInputMappingContext> IMC_RobotGamepad;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputMappingContext> IMC_RobotKeyboard;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Dash;

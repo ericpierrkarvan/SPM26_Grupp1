@@ -29,10 +29,12 @@ public:
 	void Launch(const FFloatingItemLaunchData& LaunchData) const;
 	void DestroyKineticism();
 	void DestroyMagnetism();
+	void DestroyCreator();
 	void FollowNPCXYLocation();
 	FRotator RotateAroundSelf(float DeltaTime);
 	bool HasBeenAffectedByMagnetism() const;
 	void HasBeenAffectedByMagnetism(bool bNewHasBeenAffectedByMagnetism);
+
 
 	UPROPERTY(VisibleAnywhere)
 	UMagneticComponent* MagComp;
@@ -48,13 +50,17 @@ public:
 	UStaticMeshComponent* GlassMeshComp;
 	UPROPERTY(VisibleAnywhere)
 	AActor* NPC; // The NPC that owns the component that spawned this 
+	UPROPERTY(VisibleAnywhere)
+	UFloatingItemComponent* CreatorComp; // The comp that spawned this 
 	UPROPERTY(EditAnywhere, Category = "Floating|Orbit")
 	float RotationSpeed = 120.f;     // Degrees per second
+
 
 protected:
 	bool bHasBeenAffectedByMagnetism = false; // True -> break connection to NPC
 	bool bAlreadyDestroyedKineticism = false;
 	bool bAlreadyDestroyedMagnetism = false;
+	bool bAlreadyDestroyedCreator = false;
 	float CounterGravityCoefficient = 0.9f; // Counters gravity. 1 should mean weightless
 
 private:
