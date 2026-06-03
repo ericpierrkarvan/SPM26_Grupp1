@@ -10,5 +10,6 @@ enum class EProgressFlag : uint8 //add flag to DevGiveAllProgress if you add/rem
 	GeneratorPartOne UMETA(DisplayName = "Generator Part One"),
 	GeneratorPartTwo UMETA(DisplayName = "Generator Part Two"),
 	GeneratorPartThree UMETA(DisplayName = "Generator Part Three"),
+	GeneratorPartFour UMETA(DisplayName = "Generator Part Four"),
 	None UMETA(DisplayName = "None"),
 };

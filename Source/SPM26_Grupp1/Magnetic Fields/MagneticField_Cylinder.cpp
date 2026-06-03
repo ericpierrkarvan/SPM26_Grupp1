@@ -747,3 +747,8 @@ void AMagneticField_Cylinder::Destroyed()
 	Super::Destroyed();
 	//UE_LOG(LogTemp, Warning, TEXT("MagneticField Destroyed"));
 }
+
+bool AMagneticField_Cylinder::GetStartsActive() const
+{
+	return bStartsActive;
+}

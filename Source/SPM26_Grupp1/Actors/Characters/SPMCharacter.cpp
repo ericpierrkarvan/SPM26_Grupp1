@@ -338,7 +338,7 @@ void ASPMCharacter::HandleGeneratorQuestFlags(const UProgressSubsystem* Progress
 		UISub->HandleGeneratorUnlocked(Count);
 	}
 	
-	if (Count == 3)
+	if (Count == 4)
 	{
 		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Cutscenes/Level_Level2_End.Level_Level2_End")));
 		USPMGameInstance* GI = Cast<USPMGameInstance>(UGameplayStatics::GetGameInstance(this));

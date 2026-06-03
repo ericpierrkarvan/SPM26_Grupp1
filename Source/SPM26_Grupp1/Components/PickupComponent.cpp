@@ -123,6 +123,7 @@ void UPickupComponent::OnDropped()
 
 bool UPickupComponent::CanInteract(AActor* Interactor) const
 {
+	if (bIsHeld) return false;
 	if (AllowedCharacterType == EInteractionCharacters::Any) return true;
 
 	bool bIsMechanic = Interactor->IsA(AMechanicCharacter::StaticClass());
@@ -130,6 +131,7 @@ bool UPickupComponent::CanInteract(AActor* Interactor) const
 
 	if (AllowedCharacterType == EInteractionCharacters::Mechanic) return bIsMechanic;
 	if (AllowedCharacterType == EInteractionCharacters::Robot) return bIsRobot;
+	
 
 	return false;
 }

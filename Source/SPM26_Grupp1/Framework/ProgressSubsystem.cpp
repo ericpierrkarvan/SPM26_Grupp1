@@ -77,7 +77,7 @@ void UProgressSubsystem::SetFlag(EProgressFlag Flag)
 {
 	bool bFlagAlreadyUnlocked = false;
 	Progress.UnlockedFlags.Add(Flag, &bFlagAlreadyUnlocked);
-	UE_LOG(LogTemp, Warning, TEXT("%s: %i"), *GetClass()->GetName(), bFlagAlreadyUnlocked)
+	
 	if (!bFlagAlreadyUnlocked)
 	{
 		OnFlagUnlocked.Broadcast(Flag);
@@ -173,6 +173,7 @@ int32 UProgressSubsystem::GetGeneratorFlagsUnlocked() const
 	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartOne)) Count++;
 	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartTwo)) Count++;
 	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartThree)) Count++;
+	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartFour)) Count++;
 	return Count;
 }
 
@@ -184,6 +185,7 @@ void UProgressSubsystem::DevGiveAllProgress()
 	ClearFlag(EProgressFlag::GeneratorPartOne);
 	ClearFlag(EProgressFlag::GeneratorPartTwo);
 	ClearFlag(EProgressFlag::GeneratorPartThree);
+	ClearFlag(EProgressFlag::GeneratorPartFour);
 	
 	SetFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	SetFlag(EProgressFlag::MagneticGunUnlocked);
@@ -197,6 +199,7 @@ void UProgressSubsystem::DevRemoveAllProgress()
 	ClearFlag(EProgressFlag::GeneratorPartOne);
 	ClearFlag(EProgressFlag::GeneratorPartTwo);
 	ClearFlag(EProgressFlag::GeneratorPartThree);
+	ClearFlag(EProgressFlag::GeneratorPartFour);
 	
 	ClearFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	ClearFlag(EProgressFlag::MagneticGunUnlocked);
