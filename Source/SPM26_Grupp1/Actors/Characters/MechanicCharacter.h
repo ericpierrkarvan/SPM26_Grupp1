@@ -52,6 +52,10 @@ public:
 
 	virtual UInputMappingContext* GetGamepadIMC() const override { return IMC_MechanicGamepad; }
 	virtual UInputMappingContext* GetKeyboardIMC() const override { return IMC_MechanicKeyboard; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetOneJumpRemaining();
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")

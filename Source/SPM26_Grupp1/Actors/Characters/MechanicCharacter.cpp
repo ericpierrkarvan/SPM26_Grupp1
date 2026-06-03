@@ -127,6 +127,16 @@ UMechanicMovementComponent* AMechanicCharacter::GetMechanicMovementComponent() c
 	return Cast<UMechanicMovementComponent>(GetCharacterMovement());
 }
 
+void AMechanicCharacter::SetOneJumpRemaining()
+{
+	if (GetMechanicMovementComponent())
+	{
+		GetMechanicMovementComponent()->ResetJumpsRemaining();
+		GetMechanicMovementComponent()->bHasDoubleJumped = false;
+		GetMechanicMovementComponent()->DecrementJumpCount();
+	}
+}
+
 void AMechanicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
