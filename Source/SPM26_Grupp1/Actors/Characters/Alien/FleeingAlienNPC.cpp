@@ -7,10 +7,12 @@
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/AI/FleeingAIController.h"
 #include "SPM26_Grupp1/Components/PickupComponent.h"
+#include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 
 AFleeingAlienNPC::AFleeingAlienNPC()
 {
-	
+	TractorBeamVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TractorBeamVFXComponent"));
+	TractorBeamVFXComponent->SetupAttachment(RootComponent);
 }
 
 void AFleeingAlienNPC::BeginPlay()
@@ -21,6 +23,10 @@ void AFleeingAlienNPC::BeginPlay()
 	{
 		PickupComp->OnDroppedDelegate.AddDynamic(this, &AFleeingAlienNPC::PutDown);
 		PickupComp->OnPickedUpDelegate.AddDynamic(this, &AFleeingAlienNPC::PickedUp);
+	}
+	if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
+	{
+		TeleComp->OnTelekinesisStateChanged.AddDynamic(this, &AFleeingAlienNPC::OnTelekinesisStateChanged);
 	}
 	
 	CheckIfRobotBelowEveryXSeconds(0.2f);
@@ -101,6 +107,17 @@ void AFleeingAlienNPC::SetIsNotHeld()
 	bIsHeld = false;
 }
 
+void AFleeingAlienNPC::OnTelekinesisStateChanged(ETelekinesisState NewState)
+{
+	if (NewState == ETelekinesisState::Entry 
+		|| NewState == ETelekinesisState::ObjectStopped
+		|| NewState == ETelekinesisState::Sucking)
+	{
+		ActivateTractorBeamVFX();
+	}
+	else DeactivateTractorBeamVFX();
+}
+
 void AFleeingAlienNPC::OnEnterFleeingState()
 {
 	Super::OnEnterFleeingState();
@@ -124,4 +141,13 @@ float AFleeingAlienNPC::GetSafeDistance() const
 	return SafeDistanceFromPlayer;
 }
 
+void AFleeingAlienNPC::ActivateTractorBeamVFX() const
+{
+	TractorBeamVFXComponent->Activate();
+}
+
+void AFleeingAlienNPC::DeactivateTractorBeamVFX() const
+{
+	TractorBeamVFXComponent->Deactivate();
+}
 
