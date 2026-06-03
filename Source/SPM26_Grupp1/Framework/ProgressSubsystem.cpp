@@ -77,10 +77,9 @@ void UProgressSubsystem::SetFlag(EProgressFlag Flag)
 {
 	bool bFlagAlreadyUnlocked = false;
 	Progress.UnlockedFlags.Add(Flag, &bFlagAlreadyUnlocked);
-
+	UE_LOG(LogTemp, Warning, TEXT("%s: %i"), *GetClass()->GetName(), bFlagAlreadyUnlocked)
 	if (!bFlagAlreadyUnlocked)
 	{
-		if (Flag == EProgressFlag::GeneratorPartOne || Flag == EProgressFlag::GeneratorPartTwo || Flag == EProgressFlag::GeneratorPartThree) GeneratorFlagsUnlocked++;
 		OnFlagUnlocked.Broadcast(Flag);
 		SaveProgress();
 	}
@@ -168,14 +167,24 @@ void UProgressSubsystem::LoadProgressObject(UProgressSaveGame* SaveObject)
 	Progress.MechanicMaterial = SaveObject->MechanicMaterial;
 }
 
-int16 UProgressSubsystem::GetGeneratorFlagsUnlocked() const
+int32 UProgressSubsystem::GetGeneratorFlagsUnlocked() const
 {
-	return GeneratorFlagsUnlocked;
+	int32 Count = 0;
+	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartOne)) Count++;
+	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartTwo)) Count++;
+	if (Progress.UnlockedFlags.Contains(EProgressFlag::GeneratorPartThree)) Count++;
+	return Count;
 }
 
 void UProgressSubsystem::DevGiveAllProgress()
 {
 	//update DevRemoveAllProgress()
+
+	//lets not include the generator flags
+	ClearFlag(EProgressFlag::GeneratorPartOne);
+	ClearFlag(EProgressFlag::GeneratorPartTwo);
+	ClearFlag(EProgressFlag::GeneratorPartThree);
+	
 	SetFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	SetFlag(EProgressFlag::MagneticGunUnlocked);
 	SetFlag(EProgressFlag::RobotCanHeadLaunch);
@@ -185,6 +194,10 @@ void UProgressSubsystem::DevGiveAllProgress()
 void UProgressSubsystem::DevRemoveAllProgress()
 {
 	//update DevGiveAllProgress()
+	ClearFlag(EProgressFlag::GeneratorPartOne);
+	ClearFlag(EProgressFlag::GeneratorPartTwo);
+	ClearFlag(EProgressFlag::GeneratorPartThree);
+	
 	ClearFlag(EProgressFlag::MagneticGunCanSwitchPolarity);
 	ClearFlag(EProgressFlag::MagneticGunUnlocked);
 	ClearFlag(EProgressFlag::RobotCanHeadLaunch);

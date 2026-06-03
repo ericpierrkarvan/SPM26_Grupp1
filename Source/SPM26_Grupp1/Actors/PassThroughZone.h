@@ -30,7 +30,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PassThrough")
+	bool bAllowReuse = false;
+	
 	UPROPERTY(EditAnywhere, Category = "PassThroughZone")
 	EPassThroughCondition Condition = EPassThroughCondition::AnyCharacter;
 

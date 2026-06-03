@@ -7,3 +7,13 @@ void UUISubSystem::HandleLevelExitStatus(int32 PlayersInTrigger, float Countdown
 {
 	OnLevelExitStatus.Broadcast(PlayersInTrigger, CountdownSecondsRemaining);
 }
+
+void UUISubSystem::HandleGeneratorUnlocked(int32 GeneratorsUnlocked)
+{
+	OnGeneratorUnlocked.Broadcast(GeneratorsUnlocked);
+}
+
+void UUISubSystem::BroadcastShowQuestText(bool bShow)
+{
+	OnShowQuestText.Broadcast(bShow);
+}

@@ -331,18 +331,19 @@ void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
 // Check generator flags, if has all flags -> Load cutscene
 void ASPMCharacter::HandleGeneratorQuestFlags(const UProgressSubsystem* Progress) const
 {
-	if (Progress->GetGeneratorFlagsUnlocked() == 3)
+	const int32 Count = Progress->GetGeneratorFlagsUnlocked();
+    
+	if (UUISubSystem* UISub = GetGameInstance()->GetSubsystem<UUISubSystem>())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("YOU WIN GAME! Sydney Sweeney is on the phone"));
+		UISub->HandleGeneratorUnlocked(Count);
+	}
+	
+	if (Count == 3)
+	{
 		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Cutscenes/Level_Level2_End.Level_Level2_End")));
 		USPMGameInstance* GI = Cast<USPMGameInstance>(UGameplayStatics::GetGameInstance(this));
 		GI->LoadLevel(StartMenuLevel, true);
-	}	
-	else if (Progress->GetGeneratorFlagsUnlocked() == 2) 
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Two generators unlocked! One to go."));
-	else if (Progress->GetGeneratorFlagsUnlocked() == 1) 
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, TEXT("One generator unlocked! Two to go."));
-	
+	}
 }
 
 void ASPMCharacter::OnIsPickingUp(float DeltaSeconds)

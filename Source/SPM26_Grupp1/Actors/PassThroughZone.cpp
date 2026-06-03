@@ -157,4 +157,9 @@ void APassThroughZone::OnExitEndOverlap(UPrimitiveComponent* OverlappedComponent
 {
 	if (!IsValidActor(OtherActor)) return;
 	PendingActors.Remove(OtherActor);
+
+	if (bAllowReuse)
+	{
+		bPassThroughComplete = false;
+	}
 }
