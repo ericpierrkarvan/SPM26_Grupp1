@@ -550,12 +550,10 @@ void ARobotCharacter::PossessedBy(AController* NewController)
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
-			Subsystem->AddMappingContext(IMC_Robot, 0);
+			Subsystem->AddMappingContext(IMC_RobotGamepad, 0);
 		}
 	}
-
-	SetOwner(GetController());
-
+	
 	SetOwner(GetController());
 }
 
