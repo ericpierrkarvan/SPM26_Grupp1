@@ -2,7 +2,10 @@
 
 
 #include "SPM26_Grupp1/Framework/SPMGameInstance.h"
+
+#include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
+#include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 
 enum class EHardwareDevicePrimaryType : uint8;
 
@@ -102,14 +105,12 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 	{
 		return;
 	}
+	
 
 	//assign kb to player0
 	FInputDeviceId KBDevice = FInputDeviceId::CreateFromInternalId(0);
 	const FPlatformUserId KBOwner = Mapper.GetUserForInputDevice(KBDevice);
-	if (KBOwner != User0)
-	{
-		Mapper.Internal_ChangeInputDeviceUserMapping(KBDevice, User0, KBOwner);
-	}
+	Mapper.Internal_ChangeInputDeviceUserMapping(KBDevice, User0, KBOwner);
 	
 	TArray<FInputDeviceId> Gamepads;
 	TArray<FInputDeviceId> AllDevices;
@@ -119,20 +120,14 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 	for (const FInputDeviceId& Dev : AllDevices)
 	{
 		const FPlatformUserId Owner = Mapper.GetUserForInputDevice(Dev);
-		if (Owner.IsValid() && Dev.GetId() != 0)  //filter out ghost/invalid devices
+		if (Dev.GetId() != 0)  //filter out kb
 		{
 			Gamepads.Add(Dev);
 		}
 	}
 	
     const int32 NumPads = Gamepads.Num();
-  
-    if (NumPads == 0)
-    {
-        //no gamepads detected - only mouse and kb for player0
-        return;
-    }
-
+	
 	if (NumPads == 1)
 	{
 		//if we have only 1 gamepad then we want to assign it to player1
@@ -140,7 +135,7 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 		const FPlatformUserId CurrentOwner = Mapper.GetUserForInputDevice(Gamepads[0]);
 		Mapper.Internal_ChangeInputDeviceUserMapping(Gamepads[0], User1, CurrentOwner);
 	}
-	else
+	else if (NumPads >= 2)
 	{
 		//assign gamepad0 to player0 and gamepad1 to player1
 		//this should not cause any distrubtions for players if they connect/reconnect devices
@@ -149,7 +144,60 @@ void USPMGameInstance::SetupLocalMultiplayerInput()
 		const FPlatformUserId CurrentOwner1 = Mapper.GetUserForInputDevice(Gamepads[1]);
 		Mapper.Internal_ChangeInputDeviceUserMapping(Gamepads[0], User0, CurrentOwner0);
 		Mapper.Internal_ChangeInputDeviceUserMapping(Gamepads[1], User1, CurrentOwner1);
+
+		UE_LOG(LogTemp, Warning, TEXT("After remap: Pad0 -> %d | Pad1 -> %d"),
+	Mapper.GetUserForInputDevice(Gamepads[0]).GetInternalId(),
+	Mapper.GetUserForInputDevice(Gamepads[1]).GetInternalId());
 	}
+
+	//IMC assignment:
+	ASPMCharacter* Char0 = Cast<ASPMCharacter>(PC0->GetPawn());
+	ASPMCharacter* Char1 = Cast<ASPMCharacter>(PC1->GetPawn());
+	if (!Char0 || !Char1) return;
+
+	auto* Sub0 = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP0);
+	auto* Sub1 = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP1);
+	if (!Sub0 || !Sub1) return;
+
+	Sub0->ClearAllMappings();
+	Sub1->ClearAllMappings();
+
+	//devswitch: we want to swap keyboard if we are in editor
+#if WITH_EDITOR
+	if (UInputMappingContext* GP = Char0->GetGamepadIMC())
+		Sub0->AddMappingContext(GP, 0);
+	if (UInputMappingContext* KB = Char0->GetKeyboardIMC())
+		Sub0->AddMappingContext(KB, 1);
+	if (UInputMappingContext* GP = Char1->GetGamepadIMC())
+		Sub1->AddMappingContext(GP, 0);
+#else
+	if (NumPads == 0)
+	{
+		//player0 gets keyboard:
+		if (UInputMappingContext* KB = Char0->GetKeyboardIMC())
+			Sub0->AddMappingContext(KB, 0);
+	}
+	else if (NumPads == 1)
+	{
+		//player0 gets keyboard
+		//player1 gets gamepad
+		if (UInputMappingContext* KB = Char0->GetKeyboardIMC())
+			Sub0->AddMappingContext(KB, 0);
+		if (UInputMappingContext* GP = Char1->GetGamepadIMC())
+			Sub1->AddMappingContext(GP, 0);
+	}
+	else
+	{
+		//player0: kb and gamepad
+		//player1: gamepad
+		if (UInputMappingContext* GP = Char0->GetGamepadIMC())
+			Sub0->AddMappingContext(GP, 0);
+		if (UInputMappingContext* KB = Char0->GetKeyboardIMC())
+			Sub0->AddMappingContext(KB, 1);
+		if (UInputMappingContext* GP = Char1->GetGamepadIMC())
+			Sub1->AddMappingContext(GP, 0);
+	}
+#endif
 }
 
 void USPMGameInstance::SaveSelectedMechanicMaterialIndex(int32 NewIndex)

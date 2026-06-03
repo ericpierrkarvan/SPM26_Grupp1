@@ -127,6 +127,13 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Animation")
 	FOnShoot OnShoot;
+
+	UFUNCTION(BlueprintCallable)
+	virtual UInputMappingContext* GetGamepadIMC() const { return nullptr; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual UInputMappingContext* GetKeyboardIMC() const { return nullptr; }
+	
 protected:
 
 	UPROPERTY()

@@ -105,7 +105,7 @@ void AMechanicCharacter::PossessedBy(AController* NewController)
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
-			Subsystem->AddMappingContext(IMC_Mechanic, 0);
+			Subsystem->AddMappingContext(IMC_MechanicKeyboard, 0);
 		}
 	}
 
