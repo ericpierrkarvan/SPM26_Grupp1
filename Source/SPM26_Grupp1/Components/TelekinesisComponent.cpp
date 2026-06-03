@@ -8,6 +8,7 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Actors/FloatingItemActor.h"
+#include "FloatingItemComponent.h"
 #include "SPM26_Grupp1/Actors/Characters/Alien/FleeingAlienNPC.h"
 
 // Sets default values for this component's properties
@@ -46,6 +47,8 @@ void UTelekinesisComponent::BeginPlay()
 	DetectionSphere->OnComponentEndOverlap.AddDynamic(this, &UTelekinesisComponent::OnSphereOverlapEnd);
 	DetectionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	DetectionSphere->SetGenerateOverlapEvents(true);
+	
+	FloatingItemComp = GetOwner()->GetComponentByClass<UFloatingItemComponent>();
 	
 	if (bShowDebugSphere)
 	{
@@ -238,7 +241,6 @@ void UTelekinesisComponent::SetTelekinesisState(ETelekinesisState NewState)
 {
 	if (TelekinesisState == NewState) return;
 	TelekinesisState = NewState;
-	HandleTractorBeamOnStateUpdate(TelekinesisState);
 	OnTelekinesisStateChanged.Broadcast(NewState);
 }
 
@@ -264,7 +266,11 @@ void UTelekinesisComponent::TickComponent(float DeltaTime, enum ELevelTick TickT
 
 	InterceptingItem(DeltaTime);
 	OnAttachedItem(DeltaTime);
-	if (IncomingItem) StartTractorBeam();
+	
+	if (FloatingItemComp)
+		if (!FloatingItemComp->GetSpawnedItemActorHasBeenConsumed()) StartTractorBeam();
+	
+	
 
 	if (TelekinesisState == ETelekinesisState::Launching)
 	{
@@ -304,21 +310,29 @@ void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloati
 	UE_LOG(LogTemp, Warning, TEXT("TeleComp::Destroyed FloatingActor, resetting"))
 	AttachedItem = nullptr;
 	EjectAttachedTimer = 0.f;
+	
+	if (Actor->CreatorComp) Actor->CreatorComp->DecrementSpawnedActors();
 	Actor->Destroy();
 	
-	if (UFloatingItemComponent* FloatingComp = GetOwner()->FindComponentByClass<UFloatingItemComponent>())
-		FloatingComp->ActivateHiddenItemMesh();
+	if (FloatingItemComp)
+		FloatingItemComp->ActivateHiddenItemMesh();
 	
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 }
 	
 void UTelekinesisComponent::StartTractorBeam() const
 {
-	if (IncomingItem)
+	if (!FloatingItemComp) return;
+	if (!TractorBeamVFXComponent->IsActive()) return;
+	if (FloatingItemComp->AreMeshesVisible())
 	{
 		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
-		TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
-		UE_LOG(LogTemp, Warning, TEXT("Owner location: %s Incoming location: %s"), *GetOwner()->GetActorLocation().ToCompactString(), *IncomingItem->GetActorLocation().ToCompactString())
+		TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetChildComponent(0)->GetComponentLocation());
+	}
+	else if (FloatingItemComp->GetSpawnedItemActor())
+	{
+		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetSpawnedItemActor()->GetActorLocation());
 	}
 }
 
@@ -328,14 +342,25 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 		|| NewState == ETelekinesisState::ObjectStopped
 		|| NewState == ETelekinesisState::Sucking)
 	{
-		if (IncomingItem)
+		if (FloatingItemComp->AreMeshesVisible())
 		{
 			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
-			TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
+			TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetChildComponent(0)->GetComponentLocation());
+			TractorBeamVFXComponent->Activate();
+		}
+		else if (FloatingItemComp->GetSpawnedItemActor())
+		{
+			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+			TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetSpawnedItemActor()->GetActorLocation());
 			TractorBeamVFXComponent->Activate();
 			if (Cast<AFleeingAlienNPC>(GetOwner()))
 				Cast<AFleeingAlienNPC>(GetOwner())->TractorBeamStartingBP();
 		}
+	}
+	else if (NewState == ETelekinesisState::WaitingForKinetic && !FloatingItemComp->GetSpawnedItemActor())
+	{
+		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetChildComponent(0)->GetComponentLocation());
 	}
 	else
 	{
@@ -343,4 +368,9 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 		if (Cast<AFleeingAlienNPC>(GetOwner()))
 			Cast<AFleeingAlienNPC>(GetOwner())->TractorBeamStoppingBP();
 	}
+}
+
+void UTelekinesisComponent::DeactivateTractorVFXComp() const
+{
+	TractorBeamVFXComponent->Deactivate();
 }

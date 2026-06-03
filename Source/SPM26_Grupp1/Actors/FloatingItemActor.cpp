@@ -3,6 +3,9 @@
 #include "Components/SphereComponent.h"
 #include "SPM26_Grupp1/SPM26_Grupp1.h"
 #include "SPM26_Grupp1/Components/ProgressGrantingComponent.h"
+#include "SPM26_Grupp1/Components/MagneticComponent.h"
+#include "SPM26_Grupp1/Components/FloatingItemComponent.h"
+#include "SPM26_Grupp1/Components/TelekinesisComponent.h"
 
 AFloatingItemActor::AFloatingItemActor()
 {
