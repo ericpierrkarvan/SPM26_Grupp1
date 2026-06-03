@@ -27,6 +27,7 @@ UTelekinesisComponent::UTelekinesisComponent()
 	DetectionSphere->ShapeColor = FColor::Cyan;
 	
 	TractorBeamVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TractorBeamVFXComponent"));
+	TractorBeamVFXComponent->SetAbsolute(true, true, true);
 	
 }
 
@@ -168,27 +169,6 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 	}
 }
 
-TObjectPtr<AActor> UTelekinesisComponent::GetIncomingItem() const
-{
-	return IncomingItem;
-}
-
-TObjectPtr<AActor> UTelekinesisComponent::GetAttachedItem() const
-{
-	return AttachedItem;
-}
-
-void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const
-{
-	if (NewState == ETelekinesisState::Entry 
-		|| NewState == ETelekinesisState::ObjectStopped
-		|| NewState == ETelekinesisState::Sucking)
-	{
-		TractorBeamVFXComponent->Activate();
-	}
-	else TractorBeamVFXComponent->Deactivate();
-}
-
 void UTelekinesisComponent::HandleDestroyKineticism()
 {
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
@@ -253,6 +233,16 @@ void UTelekinesisComponent::SetTelekinesisState(ETelekinesisState NewState)
 	OnTelekinesisStateChanged.Broadcast(NewState);
 }
 
+TObjectPtr<AActor> UTelekinesisComponent::GetIncomingItem() const
+{
+	return IncomingItem;
+}
+
+TObjectPtr<AActor> UTelekinesisComponent::GetAttachedItem() const
+{
+	return AttachedItem;
+}
+
 ETelekinesisState UTelekinesisComponent::GetTelekinesisState() const
 {
 	return TelekinesisState;
@@ -265,7 +255,7 @@ void UTelekinesisComponent::TickComponent(float DeltaTime, enum ELevelTick TickT
 
 	InterceptingItem(DeltaTime);
 	OnAttachedItem(DeltaTime);
-	if (TractorBeamVFXComponent->IsActive()) HandleTractorBeam();
+	if (IncomingItem) StartTractorBeam();
 
 	if (TelekinesisState == ETelekinesisState::Launching)
 	{
@@ -313,21 +303,28 @@ void UTelekinesisComponent::DestroyFloatingItemAndActivateHiddenItemMesh(AFloati
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 }
 	
-void UTelekinesisComponent::HandleTractorBeam() const
+void UTelekinesisComponent::StartTractorBeam() const
 {
-	if (GetOwner() && IncomingItem)
+	if (IncomingItem)
 	{
-		TractorBeamVFXComponent->SetVectorParameter(FName("Start"), GetOwner()->GetActorLocation());
-		TractorBeamVFXComponent->SetVectorParameter(FName("End"), IncomingItem->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
+		UE_LOG(LogTemp, Warning, TEXT("Owner location: %s Incoming location: %s"), *GetOwner()->GetActorLocation().ToCompactString(), *IncomingItem->GetActorLocation().ToCompactString())
 	}
 }
 
-void UTelekinesisComponent::ActivateTractorBeamVFX() const
+void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const
 {
-	TractorBeamVFXComponent->Activate();
-}
-
-void UTelekinesisComponent::DeactivateTractorBeamVFX() const
-{
-	TractorBeamVFXComponent->Deactivate();
+	if (NewState == ETelekinesisState::Entry 
+		|| NewState == ETelekinesisState::ObjectStopped
+		|| NewState == ETelekinesisState::Sucking)
+	{
+		if (IncomingItem)
+		{
+			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+			TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
+			TractorBeamVFXComponent->Activate();
+		}
+	}
+	else TractorBeamVFXComponent->Deactivate();
 }

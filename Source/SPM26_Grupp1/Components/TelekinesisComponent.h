@@ -36,14 +36,12 @@ public:
 	void HandleDestroyKineticism();
 	
 	// Tractorbeam
-	void ActivateTractorBeamVFX() const;
-	void DeactivateTractorBeamVFX() const;
-	void HandleTractorBeam() const;
+	void StartTractorBeam() const;
+	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const;
 	
 	// Getters
 	TObjectPtr<AActor> GetIncomingItem() const;
 	TObjectPtr<AActor> GetAttachedItem() const;
-	void HandleTractorBeamOnStateUpdate(const ETelekinesisState NewState) const;
 	void SetTelekinesisState(ETelekinesisState NewState);
 	ETelekinesisState GetTelekinesisState() const;
 
