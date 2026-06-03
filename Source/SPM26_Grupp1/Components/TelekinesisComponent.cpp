@@ -327,12 +327,14 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
 			TractorBeamVFXComponent->SetVariableVec3(FName("End"), IncomingItem->GetActorLocation());
 			TractorBeamVFXComponent->Activate();
-			TractorBeamStartingBP();
+			if (Cast<AFleeingAlienNPC>(GetOwner()))
+				Cast<AFleeingAlienNPC>(GetOwner())->TractorBeamStartingBP();
 		}
 	}
 	else
 	{
 		TractorBeamVFXComponent->Deactivate();
-		TractorBeamStoppingBP();
+		if (Cast<AFleeingAlienNPC>(GetOwner()))
+			Cast<AFleeingAlienNPC>(GetOwner())->TractorBeamStoppingBP();
 	}
 }
