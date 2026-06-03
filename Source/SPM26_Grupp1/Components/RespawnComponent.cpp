@@ -3,8 +3,11 @@
 
 #include "RespawnComponent.h"
 
+#include "MechanicMovementComponent.h"
+#include "SPMCharacterMovementComponent.h"
 #include "Components/ProgressBar.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
+#include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 
@@ -60,6 +63,16 @@ void URespawnComponent::OnRespawnActor()
 	{
 		Character->DeactivateRagdoll();
 
+		if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Character))
+		{
+			MechanicCharacter->GetMechanicMovementComponent()->ResetJumpsRemaining();
+			MechanicCharacter->GetMechanicMovementComponent()->bHasDoubleJumped = false;
+		}
+		else
+		{
+			Character->GetSPMMovementComponent()->ResetJumpsRemaining();
+		}
+
 		if (APlayerController* PC = Cast<APlayerController>(Character->GetController()))
 		{
 			//we might have had lookinput disabled - for example during robot picking up a character
@@ -70,6 +83,7 @@ void URespawnComponent::OnRespawnActor()
 	}
 
 	GetOwner()->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
+
 	RespawnPlayerBP();
 	bIsDead = false;
 	bIsRespawning = false;
