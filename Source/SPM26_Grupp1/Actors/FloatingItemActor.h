@@ -4,10 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "MasterPickUp.h"
-#include "SPM26_Grupp1/Components/FloatingItemComponent.h"
-#include "SPM26_Grupp1/Components/MagneticComponent.h"
+//#include "SPM26_Grupp1/Components/FloatingItemComponent.h"
+//#include "SPM26_Grupp1/Components/MagneticComponent.h"
 #include "FloatingItemActor.generated.h"
 
+struct FFloatingItemLaunchData;
+class USphereComponent;
+class UFloatingItemComponent;
+class UMagneticComponent;
 class UProgressGrantingComponent;
 /**
  * Actor spawned by FloatingItemComponent.

@@ -1,6 +1,6 @@
 
 #include "FloatingItemComponent.h"
-
+#include "TelekinesisComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/FloatingItemActor.h"
 
@@ -39,6 +39,7 @@ void UFloatingItemComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UFloatingItemComponent::LaunchItem()
 {
+	if (CurrentAmountOfSpawnedActors != 0) return;
 	// If incoming item is FloatingItemActor, don't spawn another one.
 	if (const UTelekinesisComponent* TeleComp = GetOwner()->GetComponentByClass<UTelekinesisComponent>())
 	{
@@ -54,15 +55,16 @@ void UFloatingItemComponent::LaunchItem()
 	LaunchData.SpawnTransform = ItemMesh->GetComponentTransform();
 	LaunchData.Polarity = Polarity;
 	
-	AFloatingItemActor* ItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
+	SpawnedItemActor = GetWorld()->SpawnActorDeferred<AFloatingItemActor>(
 		FloatingItemClass,
 		LaunchData.SpawnTransform);
 	
-	if (ItemActor)
+	if (SpawnedItemActor)
 	{
-		ItemActor->SetValuesFromFloatingItemComponent(LaunchData);
-		UGameplayStatics::FinishSpawningActor(ItemActor, LaunchData.SpawnTransform);
-		ItemActor->Launch(LaunchData);
+		SpawnedItemActor->SetValuesFromFloatingItemComponent(LaunchData);
+		UGameplayStatics::FinishSpawningActor(SpawnedItemActor, LaunchData.SpawnTransform);
+		SpawnedItemActor->Launch(LaunchData);
+		CurrentAmountOfSpawnedActors++;
 	}
 	ItemMesh->SetVisibility(false);
 	GlassMesh->SetVisibility(false);
@@ -94,6 +96,36 @@ FRotator UFloatingItemComponent::RotateAroundSelf(const float DeltaTime)
 	return FRotator(0,0,RotateAngle);	
 }
 
+bool UFloatingItemComponent::GetSpawnedItemActorHasBeenConsumed() const
+{
+	return SpawnedItemActorHasBeenConsumed;
+}
+
+void UFloatingItemComponent::SetSpawnedItemActorHasBeenConsumed(bool bNewSpawnedItemActorHasBeenConsumed)
+{
+	SpawnedItemActorHasBeenConsumed = bNewSpawnedItemActorHasBeenConsumed;
+}
+
+AFloatingItemActor* UFloatingItemComponent::GetSpawnedItemActor() const
+{
+	return SpawnedItemActor;
+}
+
+int16 UFloatingItemComponent::GetCurrentAmountOfSpawnedActors() const
+{
+	return CurrentAmountOfSpawnedActors;
+}
+
+void UFloatingItemComponent::SetCurrentAmountOfSpawnedActors(int16 NewCurrentAmountOfSpawnedActors)
+{
+	this->CurrentAmountOfSpawnedActors = NewCurrentAmountOfSpawnedActors;
+}
+
+void UFloatingItemComponent::DecrementSpawnedActors()
+{
+	CurrentAmountOfSpawnedActors--;
+}
+
 void UFloatingItemComponent::ActivateHiddenItemMesh() const
 {
 	ItemMesh->SetVisibility(true);
@@ -102,6 +134,7 @@ void UFloatingItemComponent::ActivateHiddenItemMesh() const
 
 bool UFloatingItemComponent::AreMeshesVisible() const
 {
+	if (!IsValid(ItemMesh) || !IsValid(GlassMesh)) return false;
 	return ItemMesh->IsVisible() && GlassMesh->IsVisible();
 }
 
