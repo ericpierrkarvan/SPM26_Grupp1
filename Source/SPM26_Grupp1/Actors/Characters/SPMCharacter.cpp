@@ -334,7 +334,7 @@ void ASPMCharacter::HandleGeneratorQuestFlags(const UProgressSubsystem* Progress
 	if (Progress->GetGeneratorFlagsUnlocked() == 3)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("YOU WIN GAME! Sydney Sweeney is on the phone"));
-		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Startmenue.Startmenue")));
+		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Cutscenes/Level_Level2_End.Level_Level2_End")));
 		USPMGameInstance* GI = Cast<USPMGameInstance>(UGameplayStatics::GetGameInstance(this));
 		GI->LoadLevel(StartMenuLevel, true);
 	}	
