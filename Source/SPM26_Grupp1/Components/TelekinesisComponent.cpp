@@ -143,9 +143,12 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 		if (InterceptTimer >= EntryDelay)
 		{
-			Physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
+			if (!Cast<AFloatingItemActor>(IncomingItem))
+			{
+				Physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
+				Physics->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
 			SetTelekinesisState(ETelekinesisState::ObjectStopped);
-			Physics->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			InterceptTimer = 0.f;
 		}
 		return;
@@ -298,7 +301,7 @@ void UTelekinesisComponent::LaunchAttachedItem()
 	AttachedItem->DetachFromActor(DetachRules);
 
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(AttachedItem->GetRootComponent());
-	if (Physics)
+	if (Physics && !(Cast<AFloatingItemActor>(AttachedItem)))
 	{
 		Physics->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Physics->SetSimulatePhysics(true);
