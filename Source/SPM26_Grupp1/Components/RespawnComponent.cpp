@@ -50,7 +50,6 @@ void URespawnComponent::Respawn()
 	if (bIsDead) return;
 	bIsDead = true;
 	bIsRespawning = true;
-	UE_LOG(LogTemp, Warning, TEXT("Is Respawning"));
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, &URespawnComponent::OnRespawnActor, RespawnDelay,
 	                                       false);
 }
@@ -61,8 +60,6 @@ void URespawnComponent::OnRespawnActor()
 
 	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
 	{
-		Character->DeactivateRagdoll();
-
 		if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Character))
 		{
 			MechanicCharacter->GetMechanicMovementComponent()->ResetJumpsRemaining();
@@ -83,11 +80,20 @@ void URespawnComponent::OnRespawnActor()
 	}
 
 	GetOwner()->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
-
+	
+	//Set view target after teleporting the player to not get a snappy transition
+	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
+	{
+		Character->DeactivateRagdoll();
+		if (APlayerController* PC = Cast<APlayerController>(Character->GetController()))
+		{
+			PC->SetViewTargetWithBlend(Character, 1.f, VTBlend_EaseInOut, 2.f, true);
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%s has respawned"), *GetOwner()->GetName())
 	RespawnPlayerBP();
 	bIsDead = false;
 	bIsRespawning = false;
-	UE_LOG(LogTemp, Warning, TEXT("Has Respawned"));
 }
 
 void URespawnComponent::SetCheckpoint(const ACheckpoint* NewCheckpoint)
