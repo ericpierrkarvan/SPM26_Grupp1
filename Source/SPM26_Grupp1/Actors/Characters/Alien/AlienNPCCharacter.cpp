@@ -2,7 +2,10 @@
 
 
 #include "AlienNPCCharacter.h"
+
+#include "ChasingAlienNPC.h"
 #include "NiagaraComponent.h"
+#include "PatrollingAlienNPC.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 class ARobotCharacter;
@@ -29,7 +32,8 @@ void AAlienNPCCharacter::BeginPlay()
 	MovComp = GetCharacterMovement();
 	MovComp->MaxWalkSpeed = PatrolSpeed;
 	
-	StatMesh = GetComponentByClass<UStaticMeshComponent>();
+	//StatMesh = GetComponentByClass<UStaticMeshComponent>();
+	SkeletalMesh = GetComponentByClass<USkeletalMeshComponent>();
 	
 }
 
@@ -72,7 +76,11 @@ void AAlienNPCCharacter::OnEnterPatrollingState()
 {
 	ModeVFXComponent->SetAsset(PatrollingVFX); 
 	MovComp->MaxWalkSpeed = PatrolSpeed;
-	if (StatMesh) StatMesh->SetMaterial(2, PatrolEmissiveMaterial);
+	//if (StatMesh) StatMesh->SetMaterial(2, PatrolEmissiveMaterial);
+	// EmissiveIndex because somehow materials are different for the skeletal meshesh (skm_alien1,2,3)
+	int16 EmissiveIndex = (Cast<APatrollingAlienNPC>(this) || Cast<AChasingAlienNPC>(this)) 
+		? 1 : 2;
+	if (SkeletalMesh) SkeletalMesh->SetMaterial(EmissiveIndex, PatrolEmissiveMaterial);
 	IsPatrollingBP(); 
 }
 
