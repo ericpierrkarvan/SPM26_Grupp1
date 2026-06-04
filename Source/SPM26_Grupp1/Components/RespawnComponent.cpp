@@ -87,6 +87,7 @@ void URespawnComponent::OnRespawnActor()
 	RespawnPlayerBP();
 	bIsDead = false;
 	bIsRespawning = false;
+	OnRespawned.Broadcast();
 	UE_LOG(LogTemp, Warning, TEXT("Has Respawned"));
 }
 
