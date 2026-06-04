@@ -128,4 +128,7 @@ private:
 	float InterceptTimer = 0.f;
 	float LaunchCooldownTimer = 0.f;
 
+	UPROPERTY()
+	USceneComponent* CachedAttachPoint;
+
 };
