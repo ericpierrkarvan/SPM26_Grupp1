@@ -31,6 +31,8 @@ class APolarity;
 class UPickupComponent;
 class UFMODAudioComponent;
 class UProgressSubsystem;
+class URespawnComponent;
+class ARespawnCameraActor;
 
 UENUM(BlueprintType)
 enum class ECameraState : uint8
@@ -40,7 +42,6 @@ enum class ECameraState : uint8
 	Payload  UMETA(DisplayName = "Payload")
 };
 
-class URespawnComponent;
 
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
@@ -321,6 +322,8 @@ private:
 	void OnJumpRelease();
 	
 	URespawnComponent* RespawnComponent;
+	ARespawnCameraActor* RespawnCameraActor;
+	float DeathCameraTimer = 0.f;
 	
 	FName SavedProfileName;
 	FName SavedMeshProfileName;

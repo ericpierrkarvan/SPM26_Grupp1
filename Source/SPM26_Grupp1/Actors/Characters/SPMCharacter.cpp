@@ -27,7 +27,7 @@
 #include "SPM26_Grupp1/Components/MechanicMovementComponent.h"
 #include "SPM26_Grupp1/Framework/SPMGameInstance.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
-
+#include "SPM26_Grupp1/Actors/RespawnCameraActor.h"
 // Sets default values
 ASPMCharacter::ASPMCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<USPMCharacterMovementComponent>(
@@ -120,7 +120,7 @@ void ASPMCharacter::BeginPlay()
 
 	RelativeCollisionTransform = GetCapsuleComponent()->GetRelativeTransform();
 	RelativeMeshTransform = GetMesh()->GetRelativeTransform();
-
+	
 	RespawnCameraActor = GetWorld()->SpawnActor<ARespawnCameraActor>();
 }
 
@@ -794,7 +794,7 @@ void ASPMCharacter::Tick(float DeltaTime)
 			SwitchPolarityTimer = 0;
 		}
 	}
-
+	
 	if (RespawnComponent->GetIsRespawning())
 	{
 		if (DeathCameraTimer > 0.f)
@@ -809,6 +809,7 @@ void ASPMCharacter::Tick(float DeltaTime)
 			RespawnCameraActor->SetActorRotation(LookAt);
 		}
 	}
+	
 }
 
 EPolarity ASPMCharacter::GetPolarity() const

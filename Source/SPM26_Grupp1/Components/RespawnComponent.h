@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRespawned);
 class ACheckpoint;
+class ARespawnCameraActor;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SPM26_GRUPP1_API URespawnComponent : public UActorComponent
@@ -62,6 +63,6 @@ private:
 	FTimerHandle RespawnTimerHandle;
 	bool bIsDead = false;
 	
-	
+	ARespawnCameraActor* RespawnCameraActor;
 	
 };
