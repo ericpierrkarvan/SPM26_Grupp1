@@ -120,12 +120,25 @@ void ASPMCharacter::BeginPlay()
 
 	RelativeCollisionTransform = GetCapsuleComponent()->GetRelativeTransform();
 	RelativeMeshTransform = GetMesh()->GetRelativeTransform();
+
+	RespawnCameraActor = GetWorld()->SpawnActor<ARespawnCameraActor>();
 }
 
 void ASPMCharacter::OnDeath()
 {
 	if (RespawnComponent->GetIsDead()) return;
 	ActivateRagdoll();
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		RespawnCameraActor->SetActorLocation(FollowCamera->GetComponentLocation());
+		RespawnCameraActor->SetActorRotation(FollowCamera->GetComponentRotation());
+
+		PC->SetViewTarget(RespawnCameraActor);
+	}
+	DeathCameraTimer = RespawnComponent->GetRespawnDelay();
+
+	UE_LOG(LogTemp, Warning, TEXT("%s has died"), *GetName())
 }
 
 URespawnComponent* ASPMCharacter::GetRespawnComponent() const
@@ -317,7 +330,6 @@ bool ASPMCharacter::FindPickup()
 void ASPMCharacter::ApplyProgress(UProgressSubsystem* Progress)
 {
 	HandleGeneratorQuestFlags(Progress);
-
 }
 
 void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
@@ -332,15 +344,16 @@ void ASPMCharacter::HandleFlagUnlocked(EProgressFlag Flag)
 void ASPMCharacter::HandleGeneratorQuestFlags(const UProgressSubsystem* Progress) const
 {
 	const int32 Count = Progress->GetGeneratorFlagsUnlocked();
-    
+
 	if (UUISubSystem* UISub = GetGameInstance()->GetSubsystem<UUISubSystem>())
 	{
 		UISub->HandleGeneratorUnlocked(Count);
 	}
-	
+
 	if (Count == 4)
 	{
-		TSoftObjectPtr<UWorld> StartMenuLevel(FSoftObjectPath(TEXT("/Game/Levels/Cutscenes/Level_Level2_End.Level_Level2_End")));
+		TSoftObjectPtr<UWorld> StartMenuLevel(
+			FSoftObjectPath(TEXT("/Game/Levels/Cutscenes/Level_Level2_End.Level_Level2_End")));
 		USPMGameInstance* GI = Cast<USPMGameInstance>(UGameplayStatics::GetGameInstance(this));
 		GI->LoadLevel(StartMenuLevel, true);
 	}
@@ -768,6 +781,22 @@ void ASPMCharacter::Tick(float DeltaTime)
 			SwitchPolarityTimer = 0;
 		}
 	}
+
+	if (RespawnComponent->GetIsRespawning())
+	{
+		if (DeathCameraTimer > 0.f)
+		{
+			DeathCameraTimer -= DeltaTime;
+			FVector RagdollPos = GetMesh()->GetComponentLocation();
+
+			FRotator LookAtRagdollLocation = (RagdollPos - RespawnCameraActor->GetActorLocation()).Rotation();
+
+			FRotator LookAt = FMath::RInterpTo(RespawnCameraActor->GetActorRotation(), LookAtRagdollLocation, DeltaTime,
+			                                   10.f);
+
+			RespawnCameraActor->SetActorRotation(LookAt);
+		}
+	}
 }
 
 EPolarity ASPMCharacter::GetPolarity() const
@@ -860,7 +889,7 @@ void ASPMCharacter::Landed(const FHitResult& Hit)
 	{
 		MoveComp->ResetJumpsRemaining();
 	}
-	
+
 	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(this))
 	{
 		MechanicCharacter->GetMechanicMovementComponent()->bHasDoubleJumped = false;

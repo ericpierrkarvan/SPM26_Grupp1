@@ -6,6 +6,7 @@
 #include "InputAction.h"
 #include "SPM26_Grupp1/Framework/SPMPlayerController.h"
 #include "GameFramework/Character.h"
+#include "SPM26_Grupp1/Actors/RespawnCameraActor.h"
 #include "SPM26_Grupp1/Enum/Polarity.h"
 #include "SPM26_Grupp1/Framework/UISubSystem.h"
 
@@ -31,6 +32,7 @@ class APolarity;
 class UPickupComponent;
 class UFMODAudioComponent;
 class UProgressSubsystem;
+class URespawnComponent;
 
 UENUM(BlueprintType)
 enum class ECameraState : uint8
@@ -40,7 +42,7 @@ enum class ECameraState : uint8
 	Payload  UMETA(DisplayName = "Payload")
 };
 
-class URespawnComponent;
+
 
 UCLASS()
 class SPM26_GRUPP1_API ASPMCharacter : public ACharacter
@@ -321,6 +323,8 @@ private:
 	void OnJumpRelease();
 	
 	URespawnComponent* RespawnComponent;
+	ARespawnCameraActor* RespawnCameraActor;
+	float DeathCameraTimer = 0.f;
 	
 	FName SavedProfileName;
 	FName SavedMeshProfileName;
@@ -328,4 +332,5 @@ private:
 	FCollisionResponseContainer SavedResponses;
 	FTransform RelativeCollisionTransform;
 	FTransform RelativeMeshTransform;
+	
 };
