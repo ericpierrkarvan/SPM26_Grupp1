@@ -64,7 +64,7 @@ void AChasingAlienNPC::TriggerRadialPushback(float DeltaTime)
 		Cast<ACharacter>(Actor)->GetCharacterMovement()->AddImpulse(AwayDirection * Falloff * RadialForceComponent->ImpulseStrength, true);
 		AlienPushBackBP();
 		PlayPushBackVFX();
-		DealDamage(Cast<ACharacter>(Actor));
+		// DealDamage(Cast<ACharacter>(Actor));
 	}
 	TimeSinceLastPushBack = 0.f;
 	
