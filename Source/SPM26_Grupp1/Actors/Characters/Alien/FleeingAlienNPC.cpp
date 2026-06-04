@@ -101,24 +101,13 @@ void AFleeingAlienNPC::SetIsNotHeld()
 	bIsHeld = false;
 }
 
-// When telekinesis happening, activate tractorbeam
-/*void AFleeingAlienNPC::OnTelekinesisStateChanged(ETelekinesisState NewState)
-{
-	if (NewState == ETelekinesisState::Entry 
-		|| NewState == ETelekinesisState::ObjectStopped
-		|| NewState == ETelekinesisState::Sucking)
-	{
-		//if (UTelekinesisComponent* TeleComp = FindComponentByClass<UTelekinesisComponent>())
-	}
-	//else //
-}*/
-
 void AFleeingAlienNPC::OnEnterFleeingState()
 {
 	Super::OnEnterFleeingState();
-	ModeVFXComponent->SetAsset(FleeingVFX); 
-	if (StatMesh) StatMesh->SetMaterial(2, FleeEmissiveMaterial);
-	MovComp->MaxWalkSpeed = FleeSpeed;
+	if (ModeVFXComponent) ModeVFXComponent->SetAsset(FleeingVFX); 
+	if (SkeletalMesh) SkeletalMesh->SetMaterial(2, FleeEmissiveMaterial);
+	// if (StatMesh) StatMesh->SetMaterial(2, FleeEmissiveMaterial);
+	if (MovComp) MovComp->MaxWalkSpeed = FleeSpeed;
 }
 
 void AFleeingAlienNPC::OnEnterPatrollingState()

@@ -63,7 +63,9 @@ protected:
 	bool bIsFleeingNPC;
 	
 	// Mesh
-	UStaticMeshComponent* StatMesh = nullptr;
+	//UStaticMeshComponent* StatMesh = nullptr;
+	UPROPERTY()
+	USkeletalMeshComponent* SkeletalMesh;
 	UPROPERTY()
 	UCapsuleComponent* CapsuleComp = nullptr;
 	

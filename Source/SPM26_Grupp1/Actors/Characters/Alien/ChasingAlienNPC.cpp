@@ -64,7 +64,7 @@ void AChasingAlienNPC::TriggerRadialPushback(float DeltaTime)
 		Cast<ACharacter>(Actor)->GetCharacterMovement()->AddImpulse(AwayDirection * Falloff * RadialForceComponent->ImpulseStrength, true);
 		AlienPushBackBP();
 		PlayPushBackVFX();
-		DealDamage(Cast<ACharacter>(Actor));
+		// DealDamage(Cast<ACharacter>(Actor));
 	}
 	TimeSinceLastPushBack = 0.f;
 	
@@ -92,7 +92,7 @@ void AChasingAlienNPC::OnEnterInvestigatingState()
 	Super::OnEnterInvestigatingState();
 	
 	MovComp->MaxWalkSpeed = InvestigateSpeed;
-	if (StatMesh) StatMesh->SetMaterial(2, PatrolEmissiveMaterial);
+	if (SkeletalMesh) SkeletalMesh->SetMaterial(1, PatrolEmissiveMaterial);
 	ModeVFXComponent->SetAsset(InvestigatingVFX); 
 }
 
@@ -101,6 +101,6 @@ void AChasingAlienNPC::OnEnterChasingState()
 	Super::OnEnterChasingState();
 	
 	MovComp->MaxWalkSpeed = ChaseSpeed;
-	if (StatMesh) StatMesh->SetMaterial(2, ChasingEmissiveMaterial);
+	if (SkeletalMesh) SkeletalMesh->SetMaterial(1, ChasingEmissiveMaterial);
 	ModeVFXComponent->SetAsset(ChasingVFX);
 }
