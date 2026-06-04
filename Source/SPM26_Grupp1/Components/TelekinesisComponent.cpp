@@ -143,9 +143,12 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 
 		if (InterceptTimer >= EntryDelay)
 		{
-			Physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
+			if (!Cast<AFloatingItemActor>(IncomingItem))
+			{
+				Physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
+				Physics->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
 			SetTelekinesisState(ETelekinesisState::ObjectStopped);
-			Physics->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			InterceptTimer = 0.f;
 		}
 		return;
