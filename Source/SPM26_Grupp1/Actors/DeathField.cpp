@@ -66,7 +66,7 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 	if (!RespawnComponent) return;
 
-	if (RespawnComponent->GetIsDead()) return;
+	if (TrackedActors.Contains(OtherActor)) return;
 
 	if (OtherOverlappedComponent->IsSimulatingPhysics() && ShouldRiseToSurface)
 	{
@@ -75,6 +75,8 @@ void ADeathField::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		OtherOverlappedComponent->SetLinearDamping(10.f);
 		OtherOverlappedComponent->SetAngularDamping(10.f);
 	}
+	
+	TrackedActors.AddUnique(OtherActor);
 
 	if (ASPMCharacter* Character = Cast<ASPMCharacter>(OtherActor))
 	{
@@ -122,6 +124,7 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			if (!Mesh || !TrackedRagdolls.Contains(Mesh)) return;
 		}
 	}
+	TrackedActors.Remove(OtherActor);
 	
 	if (BuoyantComponents.Contains(OtherOverlappedComponent))
 		BuoyantComponents.Remove(OtherOverlappedComponent);
