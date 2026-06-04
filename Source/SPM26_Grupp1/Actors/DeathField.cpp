@@ -142,12 +142,6 @@ void ADeathField::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			Body->UpdateDampingProperties();
 		}
 	}
-
-	float LavaSurfaceZ = GetActorLocation().Z + Trigger->GetScaledBoxExtent().Z;
-
-	if (OtherOverlappedComponent->GetComponentLocation().Z >= LavaSurfaceZ - 50.f)
-	{
-	}
 }
 
 void ADeathField::SpawnDeathEffect(AActor* DeadActor)

@@ -128,13 +128,26 @@ void ASPMCharacter::OnDeath()
 {
 	if (RespawnComponent->GetIsDead()) return;
 	ActivateRagdoll();
-
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	
+	if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(this))
 	{
-		RespawnCameraActor->SetActorLocation(FollowCamera->GetComponentLocation());
-		RespawnCameraActor->SetActorRotation(FollowCamera->GetComponentRotation());
-
-		PC->SetViewTarget(RespawnCameraActor);
+		APlayerController* PC0 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 0);
+		if (PC0)
+		{
+			RespawnCameraActor->SetActorLocation(FollowCamera->GetComponentLocation());
+			RespawnCameraActor->SetActorRotation(FollowCamera->GetComponentRotation());
+			PC0->SetViewTargetWithBlend(RespawnCameraActor, 1.f, VTBlend_EaseInOut, 2.f, true);
+		}
+	}
+	else if (ARobotCharacter* Robot = Cast<ARobotCharacter>(this))
+	{
+		APlayerController* PC1 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 1);
+		if (PC1)
+		{
+			RespawnCameraActor->SetActorLocation(FollowCamera->GetComponentLocation());
+			RespawnCameraActor->SetActorRotation(FollowCamera->GetComponentRotation());
+			PC1->SetViewTargetWithBlend(RespawnCameraActor, 1.f, VTBlend_EaseInOut, 2.f, true);
+		}
 	}
 	DeathCameraTimer = RespawnComponent->GetRespawnDelay();
 
@@ -793,7 +806,6 @@ void ASPMCharacter::Tick(float DeltaTime)
 
 			FRotator LookAt = FMath::RInterpTo(RespawnCameraActor->GetActorRotation(), LookAtRagdollLocation, DeltaTime,
 			                                   10.f);
-
 			RespawnCameraActor->SetActorRotation(LookAt);
 		}
 	}

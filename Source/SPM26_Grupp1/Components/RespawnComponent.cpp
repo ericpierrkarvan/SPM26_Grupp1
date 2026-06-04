@@ -6,8 +6,10 @@
 #include "MechanicMovementComponent.h"
 #include "SPMCharacterMovementComponent.h"
 #include "Components/ProgressBar.h"
+#include "Kismet/GameplayStatics.h"
 #include "SPM26_Grupp1/Actors/Checkpoint.h"
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
+#include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/SPMCharacter.h"
 #include "SPM26_Grupp1/Framework/ProgressSubsystem.h"
 
@@ -60,6 +62,7 @@ void URespawnComponent::OnRespawnActor()
 
 	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
 	{
+		Character->DeactivateRagdoll();
 		if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Character))
 		{
 			MechanicCharacter->GetMechanicMovementComponent()->ResetJumpsRemaining();
@@ -82,18 +85,31 @@ void URespawnComponent::OnRespawnActor()
 	GetOwner()->SetActorTransform(RespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
 	
 	//Set view target after teleporting the player to not get a snappy transition
-	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
-	{
-		Character->DeactivateRagdoll();
-		if (APlayerController* PC = Cast<APlayerController>(Character->GetController()))
-		{
-			PC->SetViewTargetWithBlend(Character, 1.f, VTBlend_EaseInOut, 2.f, true);
-		}
-	}
 	UE_LOG(LogTemp, Warning, TEXT("%s has respawned"), *GetOwner()->GetName())
 	RespawnPlayerBP();
 	bIsDead = false;
 	bIsRespawning = false;
+	
+	if (ASPMCharacter* Character = Cast<ASPMCharacter>(GetOwner()))
+	{
+		if (AMechanicCharacter* MechanicCharacter = Cast<AMechanicCharacter>(Character))
+		{
+			APlayerController* PC0 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 0);
+			if (PC0)
+			{
+				PC0->SetViewTargetWithBlend(Character, 1.f, VTBlend_EaseInOut, 2.f, true);
+			}
+		}
+		else if (ARobotCharacter* Robot = Cast<ARobotCharacter>(Character))
+		{
+			APlayerController* PC1 = UGameplayStatics::GetPlayerControllerFromID(GetWorld(), 1);
+			if (PC1)
+			{
+				PC1->SetViewTargetWithBlend(Character, 1.f, VTBlend_EaseInOut, 2.f, true);
+			}
+		}
+	}
+	
 }
 
 void URespawnComponent::SetCheckpoint(const ACheckpoint* NewCheckpoint)
