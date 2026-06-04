@@ -14,7 +14,7 @@
 // Sets default values for this component's properties
 URespawnComponent::URespawnComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 
