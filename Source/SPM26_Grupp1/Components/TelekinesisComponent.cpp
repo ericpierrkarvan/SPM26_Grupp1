@@ -298,7 +298,7 @@ void UTelekinesisComponent::LaunchAttachedItem()
 	AttachedItem->DetachFromActor(DetachRules);
 
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(AttachedItem->GetRootComponent());
-	if (Physics)
+	if (Physics && !(Cast<AFloatingItemActor>(AttachedItem)))
 	{
 		Physics->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Physics->SetSimulatePhysics(true);
