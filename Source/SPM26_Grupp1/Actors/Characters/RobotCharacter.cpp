@@ -220,8 +220,13 @@ void ARobotCharacter::OnIsPickingUp(float DeltaSeconds)
 			//at the time we finished lifting the character
 			if (ACharacter* Char = Cast<ACharacter>(HeldActor))
 			{
+				
+				if (HeldPickupComponent.IsValid())
+				{
+					HeldPickupComponent->OnDropped(); // resets bIsHeld, but sets MOVE_Falling
+				}
 				Char->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-				Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+				//Char->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 				HeldActor = nullptr; //once we lifted the character, we are no longer holding it
 				HeldPickupComponent = nullptr;
 				bIsPickingUp = false;
