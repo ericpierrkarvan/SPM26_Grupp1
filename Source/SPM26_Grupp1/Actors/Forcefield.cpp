@@ -12,6 +12,7 @@
 
 AForcefield::AForcefield()
 {
+	PrimaryActorTick.bCanEverTick = false;
 	Collider = CreateDefaultSubobject<UBoxComponent>("Collider");
 	SetRootComponent(Collider);
 	Collider->SetCollisionResponseToAllChannels(ECR_Overlap);

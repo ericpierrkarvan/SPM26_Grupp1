@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "RespawnComponent.generated.h"
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRespawned);
 class ACheckpoint;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -15,6 +15,7 @@ class SPM26_GRUPP1_API URespawnComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	
 	URespawnComponent();
 	void Respawn();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -30,7 +31,10 @@ public:
 	bool GetIsRespawning() const { return bIsRespawning; }
 	
 	void CancelRespawnTimer();
+
 	
+	UPROPERTY(BlueprintAssignable, Category ="Respawn")
+	FOnRespawned OnRespawned;
 protected:
 	virtual void BeginPlay() override;
 

@@ -13,7 +13,7 @@
 ACheckpoint::ACheckpoint()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	SetRootComponent(Trigger);
 	
