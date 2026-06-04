@@ -64,14 +64,27 @@ void UTelekinesisComponent::BeginPlay()
 	TractorBeamVFXComponent->SetAsset(TractorBeamVFX);*/
 }
 
+
+
 void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor) return;
 	if (IncomingItem) return;
 	if (AttachedItem) return;
 	if (OtherActor->GetVelocity().Size() <= 20.f) return; //todo: need a better check if an item has been thrown
 	if (Cast<AFleeingAlienNPC>(GetOwner())->GetMovementComponent()->IsFlying()) return;
+
+	TArray<USceneComponent*> OwnerComps;
+	GetOwner()->GetComponents<USceneComponent>(OwnerComps);
+	for (USceneComponent* Comp : OwnerComps)
+	{
+		if (Comp->GetName() == TEXT("KineticAttachPoint"))
+		{
+			CachedAttachPoint = Comp;
+			break;
+		}
+	}
 	
 	IncomingItem = OtherActor;
 	SetTelekinesisState(ETelekinesisState::Entry);
@@ -81,7 +94,9 @@ void UTelekinesisComponent::OnSphereOverlapBegin(UPrimitiveComponent* Overlapped
 	if (Physics)
 	{
 		EntryVelocity = Physics->GetPhysicsLinearVelocity();
+		//Physics->SetSimulatePhysics(false);
 		Physics->SetEnableGravity(false);
+		//Physics->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -92,6 +107,7 @@ void UTelekinesisComponent::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedCo
 
 	//restore state
 	IncomingItem = nullptr;
+	CachedAttachPoint = nullptr;
 	SetTelekinesisState(ETelekinesisState::WaitingForKinetic);
 	InterceptTimer = 0.f;
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
@@ -111,7 +127,8 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 	if (!bIsIntercepting) return;
 	
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(IncomingItem->GetRootComponent());
-	if (!Physics || !Physics->IsSimulatingPhysics()) return;
+	//if (!Physics || !Physics->IsSimulatingPhysics()) return;
+	if (!Physics) return;
 
 	InterceptTimer += DeltaTime;
 
@@ -128,7 +145,7 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 		{
 			Physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
 			SetTelekinesisState(ETelekinesisState::ObjectStopped);
-			
+			Physics->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			InterceptTimer = 0.f;
 		}
 		return;
@@ -156,16 +173,19 @@ void UTelekinesisComponent::InterceptingItem(float DeltaTime)
 		float RadiusOffset;
 		Cast<AFloatingItemActor>(IncomingItem) ? RadiusOffset = 50.f : RadiusOffset = 5.f;
 		//end slighly above edge of sphere
-		FVector PullLocation = DetectionSphere->GetComponentLocation() - FVector(0, 0, (SphereRadius - RadiusOffset));
+		FVector PullLocation = CachedAttachPoint ? CachedAttachPoint->GetComponentLocation() : DetectionSphere->GetComponentLocation() - FVector(0, 0, (SphereRadius - RadiusOffset));
 		float Alpha = FMath::Clamp(InterceptTimer / SuckDuration, 0.f, 1.f);
 
 		//move and rotate the object towards our end destination
-		FVector NewLocation = FMath::Lerp(SuckStartLocation, PullLocation, Alpha);
+		FVector NewLocation = FMath::VInterpTo(IncomingItem->GetActorLocation(), PullLocation, DeltaTime, FMath::Lerp(2.f, 14.f, Alpha));
 		if(IncomingItem) IncomingItem->SetActorLocation(NewLocation);
 		FRotator TargetRotation = FRotator(180.f, EntryRotation.Yaw, EntryRotation.Roll);
-		if(IncomingItem) IncomingItem->SetActorRotation(FMath::Lerp(EntryRotation, TargetRotation, Alpha));
+		//if(IncomingItem) IncomingItem->SetActorRotation(FMath::Lerp(EntryRotation, TargetRotation, Alpha));
 
-		if (Alpha >= 1.f)
+		if (!IncomingItem) return;
+		IncomingItem->SetActorRotation(TargetRotation);
+		if (!IncomingItem) return;
+		if (FVector::Dist(IncomingItem->GetActorLocation(), PullLocation) < 10.f || Alpha >= 1.f)
 		{
 			//we reached the end, stop any velocity
 			Physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
@@ -192,34 +212,16 @@ void UTelekinesisComponent::AttachItemToOwner(AActor* Item, const FVector& Targe
                                               const FRotator& TargetRotation)
 {
 	if (!Item) return;
+	if (!CachedAttachPoint) return;
 
-	FAttachmentTransformRules AttachRules(EAttachmentRule::KeepWorld, true);
-	Item->AttachToActor(GetOwner(), AttachRules);
-
-	USceneComponent* AttachPoint = nullptr;
-	TArray<USceneComponent*> Components;
-	Item->GetComponents<USceneComponent>(Components);
-	for (USceneComponent* Comp : Components)
-	{
-		//lets try and find a component "AttachPoint" we use it as offset
-		if (Comp->GetName() == TEXT("AttachPoint"))
-		{
-			AttachPoint = Comp;
-			break;
-		}
-	}
-
-	if (AttachPoint)
-	{
-		FVector LocalOffset = Item->GetActorLocation() - AttachPoint->GetComponentLocation();
-		Item->SetActorLocation(TargetLocation + LocalOffset);
-	}
-	else
-	{
-		Item->SetActorLocation(TargetLocation);
-	}
-
-	Item->SetActorRotation(TargetRotation);
+	FAttachmentTransformRules AttachRules(
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::KeepWorld,
+		EAttachmentRule::KeepWorld,
+		true
+	);
+    
+	Item->AttachToComponent(CachedAttachPoint, AttachRules);
 	AttachedItem = Item;
 }
 
@@ -229,11 +231,16 @@ void UTelekinesisComponent::OnAttachedItem(float DeltaTime)
 
 	EjectAttachedTimer += DeltaTime;
 
+	if (Cast<AFloatingItemActor>(AttachedItem))
+	{
+		DestroyFloatingItemAndActivateHiddenItemMesh(Cast<AFloatingItemActor>(AttachedItem));
+		return;
+	}
+		
+	
 	if (EjectAttachedTimer >= ItemAttachedDuration)
 	{
-		if (Cast<AFloatingItemActor>(AttachedItem)) 
-			DestroyFloatingItemAndActivateHiddenItemMesh(Cast<AFloatingItemActor>(AttachedItem));
-		else LaunchAttachedItem();
+		LaunchAttachedItem();
 	}
 }
 
@@ -293,6 +300,7 @@ void UTelekinesisComponent::LaunchAttachedItem()
 	UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(AttachedItem->GetRootComponent());
 	if (Physics)
 	{
+		Physics->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Physics->SetSimulatePhysics(true);
 		Physics->SetEnableGravity(true);
 		Physics->AddImpulse(FVector(0, 0, AttachItemEjectStrength), NAME_None, true);

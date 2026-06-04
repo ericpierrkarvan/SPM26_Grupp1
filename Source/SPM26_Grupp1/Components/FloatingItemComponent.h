@@ -44,8 +44,8 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPM26_GRUPP1_API UFloatingItemComponent : public USceneComponent
 {
 	GENERATED_BODY()
-
-public:	
+	
+public:
 	UFloatingItemComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
@@ -89,10 +89,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Floating|Spawning")
 	AFloatingItemActor* SpawnedItemActor;
 	
-	UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
+	// Meshes
+	UPROPERTY(VisibleAnywhere , Category = "Floating|Mesh")
 	UStaticMeshComponent* ItemMesh;
-	UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
+	UPROPERTY(VisibleAnywhere , Category = "Floating|Mesh")
 	UStaticMeshComponent* GlassMesh;
+	//UPROPERTY(EditAnywhere, Category = "Floating|Mesh")
+	//UStaticMeshComponent* SurroundingMesh;
+	
 	UPROPERTY(EditAnywhere, Category = "Floating")
 	EPolarity Polarity = EPolarity::Negative;
 	
