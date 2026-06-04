@@ -57,6 +57,10 @@ public:
 	// Getters & Setters
 	UFUNCTION(BlueprintCallable)
 	float GetLaunchTimePercentage() const;
+	UFUNCTION(BlueprintCallable)
+	bool CanEverHeadLaunch() const;
+	UFUNCTION(BlueprintCallable)
+	bool HasAttachedSpring() const;
 	void SetIsWithinMagneticField(bool bNewValue);
 	bool GetIsWithinMagneticField() const;
 	bool GetIsInLaunchMode() const { return bIsInLaunchMode; }
@@ -69,6 +73,10 @@ public:
 	// Mechanics
 	void StartRepelImmunity();
 	void ProgressEnablePolaritySwitch();
+	
+	// Events
+	UFUNCTION(BlueprintImplementableEvent)
+	void ApplyProgressBP();
 
 	// Bools
 	bool CanBeAffectedByMagneticField() const;
@@ -248,8 +256,7 @@ private:
 	UFUNCTION()
 	void OnPlatformOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	                          int32 OtherBodyIndex);
-
-
+	
 	void EnterLaunchMode();
 	void ExitLaunchMode();
 	bool bIsInLaunchMode = false;
@@ -287,6 +294,8 @@ private:
 	//progress:
 	bool bCanEverSwitchPolarity = false;
 	bool bCanEverHeadLaunch = false;
+	bool bHasAttachedSpring = false;
+	
 	void UpdateADSScan(float DeltaSeconds);
 
 	UPROPERTY()
