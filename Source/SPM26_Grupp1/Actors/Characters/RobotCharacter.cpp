@@ -530,6 +530,8 @@ void ARobotCharacter::ApplyProgress(UProgressSubsystem* Progress)
 		OnPolaritySwitchUnlocked.Broadcast(bCanEverSwitchPolarity);
 
 		bCanEverHeadLaunch = Progress->HasFlag(EProgressFlag::RobotCanHeadLaunch);
+		ApplyProgressBP();
+		if (bCanEverHeadLaunch) bHasAttachedSpring = true; 
 
 		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
 		{
@@ -888,6 +890,16 @@ bool ARobotCharacter::IsLaunchableObject(AActor* Object) const
 	}
 
 	return false;
+}
+
+bool ARobotCharacter::CanEverHeadLaunch() const
+{
+	return bCanEverHeadLaunch;
+}
+
+bool ARobotCharacter::HasAttachedSpring() const
+{
+	return bHasAttachedSpring;
 }
 
 void ARobotCharacter::UpdateADSScan(float DeltaSeconds)
