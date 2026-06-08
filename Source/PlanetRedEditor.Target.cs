@@ -3,9 +3,9 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class SPM26_Grupp1EditorTarget : TargetRules
+public class PlanetRedEditorTarget : TargetRules
 {
-	public SPM26_Grupp1EditorTarget( TargetInfo Target) : base(Target)
+	public PlanetRedEditorTarget( TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V6;

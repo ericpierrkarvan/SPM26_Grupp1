@@ -3,9 +3,9 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class SPM26_Grupp1Target : TargetRules
+public class PlanetRedTarget : TargetRules
 {
-	public SPM26_Grupp1Target(TargetInfo Target) : base(Target)
+	public PlanetRedTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V6;
