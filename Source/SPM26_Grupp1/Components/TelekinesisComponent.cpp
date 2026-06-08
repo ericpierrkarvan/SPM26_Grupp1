@@ -228,6 +228,24 @@ void UTelekinesisComponent::AttachItemToOwner(AActor* Item, const FVector& Targe
 	AttachedItem = Item;
 }
 
+FVector UTelekinesisComponent::GetBeamStartLocation() const
+{
+	FVector SpawnLocation = GetOwner()->GetActorLocation();
+
+	ACharacter* OwnerChar = Cast<ACharacter>(GetOwner());
+	if (OwnerChar)
+	{
+		const FName SocketName = FName("bucketSocket");
+		USkeletalMeshComponent* Mesh = OwnerChar->GetMesh();
+
+		if (Mesh->DoesSocketExist(SocketName))
+		{
+			SpawnLocation = Mesh->GetSocketLocation(SocketName);
+		}
+	}
+	return SpawnLocation;
+}
+
 void UTelekinesisComponent::OnAttachedItem(float DeltaTime)
 {
 	if (!AttachedItem) return;
@@ -339,12 +357,12 @@ void UTelekinesisComponent::StartTractorBeam() const
 	if (!TractorBeamVFXComponent->IsActive()) return;
 	if (FloatingItemComp->AreMeshesVisible())
 	{
-		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetBeamStartLocation());
 		TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetChildComponent(0)->GetComponentLocation());
 	}
 	else if (FloatingItemComp->GetSpawnedItemActor())
 	{
-		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetBeamStartLocation());
 		TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetSpawnedItemActor()->GetActorLocation());
 	}
 }
@@ -357,13 +375,15 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 	{
 		if (FloatingItemComp->AreMeshesVisible())
 		{
-			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+			
+			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetBeamStartLocation());
 			TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetChildComponent(0)->GetComponentLocation());
 			TractorBeamVFXComponent->Activate();
 		}
 		else if (FloatingItemComp->GetSpawnedItemActor())
 		{
-			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+			
+			TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetBeamStartLocation());
 			TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetSpawnedItemActor()->GetActorLocation());
 			TractorBeamVFXComponent->Activate();
 			if (Cast<AFleeingAlienNPC>(GetOwner()))
@@ -372,7 +392,7 @@ void UTelekinesisComponent::HandleTractorBeamOnStateUpdate(const ETelekinesisSta
 	}
 	else if (NewState == ETelekinesisState::WaitingForKinetic && !FloatingItemComp->GetSpawnedItemActor())
 	{
-		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetOwner()->GetActorLocation());
+		TractorBeamVFXComponent->SetVariableVec3(FName("Start"), GetBeamStartLocation());
 		TractorBeamVFXComponent->SetVariableVec3(FName("End"), FloatingItemComp->GetChildComponent(0)->GetComponentLocation());
 	}
 	else

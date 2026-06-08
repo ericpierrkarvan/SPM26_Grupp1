@@ -131,4 +131,6 @@ private:
 	UPROPERTY()
 	USceneComponent* CachedAttachPoint;
 
+	FVector GetBeamStartLocation() const;
+
 };
