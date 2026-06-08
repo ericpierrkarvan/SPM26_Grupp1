@@ -175,11 +175,13 @@ void ASPMGameModeBase::SpawnPlayersAtStart()
 				
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		FRotator OnlyDirectionRotation = FRotator(0.f, SpawnTransform.Rotator().Yaw, 0.f);
 		
 		ACharacter* NewPawn = GetWorld()->SpawnActor<ACharacter>(
 		ClassOrder[i],
 		SpawnTransform.GetLocation(),
-		SpawnTransform.Rotator(),
+		OnlyDirectionRotation,
 		Params);
 
 		PlayerController->Possess(NewPawn);
