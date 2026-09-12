@@ -10,6 +10,7 @@
 #include "SPM26_Grupp1/Actors/Characters/MechanicCharacter.h"
 #include "SPM26_Grupp1/Actors/Characters/RobotCharacter.h"
 
+
 TArray<APlayerController*> ASPMGameModeBase::GetPlayerControllers()
 {
 	return PlayerControllers;
@@ -80,9 +81,21 @@ void ASPMGameModeBase::SwapPossession()
 	if (ACharacter* Char1 = Cast<ACharacter>(OriginalPawn1.Get()))
 		Char1->GetCharacterMovement()->Velocity = Velocity1;
 	
-	// Lock each viewport camera to its original pawn
-	PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
-	PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
+	bool bSplitscreenEnabled = true;
+	GConfig->GetBool(TEXT("/Script/EngineSettings.GameMapsSettings"), TEXT("bUseSplitscreen"), bSplitscreenEnabled, GEngineIni);
+
+	if (bSplitscreenEnabled)
+	{
+		//each viewport stays locked to its own original pawn
+		PC0->SetViewTargetWithBlend(OriginalPawn0.Get());
+		PC1->SetViewTargetWithBlend(OriginalPawn1.Get());
+	}
+	else
+	{
+		//single viewport: camera follows whichever pawn each PC currently possesses
+		PC0->SetViewTargetWithBlend(PC0->GetPawn());
+		PC1->SetViewTargetWithBlend(PC1->GetPawn());
+	}
 
 	PC0->bIsSwitchingPlayer = false;
 	PC1->bIsSwitchingPlayer = false;
